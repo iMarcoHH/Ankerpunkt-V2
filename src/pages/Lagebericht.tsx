@@ -1,16 +1,16 @@
 import { useMemo } from 'react'
 import { useStore } from '../store'
 import { AnchorLogo } from '../components/AnchorLogo'
+import { supabase } from '../lib/supabase'
 
 function fmt(n: number) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
 export function LageberichtPage() {
-  const { transactions, insurances, goals, profile, achievements } = useStore()
+  const { transactions, insurances, goals, profile, achievements, setUserId, setTransactions, setInsurances, setGoals, setAchievements, setProfile } = useStore()
 
-  // ── Compute KPIs ──────────────────────────────────────────────────────────
-  const now = new Date()
+  const now   = new Date()
   const month = now.getMonth()
   const year  = now.getFullYear()
 
@@ -29,35 +29,40 @@ export function LageberichtPage() {
     [insurances]
   )
 
-  const budgetPct = totalIncome > 0 ? Math.min(100, Math.round(totalExpense / totalIncome * 100)) : 0
-
-  const xp    = profile?.xp ?? 0
-  const level = profile?.level ?? 1
-  const xpNext = level * 100
-  const xpPct  = Math.min(100, Math.round(xp / xpNext * 100))
+  const budgetPct  = totalIncome > 0 ? Math.min(100, Math.round(totalExpense / totalIncome * 100)) : 0
+  const xp         = profile?.xp ?? 0
+  const level      = profile?.level ?? 1
+  const xpNext     = level * 100
+  const xpPct      = Math.min(100, Math.round(xp / xpNext * 100))
+  const unlockedCount = achievements.length
+  const monthName  = now.toLocaleString('de-DE', { month: 'long' })
+  const showDemo   = transactions.length === 0
 
   const recentTx = useMemo(() =>
     [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5),
     [transactions]
   )
 
-  const unlockedCount = achievements.length
-
-  const monthName = now.toLocaleString('de-DE', { month: 'long' })
-
-  // ── Demo data fallback ────────────────────────────────────────────────────
-  const showDemo = transactions.length === 0
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    setUserId(null)
+    setTransactions([])
+    setInsurances([])
+    setGoals([])
+    setAchievements([])
+    setProfile(null)
+  }
 
   return (
     <div className="pb-28 min-h-screen" style={{ background: '#F4F2EE' }}>
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
+      {/* Header */}
       <div className="bg-navy px-5 pt-14 pb-8 relative overflow-hidden" style={{ borderBottom: '3px solid #C8392B' }}>
-        {/* grid bg */}
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)',
           backgroundSize: '40px 40px',
         }}/>
+
         <div className="flex items-center justify-between mb-6 relative z-10">
           <div className="flex items-center gap-3">
             <AnchorLogo size={28} />
@@ -68,15 +73,27 @@ export function LageberichtPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="bg-white/10 rounded-full px-3 py-1 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-signal animate-pulse-dot"/>
+              <div className="w-1.5 h-1.5 rounded-full bg-signal" style={{ animation: 'pulseDot 2s ease-in-out infinite' }}/>
               <span className="font-mono text-[9px] text-white/60 tracking-widest">LVL {level}</span>
             </div>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              title="Ausloggen"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+              style={{ background: 'rgba(200,57,43,0.15)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C8392B" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* greeting */}
         <div className="relative z-10">
-          <div className="font-mono text-[10px] text-red tracking-widest uppercase mb-1">// Ahoi {profile?.username ?? 'Marco'}</div>
+          <div className="font-mono text-[10px] text-red tracking-widest uppercase mb-1">// Ahoi {profile?.username ?? 'Kapitän'}</div>
           <div className="font-display text-white text-4xl tracking-wide leading-none">LAGEBERICHT</div>
           <div className="font-sans text-white/30 text-xs font-light mt-1">{monthName} {year} · Aktuell</div>
         </div>
@@ -84,27 +101,25 @@ export function LageberichtPage() {
 
       <div className="px-4 py-5 space-y-4">
 
-        {/* ── KPI Grid ──────────────────────────────────────────────────── */}
+        {/* KPI Grid */}
         <div className="grid grid-cols-2 gap-3 animate-in">
           {[
-            { label: 'Einnahmen / Monat', value: showDemo ? '4.500' : fmt(totalIncome),  note: 'laufend',       border: '#E8A832', icon: '↑' },
-            { label: 'Ausgaben / Monat',  value: showDemo ? '818'  : fmt(totalExpense),  note: 'laufend',       border: '#C8392B', icon: '↓' },
-            { label: 'Netto',             value: showDemo ? '3.682': fmt(Math.abs(netto)),note: netto >= 0 ? 'Im Plus' : 'Im Minus', border: '#0D1B2A', icon: netto >= 0 ? '✓' : '!' },
-            { label: 'Versicherungen',    value: showDemo ? '9'    : fmt(monthlyInsurance), note: `${insurances.length} aktiv`, border: '#9AA0A6', icon: '🛡' },
+            { label: 'Einnahmen / Monat', value: showDemo ? '4.500' : fmt(totalIncome),       note: 'laufend',                                  border: '#E8A832' },
+            { label: 'Ausgaben / Monat',  value: showDemo ? '818'   : fmt(totalExpense),       note: 'laufend',                                  border: '#C8392B' },
+            { label: 'Netto',             value: showDemo ? '3.682' : fmt(Math.abs(netto)),    note: netto >= 0 ? 'Im Plus' : 'Im Minus',        border: '#0D1B2A' },
+            { label: 'Versicherungen',    value: showDemo ? '9'     : fmt(monthlyInsurance),   note: `${insurances.length} aktiv`,               border: '#9AA0A6' },
           ].map((kpi, i) => (
             <div key={i} className="ak-card p-4" style={{ borderLeft: `3px solid ${kpi.border}` }}>
-              <div className="font-mono text-[9px] tracking-widest uppercase mb-2" style={{ color: '#9AA0A6' }}>
-                {kpi.label}
-              </div>
+              <div className="font-mono text-[9px] tracking-widest uppercase mb-2 text-cement">{kpi.label}</div>
               <div className="font-display text-navy leading-none" style={{ fontSize: 28 }}>
                 {kpi.value}<span className="text-base font-sans font-light text-cement ml-0.5">€</span>
               </div>
-              <div className="font-mono text-[9px] mt-1" style={{ color: '#9AA0A6' }}>{kpi.note}</div>
+              <div className="font-mono text-[9px] mt-1 text-cement">{kpi.note}</div>
             </div>
           ))}
         </div>
 
-        {/* ── Budget bar ────────────────────────────────────────────────── */}
+        {/* Budget bar */}
         <div className="ak-card p-4 animate-in-2">
           <div className="flex justify-between items-center mb-2">
             <div className="font-mono text-[10px] tracking-widest uppercase text-cement">Budget-Auslastung</div>
@@ -119,7 +134,7 @@ export function LageberichtPage() {
           </div>
         </div>
 
-        {/* ── XP / Level ───────────────────────────────────────────────── */}
+        {/* XP / Level */}
         <div className="ak-card bg-navy p-4 animate-in-3" style={{ borderLeft: '3px solid #C8392B' }}>
           <div className="flex justify-between items-center mb-2">
             <div>
@@ -136,20 +151,19 @@ export function LageberichtPage() {
           </div>
         </div>
 
-        {/* ── Letzte Bewegungen ─────────────────────────────────────────── */}
+        {/* Letzte Einträge */}
         <div className="animate-in-4">
           <div className="font-mono text-[10px] tracking-widest uppercase text-cement mb-3 flex items-center gap-2">
             <span>Letzte Einträge</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }}/>
           </div>
-
           {showDemo ? (
             <div className="space-y-2">
               {[
-                { desc: 'Gehalt Juni',    cat: 'Gehalt',     amount: 4500,  type: 'income',  date: '01.06.' },
-                { desc: 'Miete',          cat: 'Wohnen',     amount: -600,  type: 'expense', date: '01.06.' },
-                { desc: 'Fitnessstudio',  cat: 'Abos',       amount: -85,   type: 'expense', date: '03.06.' },
-                { desc: 'Fahrkarte',      cat: 'Transport',  amount: -63,   type: 'expense', date: '04.06.' },
+                { desc: 'Gehalt Juni',   cat: 'Gehalt',    amount: 4500, type: 'income',  date: '01.06.' },
+                { desc: 'Miete',         cat: 'Wohnen',    amount: -600, type: 'expense', date: '01.06.' },
+                { desc: 'Fitnessstudio', cat: 'Abos',      amount: -85,  type: 'expense', date: '03.06.' },
+                { desc: 'Fahrkarte',     cat: 'Transport', amount: -63,  type: 'expense', date: '04.06.' },
               ].map((tx, i) => (
                 <TxRow key={i} desc={tx.desc} cat={tx.cat} amount={tx.amount} date={tx.date} isIncome={tx.type === 'income'} />
               ))}
@@ -172,7 +186,7 @@ export function LageberichtPage() {
           )}
         </div>
 
-        {/* ── Sparziele ────────────────────────────────────────────────── */}
+        {/* Sparziele */}
         {(goals.length > 0 || showDemo) && (
           <div className="animate-in-5">
             <div className="font-mono text-[10px] tracking-widest uppercase text-cement mb-3 flex items-center gap-2">
@@ -181,10 +195,9 @@ export function LageberichtPage() {
             </div>
             <div className="space-y-3">
               {showDemo ? (
-                <GoalCard name="Urlaub Japan" current={0} target={1500} deadline="1.9.2026" color="#C8392B"/>
+                <GoalCard name="Urlaub Japan" current={0} target={1500} deadline="2026-09-01" color="#C8392B"/>
               ) : goals.slice(0, 3).map(g => (
-                <GoalCard key={g.id} name={g.name} current={g.current} target={g.target}
-                          deadline={g.deadline} color={g.color}/>
+                <GoalCard key={g.id} name={g.name} current={g.current} target={g.target} deadline={g.deadline} color={g.color}/>
               ))}
             </div>
           </div>
@@ -195,11 +208,7 @@ export function LageberichtPage() {
   )
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
-
-function TxRow({ desc, cat, amount, date, isIncome }: {
-  desc: string; cat: string; amount: number; date: string; isIncome: boolean
-}) {
+function TxRow({ desc, cat, amount, date, isIncome }: { desc: string; cat: string; amount: number; date: string; isIncome: boolean }) {
   return (
     <div className="ak-card p-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -219,9 +228,7 @@ function TxRow({ desc, cat, amount, date, isIncome }: {
   )
 }
 
-function GoalCard({ name, current, target, deadline, color }: {
-  name: string; current: number; target: number; deadline: string | null; color: string
-}) {
+function GoalCard({ name, current, target, deadline, color }: { name: string; current: number; target: number; deadline: string | null; color: string }) {
   const pct = target > 0 ? Math.min(100, Math.round(current / target * 100)) : 0
   return (
     <div className="ak-card p-4" style={{ borderLeft: `3px solid ${color}` }}>
@@ -230,9 +237,7 @@ function GoalCard({ name, current, target, deadline, color }: {
           <div className="font-sans text-sm font-semibold text-navy">{name}</div>
           {deadline && <div className="font-mono text-[9px] text-cement mt-0.5">bis {new Date(deadline).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>}
         </div>
-        <div className="text-right">
-          <div className="font-display text-navy text-xl">{pct}<span className="text-sm text-cement">%</span></div>
-        </div>
+        <div className="font-display text-navy text-xl">{pct}<span className="text-sm text-cement">%</span></div>
       </div>
       <div className="progress-track">
         <div className="progress-fill" style={{ width: `${pct}%`, background: color }}/>
