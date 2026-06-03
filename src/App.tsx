@@ -41,18 +41,19 @@ export default function App() {
   async function loadData(uid: string) {
     setLoading(true)
     try {
-      const [{ data: txs }, { data: ins }, { data: goals }, { data: ach }, { data: profile }] = await Promise.all([
+      const [txsRes, insRes, goalsRes, achRes, profileRes] = await Promise.allSettled([
         supabase.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
         supabase.from('insurances').select('*').eq('user_id', uid),
         supabase.from('savings_goals').select('*').eq('user_id', uid),
         supabase.from('achievements').select('*').eq('user_id', uid),
-        supabase.from('profiles').select('*').eq('id', uid).single(),
+        supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
       ])
-      if (txs)     setTransactions(txs)
-      if (ins)     setInsurances(ins)
-      if (goals)   setGoals(goals)
-      if (ach)     setAchievements(ach)
-      if (profile) setProfile(profile)
+
+      if (txsRes.status === 'fulfilled' && txsRes.value.data)       setTransactions(txsRes.value.data)
+      if (insRes.status === 'fulfilled' && insRes.value.data)        setInsurances(insRes.value.data)
+      if (goalsRes.status === 'fulfilled' && goalsRes.value.data)    setGoals(goalsRes.value.data)
+      if (achRes.status === 'fulfilled' && achRes.value.data)        setAchievements(achRes.value.data)
+      if (profileRes.status === 'fulfilled' && profileRes.value.data) setProfile(profileRes.value.data)
     } catch (e) {
       console.error('loadData error:', e)
     }
