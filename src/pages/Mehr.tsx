@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useStore } from '../store'
-import { supabase, ACHIEVEMENT_DEFS, type SavingsGoal } from '../lib/supabase'
+import { supabase, ACHIEVEMENT_DEFS } from '../lib/supabase'
 
 type SubPage = 'menu' | 'sparziele' | 'achievements' | 'ki' | 'rechner' | 'news'
 
@@ -24,11 +24,11 @@ export function MehrPage() {
   }
 
   const MENU = [
-    { id: 'sparziele',    label: 'Sparziele',       icon: '🎯', desc: 'Ziele setzen & verfolgen'     },
-    { id: 'achievements', label: 'Achievements',    icon: '🏆', desc: 'XP & Belohnungen'             },
-    { id: 'ki',           label: 'KI-Assistent',    icon: '🤖', desc: 'Frag deinen Finanzcoach'      },
-    { id: 'rechner',      label: 'Rechner',          icon: '🧮', desc: 'Kredit, Zins, Währung'       },
-    { id: 'news',         label: 'Live-News',        icon: '📰', desc: 'Wirtschaft & Märkte'         },
+    { id: 'sparziele',    label: 'Sparziele',    icon: '🎯', desc: 'Ziele setzen & verfolgen' },
+    { id: 'achievements', label: 'Achievements', icon: '🏆', desc: 'XP & Belohnungen'         },
+    { id: 'ki',           label: 'KI-Assistent', icon: '🤖', desc: 'Frag deinen Finanzcoach'  },
+    { id: 'rechner',      label: 'Rechner',       icon: '🧮', desc: 'Kredit, Zins, Währung'   },
+    { id: 'news',         label: 'Live-News',     icon: '📰', desc: 'Wirtschaft & Märkte'     },
   ]
 
   return (
@@ -40,10 +40,10 @@ export function MehrPage() {
       <div className="px-4 py-5 space-y-2">
         {MENU.map((item, i) => (
           <button key={item.id} onClick={() => setSub(item.id as SubPage)}
-            className={`ak-card w-full p-4 flex items-center justify-between animate-in`}
+            className="ak-card w-full p-4 flex items-center justify-between animate-in"
             style={{ animationDelay: `${i * 0.06}s`, opacity: 0, textAlign: 'left' }}>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-navy/6 flex items-center justify-center text-xl">{item.icon}</div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(13,27,42,0.06)' }}>{item.icon}</div>
               <div>
                 <div className="font-sans text-sm font-semibold text-navy">{item.label}</div>
                 <div className="font-mono text-[9px] text-cement uppercase tracking-wider mt-0.5">{item.desc}</div>
@@ -273,18 +273,14 @@ Nutzerdaten:
         <Back/>
         <div className="font-display text-white text-4xl tracking-wide">KI-ASSISTENT</div>
       </div>
-
-      {/* Quick prompts */}
       <div className="px-4 pt-4 flex gap-2 overflow-x-auto scrollbar-hide flex-shrink-0 pb-2">
         {QUICK.map(q => (
-          <button key={q} onClick={() => { setInput(q); }}
+          <button key={q} onClick={() => setInput(q)}
             className="flex-shrink-0 bg-white border border-navy/10 rounded-full px-3 py-1.5 font-mono text-[9px] text-steel tracking-wider uppercase whitespace-nowrap">
             {q}
           </button>
         ))}
       </div>
-
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         {messages.map((m, i) => (
           <div key={i} className={m.role === 'user' ? 'bubble-user self-end' : 'bubble-ai'}>
@@ -304,8 +300,6 @@ Nutzerdaten:
         )}
         <div ref={bottomRef}/>
       </div>
-
-      {/* Input */}
       <div className="px-4 py-3 border-t border-navy/10 bg-white flex-shrink-0" style={{ paddingBottom: 'calc(12px + var(--nav-h) + env(safe-area-inset-bottom,0px))' }}>
         <div className="flex gap-2">
           <input
@@ -331,22 +325,18 @@ Nutzerdaten:
 
 function RechnerView({ onBack: Back }: { onBack: React.FC }) {
   const [tab, setTab] = useState<'kredit'|'zins'|'waehrung'>('kredit')
-
-  // Kredit
-  const [betrag, setBetrag]   = useState('20000')
-  const [zinssatz, setZins]   = useState('4.5')
-  const [laufzeit, setLauf]   = useState('5')
+  const [betrag, setBetrag] = useState('20000')
+  const [zinssatz, setZins] = useState('4.5')
+  const [laufzeit, setLauf] = useState('5')
+  const [kapital, setKapital] = useState('10000')
+  const [jahreszins, setJz] = useState('5')
+  const [jahre, setJahre] = useState('10')
 
   const rate = (() => {
     const p = parseFloat(betrag), r = parseFloat(zinssatz)/100/12, n = parseFloat(laufzeit)*12
     if (!p || !r || !n) return null
     return (p * r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1)
   })()
-
-  // Zinseszins
-  const [kapital, setKapital] = useState('10000')
-  const [jahreszins, setJz]   = useState('5')
-  const [jahre, setJahre]     = useState('10')
 
   const endkapital = (() => {
     const k = parseFloat(kapital), z = parseFloat(jahreszins)/100, j = parseFloat(jahre)
@@ -363,18 +353,16 @@ function RechnerView({ onBack: Back }: { onBack: React.FC }) {
       <div className="px-4 py-5 space-y-4">
         <div className="flex gap-2">
           {(['kredit','zins','waehrung'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`ak-tab flex-1 ${tab===t?'active':''}`}>
+            <button key={t} onClick={() => setTab(t)} className={`ak-tab flex-1 ${tab===t?'active':''}`}>
               {t === 'kredit' ? 'Kredit' : t === 'zins' ? 'Zinseszins' : 'Währung'}
             </button>
           ))}
         </div>
-
         {tab === 'kredit' && (
-          <div className="space-y-3 animate-in">
+          <div className="space-y-3">
             <CalcField label="Kreditbetrag (€)" value={betrag} onChange={setBetrag} type="number"/>
-            <CalcField label="Zinssatz (% p.a.)"  value={zinssatz} onChange={setZins} type="number"/>
-            <CalcField label="Laufzeit (Jahre)"   value={laufzeit} onChange={setLauf} type="number"/>
+            <CalcField label="Zinssatz (% p.a.)" value={zinssatz} onChange={setZins} type="number"/>
+            <CalcField label="Laufzeit (Jahre)"  value={laufzeit} onChange={setLauf} type="number"/>
             {rate !== null && (
               <div className="ak-card bg-navy p-4" style={{ borderLeft: '3px solid #C8392B' }}>
                 <div className="font-mono text-[9px] text-white/40 tracking-widest uppercase mb-1">Monatliche Rate</div>
@@ -384,12 +372,11 @@ function RechnerView({ onBack: Back }: { onBack: React.FC }) {
             )}
           </div>
         )}
-
         {tab === 'zins' && (
-          <div className="space-y-3 animate-in">
-            <CalcField label="Startkapital (€)"  value={kapital}    onChange={setKapital} type="number"/>
-            <CalcField label="Jahreszins (%)"     value={jahreszins} onChange={setJz}      type="number"/>
-            <CalcField label="Laufzeit (Jahre)"   value={jahre}      onChange={setJahre}   type="number"/>
+          <div className="space-y-3">
+            <CalcField label="Startkapital (€)" value={kapital}    onChange={setKapital} type="number"/>
+            <CalcField label="Jahreszins (%)"    value={jahreszins} onChange={setJz}      type="number"/>
+            <CalcField label="Laufzeit (Jahre)"  value={jahre}      onChange={setJahre}   type="number"/>
             {endkapital !== null && (
               <div className="ak-card bg-navy p-4" style={{ borderLeft: '3px solid #E8A832' }}>
                 <div className="font-mono text-[9px] text-white/40 tracking-widest uppercase mb-1">Endkapital nach {jahre} Jahren</div>
@@ -399,10 +386,7 @@ function RechnerView({ onBack: Back }: { onBack: React.FC }) {
             )}
           </div>
         )}
-
-        {tab === 'waehrung' && (
-          <CurrencyCalc/>
-        )}
+        {tab === 'waehrung' && <CurrencyCalc/>}
       </div>
     </div>
   )
@@ -419,25 +403,19 @@ function CalcField({ label, value, onChange, type }: { label:string; value:strin
 
 function CurrencyCalc() {
   const [amount, setAmount] = useState('100')
-  const [from, setFrom]     = useState('EUR')
-  const [to, setTo]         = useState('USD')
+  const [from, setFrom] = useState('EUR')
+  const [to, setTo] = useState('USD')
   const [result, setResult] = useState<number|null>(null)
-  const [loading, setLoading] = useState(false)
-
-  // Static fallback rates
   const RATES: Record<string, number> = { EUR: 1, USD: 1.08, GBP: 0.86, CHF: 0.96, JPY: 163.5 }
-
-  function convert() {
-    setLoading(true)
-    const base = parseFloat(amount) / (RATES[from] ?? 1)
-    setResult(base * (RATES[to] ?? 1))
-    setLoading(false)
-  }
-
   const CURRENCIES = ['EUR','USD','GBP','CHF','JPY']
 
+  function convert() {
+    const base = parseFloat(amount) / (RATES[from] ?? 1)
+    setResult(base * (RATES[to] ?? 1))
+  }
+
   return (
-    <div className="space-y-3 animate-in">
+    <div className="space-y-3">
       <CalcField label="Betrag" value={amount} onChange={setAmount} type="number"/>
       <div className="flex gap-2">
         <div className="flex-1">
@@ -453,12 +431,11 @@ function CurrencyCalc() {
           </select>
         </div>
       </div>
-      <button onClick={convert} className="w-full ak-btn ak-btn-primary">{loading ? '...' : 'Umrechnen'}</button>
+      <button onClick={convert} className="w-full ak-btn ak-btn-primary">Umrechnen</button>
       {result !== null && (
         <div className="ak-card bg-navy p-4" style={{ borderLeft: '3px solid #C8392B' }}>
           <div className="font-mono text-[9px] text-white/40 mb-1">{amount} {from} =</div>
           <div className="font-display text-white text-4xl">{result.toFixed(2).replace('.',',')} {to}</div>
-          <div className="font-mono text-[9px] text-white/20 mt-1">Richtwert · Stand: heute</div>
         </div>
       )}
     </div>
@@ -469,12 +446,12 @@ function CurrencyCalc() {
 
 function NewsView({ onBack: Back }: { onBack: React.FC }) {
   const DEMO_NEWS = [
-    { source: 'Handelsblatt', title: 'DAX klettert auf Jahreshoch — Anleger optimistisch', time: 'vor 2h', cat: 'Märkte' },
-    { source: 'Tagesschau',   title: 'EZB hält Leitzins stabil — nächste Sitzung im Juli', time: 'vor 4h', cat: 'Geldpolitik' },
-    { source: 'Spiegel',      title: 'Inflation sinkt auf 2,1% — Kaufkraft erholt sich', time: 'vor 6h', cat: 'Konjunktur' },
-    { source: 'Handelsblatt', title: 'Bitcoin über 70.000$ — Krypto-Boom hält an',         time: 'vor 8h', cat: 'Krypto' },
-    { source: 'Tagesschau',   title: 'Arbeitslosenzahlen stabil — Wirtschaft erholt sich', time: 'gestern', cat: 'Wirtschaft' },
-    { source: 'Spiegel',      title: 'Immobilienmarkt: Preise stabilisieren sich in Großstädten', time: 'gestern', cat: 'Immobilien' },
+    { source: 'Handelsblatt', title: 'DAX klettert auf Jahreshoch — Anleger optimistisch',       time: 'vor 2h',  cat: 'Märkte'      },
+    { source: 'Tagesschau',   title: 'EZB hält Leitzins stabil — nächste Sitzung im Juli',       time: 'vor 4h',  cat: 'Geldpolitik' },
+    { source: 'Spiegel',      title: 'Inflation sinkt auf 2,1% — Kaufkraft erholt sich',         time: 'vor 6h',  cat: 'Konjunktur'  },
+    { source: 'Handelsblatt', title: 'Bitcoin über 70.000$ — Krypto-Boom hält an',               time: 'vor 8h',  cat: 'Krypto'      },
+    { source: 'Tagesschau',   title: 'Arbeitslosenzahlen stabil — Wirtschaft erholt sich',       time: 'gestern', cat: 'Wirtschaft'  },
+    { source: 'Spiegel',      title: 'Immobilienmarkt: Preise stabilisieren sich in Großstädten',time: 'gestern', cat: 'Immobilien'  },
   ]
 
   return (
@@ -492,7 +469,7 @@ function NewsView({ onBack: Back }: { onBack: React.FC }) {
               <div className="w-1 h-1 rounded-full bg-cement"/>
               <span className="font-mono text-[9px] text-cement">{n.time}</span>
               <div className="ml-auto">
-                <span className="ak-badge font-mono text-[8px] tracking-widest text-steel" style={{ background: '#F4F2EE' }}>{n.cat}</span>
+                <span className="font-mono text-[8px] tracking-widest text-steel" style={{ background: '#F4F2EE', padding: '2px 6px', borderRadius: 3 }}>{n.cat}</span>
               </div>
             </div>
             <div className="font-sans text-sm font-medium text-navy leading-snug">{n.title}</div>
