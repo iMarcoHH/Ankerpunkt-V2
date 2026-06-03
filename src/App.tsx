@@ -2,27 +2,19 @@ import { useState, useEffect } from 'react'
 import { useStore } from './store'
 import { BottomNav } from './components/BottomNav'
 import { AddTransaction } from './components/AddTransaction'
-import { LageberichtPage }  from './pages/Lagebericht'
-import { AnalysenPage }     from './pages/Analysen'
+import { LageberichtPage }    from './pages/Lagebericht'
+import { AnalysenPage }       from './pages/Analysen'
 import { VersicherungenPage } from './pages/Versicherungen'
-import { MehrPage }         from './pages/Mehr'
-import { supabase }         from './lib/supabase'
+import { MehrPage }           from './pages/Mehr'
+import { AuthPage }           from './pages/Auth'
+import { supabase }           from './lib/supabase'
 
 export default function App() {
-  const { activeTab, setTransactions, setInsurances, setGoals, setAchievements, setProfile, setUserId } = useStore()
+  const { activeTab, setTransactions, setInsurances, setGoals, setAchievements, setProfile, setUserId, userId } = useStore()
   const [showAdd, setShowAdd] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if env var is present — if not, go straight to demo mode
-    const meta = import.meta as unknown as { env?: Record<string,string> }
-    const hasKey = !!(meta.env?.VITE_SUPABASE_ANON_KEY)
-
-    if (!hasKey) {
-      setLoading(false)
-      return
-    }
-
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
         if (session?.user) {
@@ -40,6 +32,7 @@ export default function App() {
         loadData(session.user.id)
       } else {
         setUserId(null)
+        setLoading(false)
       }
     })
     return () => subscription.unsubscribe()
@@ -55,10 +48,10 @@ export default function App() {
         supabase.from('achievements').select('*').eq('user_id', uid),
         supabase.from('profiles').select('*').eq('id', uid).single(),
       ])
-      if (txs)    setTransactions(txs)
-      if (ins)    setInsurances(ins)
-      if (goals)  setGoals(goals)
-      if (ach)    setAchievements(ach)
+      if (txs)     setTransactions(txs)
+      if (ins)     setInsurances(ins)
+      if (goals)   setGoals(goals)
+      if (ach)     setAchievements(ach)
       if (profile) setProfile(profile)
     } catch (e) {
       console.error('loadData error:', e)
@@ -67,6 +60,7 @@ export default function App() {
   }
 
   if (loading) return <Splash/>
+  if (!userId) return <AuthPage/>
 
   return (
     <div className="relative min-h-screen" style={{ background: '#F4F2EE' }}>
