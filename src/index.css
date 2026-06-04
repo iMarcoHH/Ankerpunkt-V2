@@ -11,9 +11,15 @@
   --cement:  #9AA0A6;
   --signal:  #E8A832;
   --offwhite:#F4F2EE;
+  --nav-h:   64px;
 }
 
 * { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
 
 body {
   background: var(--offwhite);
@@ -22,21 +28,13 @@ body {
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  /* Verhindert dass die Seite unter die Nav scrollt */
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
 }
-
-/* Safe area insets for mobile */
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
-
-/* Bottom nav height */
-:root { --nav-h: 72px; }
 
 /* Scrollbar hide */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Red left border accent */
-.border-ak { border-left: 3px solid var(--red); }
 
 /* Card */
 .ak-card {
@@ -45,28 +43,12 @@ body {
   border: 1px solid rgba(0,0,0,0.06);
 }
 
-/* Number display */
-.ak-num {
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-/* Section label */
-.ak-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--red);
-}
-
 /* Animate in */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-in { animation: slideUp 0.4s ease forwards; }
+.animate-in   { animation: slideUp 0.4s ease forwards; }
 .animate-in-2 { animation: slideUp 0.4s 0.08s ease forwards; opacity: 0; }
 .animate-in-3 { animation: slideUp 0.4s 0.16s ease forwards; opacity: 0; }
 .animate-in-4 { animation: slideUp 0.4s 0.24s ease forwards; opacity: 0; }
@@ -99,6 +81,7 @@ body {
   width: 100%;
   transition: border-color 0.2s;
   outline: none;
+  -webkit-appearance: none;
 }
 .ak-input:focus { border-color: var(--red); }
 .ak-input::placeholder { color: var(--cement); }
@@ -137,22 +120,9 @@ body {
   color: var(--cement);
   background: transparent;
 }
-.ak-tab.active {
-  background: var(--navy);
-  color: white;
-}
+.ak-tab.active { background: var(--navy); color: white; }
 
-/* Badge */
-.ak-badge {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-/* Modal overlay */
+/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -167,8 +137,10 @@ body {
   border-radius: 20px 20px 0 0;
   padding: 24px 20px;
   width: 100%;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
   animation: sheetUp 0.35s cubic-bezier(0.32,0.72,0,1) forwards;
+  max-height: 92vh;
+  overflow-y: auto;
 }
 @keyframes sheetUp {
   from { transform: translateY(100%); }
@@ -179,7 +151,6 @@ body {
 .cat-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -190,13 +161,9 @@ body {
   background: var(--offwhite);
   color: var(--steel);
 }
-.cat-chip.selected {
-  background: var(--navy);
-  color: white;
-  border-color: var(--navy);
-}
+.cat-chip.selected { background: var(--navy); color: white; border-color: var(--navy); }
 
-/* Chat bubble */
+/* Chat bubbles */
 .bubble-user {
   background: var(--navy);
   color: white;

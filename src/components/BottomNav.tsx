@@ -28,7 +28,7 @@ const TABS = [
     id: 'add',
     label: '',
     icon: (_active: boolean) => (
-      <div className="w-12 h-12 rounded-full bg-red flex items-center justify-center shadow-lg"
+      <div className="w-12 h-12 rounded-full bg-red flex items-center justify-center"
            style={{ boxShadow: '0 4px 20px rgba(200,57,43,0.4)' }}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
              stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -40,7 +40,7 @@ const TABS = [
   },
   {
     id: 'versicherungen',
-    label: 'Schutz',
+    label: 'Versicherung',
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
            stroke={active ? '#C8392B' : '#9AA0A6'} strokeWidth="2" strokeLinecap="round">
@@ -54,9 +54,9 @@ const TABS = [
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
            stroke={active ? '#C8392B' : '#9AA0A6'} strokeWidth="2" strokeLinecap="round">
-        <circle cx="12" cy="5"  r="1" fill={active ? '#C8392B' : '#9AA0A6'}/>
+        <circle cx="5"  cy="12" r="1" fill={active ? '#C8392B' : '#9AA0A6'}/>
         <circle cx="12" cy="12" r="1" fill={active ? '#C8392B' : '#9AA0A6'}/>
-        <circle cx="12" cy="19" r="1" fill={active ? '#C8392B' : '#9AA0A6'}/>
+        <circle cx="19" cy="12" r="1" fill={active ? '#C8392B' : '#9AA0A6'}/>
       </svg>
     ),
   },
@@ -71,11 +71,15 @@ export function BottomNav({ onAddClick }: BottomNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
-      style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
-               borderTop: '1px solid rgba(0,0,0,0.08)' }}
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'rgba(255,255,255,0.97)',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(0,0,0,0.08)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
     >
-      <div className="flex items-center justify-around px-2 py-2" style={{ height: 'var(--nav-h)' }}>
+      <div className="flex items-center justify-around px-2" style={{ height: '64px' }}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id && tab.id !== 'add'
           const isAdd    = tab.id === 'add'
@@ -89,8 +93,8 @@ export function BottomNav({ onAddClick }: BottomNavProps) {
               {tab.icon(isActive)}
               {!isAdd && (
                 <span
-                  className="font-mono text-[9px] tracking-widest uppercase transition-colors"
-                  style={{ color: isActive ? '#C8392B' : '#9AA0A6', letterSpacing: '0.12em' }}
+                  className="font-mono uppercase transition-colors"
+                  style={{ fontSize: 8, letterSpacing: '0.08em', color: isActive ? '#C8392B' : '#9AA0A6' }}
                 >
                   {tab.label}
                 </span>
