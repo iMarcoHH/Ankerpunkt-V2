@@ -31,8 +31,7 @@ html, body {
 
 #root {
   min-height: 100dvh;
-  /* Etwas weniger padding — Pill ist kleiner */
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -69,7 +68,7 @@ html, body {
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  transition: transform 0.12s, opacity 0.2s;
+  transition: transform 0.12s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -110,9 +109,9 @@ html, body {
   border-top: 1px solid var(--border);
   padding: 20px;
   width: 100%;
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   animation: sheetUp 0.32s cubic-bezier(0.32,0.72,0,1) forwards;
-  max-height: 94dvh;
+  max-height: 92dvh;
   overflow-y: auto;
 }
 
@@ -130,12 +129,6 @@ html, body {
   border: 1px solid var(--border);
 }
 
-@keyframes sheetUp  { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin     { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-.fade-up   { animation: fadeUp 0.4s ease forwards; }
-.fade-up-2 { animation: fadeUp 0.4s 0.07s ease forwards; opacity: 0; }
-.fade-up-3 { animation: fadeUp 0.4s 0.14s ease forwards; opacity: 0; }
-.fade-up-4 { animation: fadeUp 0.4s 0.21s ease forwards; opacity: 0; }
-.fade-up-5 { animation: fadeUp 0.4s 0.28s ease forwards; opacity: 0; }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin    { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
