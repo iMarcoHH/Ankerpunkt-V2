@@ -40,6 +40,12 @@ interface AppState {
   setActiveTab: (t: string) => void
 }
 
+// Alle alten Store-Keys beim Start löschen
+const OLD_KEYS = ['ankerpunkt-store', 'ankerpunkt-store-v2', 'ankerpunkt-v2']
+OLD_KEYS.forEach(k => { try { localStorage.removeItem(k) } catch {} })
+
+const CURRENT_STORE = 'ankerpunkt-v4'
+
 const now = new Date()
 
 export const useStore = create<AppState>()(
@@ -79,6 +85,10 @@ export const useStore = create<AppState>()(
       activeTab:    'dashboard',
       setActiveTab: (activeTab) => set({ activeTab }),
     }),
-    { name: 'ankerpunkt-store', partialize: (s) => ({ userId: s.userId }) }
+    {
+      name: CURRENT_STORE,
+      // Nur userId speichern — activeTab NIEMALS persistieren
+      partialize: (s) => ({ userId: s.userId }),
+    }
   )
 )
