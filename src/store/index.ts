@@ -44,7 +44,7 @@ interface AppState {
 const OLD_KEYS = ['ankerpunkt-store', 'ankerpunkt-store-v2', 'ankerpunkt-v2']
 OLD_KEYS.forEach(k => { try { localStorage.removeItem(k) } catch {} })
 
-const CURRENT_STORE = 'ankerpunkt-v4'
+const CURRENT_STORE = 'ankerpunkt-v5'
 
 const now = new Date()
 
