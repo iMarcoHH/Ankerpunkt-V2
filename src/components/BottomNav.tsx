@@ -25,26 +25,13 @@ const TABS = [
     ),
   },
   {
-    id: 'add',
-    label: '',
-    icon: (_active: boolean) => (
-      <div className="w-12 h-12 rounded-full bg-red flex items-center justify-center"
-           style={{ boxShadow: '0 4px 20px rgba(200,57,43,0.4)' }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-             stroke="white" strokeWidth="2.5" strokeLinecap="round">
-          <line x1="12" y1="5" x2="12" y2="19"/>
-          <line x1="5"  y1="12" x2="19" y2="12"/>
-        </svg>
-      </div>
-    ),
-  },
-  {
-    id: 'versicherungen',
-    label: 'Versicherung',
+    id: 'buchungen',
+    label: 'Buchungen',
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
            stroke={active ? '#C8392B' : '#9AA0A6'} strokeWidth="2" strokeLinecap="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <rect x="2" y="5" width="20" height="14" rx="2"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
       </svg>
     ),
   },
@@ -62,11 +49,7 @@ const TABS = [
   },
 ]
 
-interface BottomNavProps {
-  onAddClick: () => void
-}
-
-export function BottomNav({ onAddClick }: BottomNavProps) {
+export function BottomNav() {
   const { activeTab, setActiveTab } = useStore()
 
   return (
@@ -81,24 +64,21 @@ export function BottomNav({ onAddClick }: BottomNavProps) {
     >
       <div className="flex items-center justify-around px-2" style={{ height: '64px' }}>
         {TABS.map((tab) => {
-          const isActive = activeTab === tab.id && tab.id !== 'add'
-          const isAdd    = tab.id === 'add'
+          const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
-              onClick={() => isAdd ? onAddClick() : setActiveTab(tab.id)}
+              onClick={() => setActiveTab(tab.id)}
               className="flex flex-col items-center gap-1 flex-1 py-1 transition-all"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {tab.icon(isActive)}
-              {!isAdd && (
-                <span
-                  className="font-mono uppercase transition-colors"
-                  style={{ fontSize: 8, letterSpacing: '0.08em', color: isActive ? '#C8392B' : '#9AA0A6' }}
-                >
-                  {tab.label}
-                </span>
-              )}
+              <span
+                className="font-mono uppercase transition-colors"
+                style={{ fontSize: 8, letterSpacing: '0.08em', color: isActive ? '#C8392B' : '#9AA0A6' }}
+              >
+                {tab.label}
+              </span>
             </button>
           )
         })}
