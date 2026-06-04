@@ -13,6 +13,7 @@ import { NotizenPage }        from './pages/Notizen'
 import { LexikonPage }        from './pages/Lexikon'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
+import type { Transaction }   from './lib/supabase'
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
@@ -34,6 +35,28 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ── Supabase Realtime ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase
+      .channel('ankerpunkt-realtime')
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'transactions', filter:`user_id=eq.${userId}` },
+        payload => {
+          setTransactions([payload.new as Transaction, ...transactions])
+        }
+      )
+      .on('postgres_changes', { event:'DELETE', schema:'public', table:'transactions', filter:`user_id=eq.${userId}` },
+        payload => {
+          setTransactions(transactions.filter(t => t.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [userId, transactions])
+
+  // ── Auto-book recurring ────────────────────────────────────────────────────
   useEffect(() => {
     if (!userId || recurring.length === 0) return
     const today = new Date()
@@ -47,7 +70,7 @@ export default function App() {
         const { data: row } = await supabase.from('transactions')
           .insert({ user_id:userId, type:r.type, amount:r.amount, description:r.description, category:r.category, date })
           .select().single()
-        if (row) setTransactions([row, ...transactions])
+        if (row) setTransactions([row as Transaction, ...transactions])
       }
     })
   }, [userId, recurring])

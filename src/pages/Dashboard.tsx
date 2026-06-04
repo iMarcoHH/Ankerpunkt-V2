@@ -1,17 +1,18 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
-import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck, Trophy } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck, Trophy, Download } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { exportTransactionsCSV } from '../lib/export'
 
-const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
+const fmt        = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const fmtTooltip = (v: unknown) => [fmt(v as number), '']
 const MONTH_NAMES = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
 const tooltipStyle = { backgroundColor:'#162030', borderColor:'#3D5166', borderRadius:12, color:'#E8DFD0', fontSize:12 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, duration: 0.35 } }),
+  hidden: { opacity:0, y:16 },
+  show:   (i: number) => ({ opacity:1, y:0, transition:{ delay:i*0.07, duration:0.35 } }),
 }
 
 export function DashboardPage() {
@@ -25,19 +26,19 @@ export function DashboardPage() {
     return d.getMonth() === viewMonth && d.getFullYear() === viewYear
   }), [transactions, viewMonth, viewYear])
 
-  const totalIncome  = useMemo(() => monthTx.filter(t => t.type==='income') .reduce((s,t) => s+t.amount, 0), [monthTx])
-  const totalExpense = useMemo(() => monthTx.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0), [monthTx])
+  const totalIncome  = useMemo(() => monthTx.filter(t=>t.type==='income') .reduce((s,t)=>s+t.amount,0), [monthTx])
+  const totalExpense = useMemo(() => monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0), [monthTx])
   const balance      = totalIncome - totalExpense
-  const savingsRate  = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0
-  const monthlyIns   = useMemo(() => insurances.reduce((s,i) => s + (i.period==='monthly' ? i.amount : i.amount/12), 0), [insurances])
-  const recentTx     = useMemo(() => [...transactions].sort((a,b) => new Date(b.date).getTime()-new Date(a.date).getTime()).slice(0,6), [transactions])
+  const savingsRate  = totalIncome > 0 ? Math.round((balance/totalIncome)*100) : 0
+  const monthlyIns   = useMemo(() => insurances.reduce((s,i)=>s+(i.period==='monthly'?i.amount:i.amount/12),0), [insurances])
+  const recentTx     = useMemo(() => [...transactions].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).slice(0,6), [transactions])
 
-  const trend = useMemo(() => Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(viewYear, viewMonth - 5 + i, 1)
+  const trend = useMemo(() => Array.from({length:6},(_,i) => {
+    const d = new Date(viewYear, viewMonth-5+i, 1)
     const m = d.getMonth(), y = d.getFullYear()
-    const inc = transactions.filter(t => { const td=new Date(t.date); return td.getMonth()===m&&td.getFullYear()===y&&t.type==='income'  }).reduce((s,t)=>s+t.amount,0)
-    const exp = transactions.filter(t => { const td=new Date(t.date); return td.getMonth()===m&&td.getFullYear()===y&&t.type==='expense' }).reduce((s,t)=>s+t.amount,0)
-    return { month: MONTH_NAMES[m], income: inc, expenses: exp }
+    const inc = transactions.filter(t=>{const td=new Date(t.date);return td.getMonth()===m&&td.getFullYear()===y&&t.type==='income'}).reduce((s,t)=>s+t.amount,0)
+    const exp = transactions.filter(t=>{const td=new Date(t.date);return td.getMonth()===m&&td.getFullYear()===y&&t.type==='expense'}).reduce((s,t)=>s+t.amount,0)
+    return { month:MONTH_NAMES[m], income:inc, expenses:exp }
   }), [transactions, viewMonth, viewYear])
 
   return (
@@ -55,11 +56,20 @@ export function DashboardPage() {
             {isCurrentMonth ? 'Aktueller Monat' : 'Vergangener Monat'}
           </div>
         </div>
-        <button onClick={goToNextMonth} disabled={isCurrentMonth}
-          className="w-9 h-9 rounded-full flex items-center justify-center"
-          style={{ background:isCurrentMonth?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.06)', color:isCurrentMonth?'rgba(154,160,166,0.3)':'#9AA0A6' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* CSV Export */}
+          <button onClick={() => exportTransactionsCSV(transactions)}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background:'rgba(255,255,255,0.06)', color:'#9AA0A6' }}
+            title="CSV exportieren">
+            <Download className="w-4 h-4"/>
+          </button>
+          <button onClick={goToNextMonth} disabled={isCurrentMonth}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background:isCurrentMonth?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.06)', color:isCurrentMonth?'rgba(154,160,166,0.3)':'#9AA0A6' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
       </div>
 
       {/* Hero balance */}
@@ -71,7 +81,7 @@ export function DashboardPage() {
         <p className="text-xs text-cement uppercase tracking-widest font-medium">
           {balance >= 0 ? 'Aktuelles Plus' : 'Aktuelles Minus'} · {MONTH_NAMES[viewMonth]}
         </p>
-        <p className="text-4xl font-display tracking-wide mt-2" style={{ color: balance >= 0 ? 'white' : '#C8392B' }}>
+        <p className="text-4xl font-display tracking-wide mt-2" style={{ color:balance>=0?'white':'#C8392B' }}>
           {fmt(balance)}
         </p>
         <div className="mt-4 flex items-center gap-4">
@@ -83,10 +93,10 @@ export function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label:'Einnahmen',    value:fmt(totalIncome),           Icon:TrendingUp,   accent:'#E8A832' },
-          { label:'Ausgaben',     value:fmt(totalExpense),          Icon:TrendingDown, accent:'#C8392B' },
-          { label:'Sparquote',    value:`${savingsRate}%`,          Icon:Wallet,       accent:'#E8A832' },
-          { label:'Versicherung', value:fmt(monthlyIns)+'/mo',      Icon:ShieldCheck,  accent:'#3D5166' },
+          { label:'Einnahmen',    value:fmt(totalIncome),      Icon:TrendingUp,  accent:'#E8A832' },
+          { label:'Ausgaben',     value:fmt(totalExpense),     Icon:TrendingDown,accent:'#C8392B' },
+          { label:'Sparquote',    value:`${savingsRate}%`,     Icon:Wallet,      accent:'#E8A832' },
+          { label:'Versicherung', value:fmt(monthlyIns)+'/mo', Icon:ShieldCheck, accent:'#3D5166' },
         ].map(({ label, value, Icon, accent }, i) => (
           <motion.div key={label} variants={fadeUp} custom={i} initial="hidden" animate="show">
             <div className="ak-card p-4 flex items-center gap-3">
@@ -108,7 +118,7 @@ export function DashboardPage() {
         <p className="text-xs text-cement mb-4">6-Monats-Verlauf</p>
         <div style={{ height:200 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={trend} margin={{ top:4, right:0, left:-20, bottom:0 }}>
+            <BarChart data={trend} margin={{ top:4,right:0,left:-20,bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(61,81,102,0.4)"/>
               <XAxis dataKey="month" tick={{ fill:'#9AA0A6', fontSize:10 }} axisLine={false} tickLine={false}/>
               <YAxis tick={{ fill:'#9AA0A6', fontSize:10 }} axisLine={false} tickLine={false}
@@ -138,7 +148,7 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {recentTx.map((tx, i) => (
+            {recentTx.map((tx,i) => (
               <motion.div key={tx.id} className="flex items-center gap-3"
                 initial={{ opacity:0,x:10 }} animate={{ opacity:1,x:0 }} transition={{ delay:0.4+i*0.05 }}>
                 <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
@@ -158,12 +168,12 @@ export function DashboardPage() {
         )}
       </motion.div>
 
-      {/* Quick nav */}
+      {/* Quick nav + profile info */}
       <motion.div className="grid grid-cols-3 gap-3" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.5 }}>
         {[
           { label:'Versicherungen', tab:'versicherungen', Icon:ShieldCheck, color:'#3D5166' },
-          { label:`${goals.length} Ziele`,       tab:'ziele',          Icon:Target,     color:'#E8A832' },
-          { label:`${achievements.length} Erfolge`, tab:'gamification', Icon:Trophy,     color:'#C8392B' },
+          { label:`${goals.length} Ziele`,           tab:'ziele',       Icon:Target,  color:'#E8A832' },
+          { label:`${achievements.length} Erfolge`,  tab:'gamification',Icon:Trophy,  color:'#C8392B' },
         ].map(({ label, tab, Icon, color }) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className="ak-card p-4 flex flex-col items-center gap-2">
@@ -174,6 +184,35 @@ export function DashboardPage() {
           </button>
         ))}
       </motion.div>
+
+      {/* CSV Export hint */}
+      {transactions.length > 0 && (
+        <motion.button
+          className="w-full ak-card p-3 flex items-center justify-center gap-2 text-cement hover:text-white transition-colors"
+          onClick={() => exportTransactionsCSV(transactions)}
+          initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.6 }}>
+          <Download className="w-4 h-4"/>
+          <span className="font-mono text-xs tracking-wider uppercase">Alle {transactions.length} Buchungen als CSV exportieren</span>
+        </motion.button>
+      )}
+
+      {/* Level/XP */}
+      {profile && (
+        <motion.div className="ak-card p-4 flex items-center gap-4" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.65 }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background:'rgba(232,168,50,0.15)' }}>
+            <Trophy className="w-5 h-5" style={{ color:'#E8A832' }}/>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs text-cement">Level {profile.level}</span>
+              <span className="font-mono text-xs text-cement">{profile.xp} / {profile.level * 100} XP</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
+              <div className="h-full rounded-full" style={{ width:`${Math.min(100,(profile.xp/(profile.level*100))*100)}%`, background:'#E8A832' }}/>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }
