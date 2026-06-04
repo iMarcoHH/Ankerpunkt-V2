@@ -3,25 +3,23 @@ import { persist } from 'zustand/middleware'
 import type { Transaction, Insurance, SavingsGoal, Achievement, Profile } from '../lib/supabase'
 
 export interface RecurringEntry {
-  id:          string
-  user_id:     string
-  type:        'income' | 'expense'
-  amount:      number
-  description: string
-  category:    string
-  day_of_month: number  // 1-31, Tag im Monat
-  active:      boolean
-  created_at:  string
+  id:           string
+  user_id:      string
+  type:         'income' | 'expense'
+  amount:       number
+  description:  string
+  category:     string
+  day_of_month: number
+  active:       boolean
+  created_at:   string
 }
 
 interface AppState {
-  // Auth
   userId:    string | null
   profile:   Profile | null
   setUserId:  (id: string | null) => void
   setProfile: (p: Profile | null) => void
 
-  // Data
   transactions: Transaction[]
   insurances:   Insurance[]
   goals:        SavingsGoal[]
@@ -33,14 +31,11 @@ interface AppState {
   setAchievements: (a: Achievement[]) => void
   setRecurring:    (r: RecurringEntry[]) => void
 
-  // Monatsnavigation
-  viewMonth: number  // 0-11
-  viewYear:  number
-  setViewMonth: (month: number, year: number) => void
+  viewMonth:     number
+  viewYear:      number
   goToPrevMonth: () => void
   goToNextMonth: () => void
 
-  // UI
   activeTab:    string
   setActiveTab: (t: string) => void
 }
@@ -60,15 +55,14 @@ export const useStore = create<AppState>()(
       goals:        [],
       achievements: [],
       recurring:    [],
-      setTransactions: (transactions) => set({ transactions }),
-      setInsurances:   (insurances)   => set({ insurances }),
-      setGoals:        (goals)        => set({ goals }),
-      setAchievements: (achievements) => set({ achievements }),
-      setRecurring:    (recurring)    => set({ recurring }),
+      setTransactions: (t) => set({ transactions: t }),
+      setInsurances:   (i) => set({ insurances: i }),
+      setGoals:        (g) => set({ goals: g }),
+      setAchievements: (a) => set({ achievements: a }),
+      setRecurring:    (r) => set({ recurring: r }),
 
       viewMonth: now.getMonth(),
       viewYear:  now.getFullYear(),
-      setViewMonth: (viewMonth, viewYear) => set({ viewMonth, viewYear }),
       goToPrevMonth: () => {
         const { viewMonth, viewYear } = get()
         if (viewMonth === 0) set({ viewMonth: 11, viewYear: viewYear - 1 })
@@ -76,14 +70,13 @@ export const useStore = create<AppState>()(
       },
       goToNextMonth: () => {
         const { viewMonth, viewYear } = get()
-        const now = new Date()
-        // Nicht in die Zukunft navigieren
-        if (viewYear === now.getFullYear() && viewMonth === now.getMonth()) return
+        const n = new Date()
+        if (viewYear === n.getFullYear() && viewMonth === n.getMonth()) return
         if (viewMonth === 11) set({ viewMonth: 0, viewYear: viewYear + 1 })
         else set({ viewMonth: viewMonth + 1 })
       },
 
-      activeTab:    'lagebericht',
+      activeTab:    'dashboard',
       setActiveTab: (activeTab) => set({ activeTab }),
     }),
     { name: 'ankerpunkt-store', partialize: (s) => ({ userId: s.userId }) }

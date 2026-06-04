@@ -4,153 +4,93 @@
 @tailwind utilities;
 
 :root {
-  --navy:    #0D1B2A;
-  --red:     #C8392B;
-  --steel:   #3D5166;
-  --sand:    #E8DFD0;
-  --cement:  #9AA0A6;
-  --signal:  #E8A832;
-  --offwhite:#F4F2EE;
-  --nav-h:   60px;
+  --navy:     #0D1B2A;
+  --red:      #C8392B;
+  --steel:    #3D5166;
+  --sand:     #E8DFD0;
+  --cement:   #9AA0A6;
+  --signal:   #E8A832;
+  --offwhite: #F4F2EE;
+  --card:     #162030;
+  --card2:    #1e2e40;
+  --border:   rgba(61,81,102,0.5);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html {
+html, body {
   height: 100%;
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-body {
-  min-height: 100%;
-  overscroll-behavior: none;
-  background: var(--offwhite);
-  color: var(--navy);
+  background: var(--navy);
+  color: var(--sand);
   font-family: 'IBM Plex Sans', sans-serif;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100dvh;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Scrollbar hide */
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--steel); border-radius: 2px; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Card */
+/* Cards */
 .ak-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
-
-/* Animations */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+.ak-card2 {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
-@keyframes sheetUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.animate-in   { animation: slideUp 0.4s ease forwards; }
-.animate-in-2 { animation: slideUp 0.4s 0.08s ease forwards; opacity: 0; }
-.animate-in-3 { animation: slideUp 0.4s 0.16s ease forwards; opacity: 0; }
-.animate-in-4 { animation: slideUp 0.4s 0.24s ease forwards; opacity: 0; }
-.animate-in-5 { animation: slideUp 0.4s 0.32s ease forwards; opacity: 0; }
-
-/* Progress bar */
-.progress-track { height: 4px; background: rgba(0,0,0,0.08); border-radius: 2px; overflow: hidden; }
-.progress-fill  { height: 100%; background: var(--red); border-radius: 2px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
 
 /* Input */
 .ak-input {
-  background: var(--offwhite);
-  border: 1.5px solid transparent;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
   border-radius: 10px;
   padding: 11px 14px;
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 14px;
-  color: var(--navy);
+  color: var(--sand);
   width: 100%;
-  transition: border-color 0.2s;
   outline: none;
+  transition: border-color 0.2s;
   -webkit-appearance: none;
-  appearance: none;
 }
 .ak-input:focus { border-color: var(--red); }
 .ak-input::placeholder { color: var(--cement); }
 
-/* Button */
+/* Buttons */
 .ak-btn {
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.1em;
   font-size: 15px;
-  padding: 13px 24px;
+  padding: 12px 24px;
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  transition: transform 0.15s, opacity 0.2s;
+  transition: transform 0.12s, opacity 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  -webkit-tap-highlight-color: transparent;
 }
-.ak-btn:active { transform: scale(0.97); }
+.ak-btn:active { transform: scale(0.96); }
 .ak-btn-primary { background: var(--red);   color: white; }
-.ak-btn-ghost   { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
-.ak-btn-navy    { background: var(--navy);  color: white; }
+.ak-btn-secondary { background: var(--card2); color: var(--sand); border: 1px solid var(--border); }
+.ak-btn-signal  { background: var(--signal); color: var(--navy); }
 
-/* Tab */
-.ak-tab {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(0,0,0,0.08);
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--cement);
-  background: white;
-  -webkit-tap-highlight-color: transparent;
-}
-.ak-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(13,27,42,0.65);
-  backdrop-filter: blur(6px);
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-}
-.modal-sheet {
-  background: white;
-  border-radius: 20px 20px 0 0;
-  padding: 20px 20px;
-  width: 100%;
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
-  animation: sheetUp 0.35s cubic-bezier(0.32,0.72,0,1) forwards;
-  max-height: 94dvh;
-  overflow-y: auto;
-}
-
-/* Category chip */
+/* Chips */
 .cat-chip {
   display: inline-flex;
   align-items: center;
@@ -158,18 +98,41 @@ body {
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--border);
   cursor: pointer;
   transition: all 0.15s;
-  background: var(--offwhite);
-  color: var(--steel);
-  -webkit-tap-highlight-color: transparent;
+  background: var(--card2);
+  color: var(--cement);
 }
-.cat-chip.selected { background: var(--navy); color: white; border-color: var(--navy); }
+.cat-chip.selected { background: var(--red); color: white; border-color: var(--red); }
 
-/* Chat bubbles */
+/* Progress */
+.progress-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.progress-fill  { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex; align-items: flex-end;
+}
+.modal-sheet {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  width: 100%;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  animation: sheetUp 0.32s cubic-bezier(0.32,0.72,0,1) forwards;
+  max-height: 94dvh;
+  overflow-y: auto;
+}
+
+/* Bubble chat */
 .bubble-user {
-  background: var(--navy);
+  background: var(--red);
   color: white;
   border-radius: 16px 16px 4px 16px;
   padding: 10px 14px;
@@ -179,23 +142,37 @@ body {
   align-self: flex-end;
 }
 .bubble-ai {
-  background: white;
-  color: var(--navy);
+  background: var(--card);
+  color: var(--sand);
   border-radius: 16px 16px 16px 4px;
   padding: 10px 14px;
   font-size: 13px;
   line-height: 1.5;
   max-width: 90%;
   align-self: flex-start;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
 }
 
-/* Noise */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
+/* Animations */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.3); }
+}
+
+.fade-up   { animation: fadeUp 0.4s ease forwards; }
+.fade-up-2 { animation: fadeUp 0.4s 0.07s ease forwards; opacity: 0; }
+.fade-up-3 { animation: fadeUp 0.4s 0.14s ease forwards; opacity: 0; }
+.fade-up-4 { animation: fadeUp 0.4s 0.21s ease forwards; opacity: 0; }
+.fade-up-5 { animation: fadeUp 0.4s 0.28s ease forwards; opacity: 0; }

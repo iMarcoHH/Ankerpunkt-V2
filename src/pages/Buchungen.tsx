@@ -1,237 +1,228 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { supabase, CATEGORIES_EXPENSE, CATEGORIES_INCOME } from '../lib/supabase'
 import type { RecurringEntry } from '../store'
+import { TrendingUp, TrendingDown, Trash2, CalendarClock, ArrowRightLeft, Plus, RefreshCw } from 'lucide-react'
 
+const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
 const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
+const TABS = [
+  { value: 'all',       label: 'Alle'          },
+  { value: 'income',    label: 'Einnahmen'      },
+  { value: 'expense',   label: 'Ausgaben'       },
+  { value: 'recurring', label: 'Wiederkehrend'  },
+] as const
+
 export function BuchungenPage() {
-  const { transactions, setTransactions, recurring, setRecurring, userId,
-          viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
-  const [tab, setTab]         = useState<'ausgaben'|'einnahmen'|'wiederkehrend'>('ausgaben')
+  const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
+  const [tab, setTab] = useState<'all'|'income'|'expense'|'recurring'>('all')
   const [showAdd, setShowAdd] = useState(false)
 
-  const isCurrentMonth = () => {
-    const n = new Date()
-    return viewMonth === n.getMonth() && viewYear === n.getFullYear()
-  }
+  const now = new Date()
+  const isCurrentMonth = viewMonth === now.getMonth() && viewYear === now.getFullYear()
 
-  const monthTx = useMemo(() =>
-    transactions.filter(t => {
-      const d = new Date(t.date)
-      return d.getMonth() === viewMonth && d.getFullYear() === viewYear &&
-             t.type === (tab === 'ausgaben' ? 'expense' : 'income')
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [transactions, viewMonth, viewYear, tab]
-  )
+  const monthTx = useMemo(() => transactions.filter(t => {
+    const d = new Date(t.date)
+    return d.getMonth() === viewMonth && d.getFullYear() === viewYear
+  }), [transactions, viewMonth, viewYear])
 
-  const total = monthTx.reduce((s, t) => s + t.amount, 0)
+  const filtered = tab === 'recurring' ? [] : monthTx.filter(t => tab === 'all' || t.type === tab)
+  const incomeTotal  = monthTx.filter(t => t.type === 'income') .reduce((s, t) => s + t.amount, 0)
+  const expenseTotal = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
   async function handleDelete(id: string) {
+    if (!confirm('Eintrag löschen?')) return
     if (userId) await supabase.from('transactions').delete().eq('id', id)
     setTransactions(transactions.filter(t => t.id !== id))
   }
 
   async function handleDeleteRecurring(id: string) {
+    if (!confirm('Wiederkehrenden Eintrag löschen?')) return
     if (userId) await supabase.from('recurring_entries').delete().eq('id', id)
     setRecurring(recurring.filter(r => r.id !== id))
   }
 
-  async function handleToggleRecurring(id: string) {
-    const r = recurring.find(r => r.id === id)
-    if (!r) return
+  async function handleToggle(id: string) {
+    const r = recurring.find(r => r.id === id); if (!r) return
     const updated = { ...r, active: !r.active }
     if (userId) await supabase.from('recurring_entries').update({ active: updated.active }).eq('id', id)
     setRecurring(recurring.map(r => r.id === id ? updated : r))
   }
 
   return (
-    <div className="pb-24 min-h-screen" style={{ background: '#F4F2EE' }}>
+    <div className="p-5 space-y-5 pb-8">
 
       {/* Header */}
-      <div className="bg-navy px-5 pt-14 pb-5" style={{ borderBottom: '3px solid #C8392B' }}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="font-mono text-[10px] text-red tracking-widest uppercase mb-1">// Buchungen</div>
-            <div className="font-display text-white text-4xl tracking-wide leading-none">BUCHUNGEN</div>
-          </div>
-          <button onClick={() => setShowAdd(true)}
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: '#C8392B', boxShadow: '0 4px 16px rgba(200,57,43,0.4)', WebkitTapHighlightColor: 'transparent' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </button>
+      <div className="flex items-end justify-between pt-14">
+        <div>
+          <h1 className="font-display text-4xl tracking-widest text-white">Buchungen</h1>
+          <p className="text-cement text-sm mt-1">Einnahmen und Ausgaben verwalten</p>
         </div>
+        <button onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-display tracking-wide text-sm text-white transition-all"
+          style={{ background: '#C8392B' }}>
+          <Plus className="w-4 h-4"/> Neu
+        </button>
+      </div>
 
-        {/* Monatsnavigation */}
-        <div className="flex items-center justify-between">
-          <button onClick={goToPrevMonth}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.1)', WebkitTapHighlightColor: 'transparent' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <div className="text-center">
-            <div className="font-display text-white text-2xl tracking-wide">{MONTH_NAMES[viewMonth]}</div>
-            <div className="font-mono text-[9px] text-white/40 tracking-widest">{viewYear}</div>
+      {/* Monatsnavigation */}
+      <div className="flex items-center justify-between ak-card p-3">
+        <button onClick={goToPrevMonth} className="w-8 h-8 rounded-full flex items-center justify-center text-cement"
+          style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div className="text-center">
+          <div className="font-display text-white text-xl tracking-wide">{MONTH_NAMES[viewMonth]} {viewYear}</div>
+        </div>
+        <button onClick={goToNextMonth} disabled={isCurrentMonth}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-cement"
+          style={{ background: 'rgba(255,255,255,0.06)', opacity: isCurrentMonth ? 0.3 : 1 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      {/* Summary pills */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="ak-card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(232,168,50,0.15)' }}>
+            <TrendingUp className="w-5 h-5" style={{ color: '#E8A832' }}/>
           </div>
-          <button onClick={goToNextMonth}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background: isCurrentMonth() ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.1)',
-                     opacity: isCurrentMonth() ? 0.3 : 1, WebkitTapHighlightColor: 'transparent' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
+          <div>
+            <p className="text-xs text-cement">Einnahmen</p>
+            <p className="font-display text-lg" style={{ color: '#E8A832' }}>{fmt(incomeTotal)}</p>
+          </div>
+        </div>
+        <div className="ak-card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(200,57,43,0.15)' }}>
+            <TrendingDown className="w-5 h-5" style={{ color: '#C8392B' }}/>
+          </div>
+          <div>
+            <p className="text-xs text-cement">Ausgaben</p>
+            <p className="font-display text-lg" style={{ color: '#C8392B' }}>{fmt(expenseTotal)}</p>
+          </div>
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-3">
+      {/* Tabs */}
+      <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(61,81,102,0.4)' }}>
+        {TABS.map(t => (
+          <button key={t.value} onClick={() => setTab(t.value)}
+            className="flex-1 py-1.5 rounded-xl text-xs font-medium transition-all"
+            style={{ background: tab === t.value ? 'rgba(255,255,255,0.1)' : 'transparent',
+                     color: tab === t.value ? 'white' : '#9AA0A6' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1.5">
-          {([['ausgaben','Ausgaben'],['einnahmen','Einnahmen'],['wiederkehrend','Wiederkehrend']] as const).map(([val, label]) => (
-            <button key={val} onClick={() => setTab(val)}
-              className={`ak-tab flex-1 ${tab === val ? 'active' : ''}`}
-              style={{ fontSize: 8 }}>{label}</button>
+      {/* List */}
+      {tab === 'recurring' ? (
+        <div className="space-y-2">
+          {recurring.length === 0 ? (
+            <EmptyState icon={<RefreshCw className="w-6 h-6 text-cement opacity-40"/>} text="Keine wiederkehrenden Einträge. Beim Hinzufügen 'Wiederkehrend' aktivieren."/>
+          ) : recurring.map((r, i) => (
+            <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.04 }}
+              className="ak-card p-4 flex items-center gap-3" style={{ opacity: r.active ? 1 : 0.5 }}>
+              <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                   style={{ background: r.type === 'income' ? 'rgba(232,168,50,0.15)' : 'rgba(200,57,43,0.15)' }}>
+                <RefreshCw className="w-4 h-4" style={{ color: r.type === 'income' ? '#E8A832' : '#C8392B' }}/>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-white truncate">{r.description}</p>
+                <p className="text-xs text-cement">{r.category} · jeden {r.day_of_month}. des Monats</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-mono font-semibold" style={{ color: r.type === 'income' ? '#E8A832' : '#E8DFD0' }}>
+                  {r.type === 'income' ? '+' : '-'}{fmt(r.amount)}
+                </span>
+                <button onClick={() => handleToggle(r.id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
+                  style={{ background: r.active ? '#C8392B' : 'rgba(255,255,255,0.08)', color: 'white' }}>
+                  {r.active ? '✓' : '○'}
+                </button>
+                <button onClick={() => handleDeleteRecurring(r.id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-cement hover:text-red-400"
+                  style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <Trash2 className="w-3.5 h-3.5"/>
+                </button>
+              </div>
+            </motion.div>
           ))}
         </div>
-
-        {/* Summe */}
-        {tab !== 'wiederkehrend' && (
-          <div className="ak-card p-4 flex items-center justify-between"
-               style={{ borderLeft: `3px solid ${tab === 'ausgaben' ? '#C8392B' : '#E8A832'}` }}>
-            <div className="font-mono text-[10px] text-cement tracking-widest uppercase">
-              {tab === 'ausgaben' ? 'Ausgaben' : 'Einnahmen'} · {MONTH_NAMES[viewMonth].slice(0,3)}
-            </div>
-            <div className={`font-display text-2xl ${tab === 'ausgaben' ? 'text-red' : 'text-signal'}`}>
-              {tab === 'ausgaben' ? '-' : '+'}{total.toLocaleString('de-DE')}€
-            </div>
-          </div>
-        )}
-
-        {/* Transaktionen */}
-        {tab !== 'wiederkehrend' && (
-          monthTx.length === 0 ? (
-            <div className="ak-card p-8 text-center">
-              <div className="text-3xl mb-2">{tab === 'ausgaben' ? '💸' : '💰'}</div>
-              <p className="font-sans text-sm text-cement">Keine {tab === 'ausgaben' ? 'Ausgaben' : 'Einnahmen'} in {MONTH_NAMES[viewMonth]}.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {monthTx.map(tx => (
-                <div key={tx.id} className="ak-card p-3.5"
-                     style={{ borderLeft: `3px solid ${tx.type === 'income' ? '#E8A832' : '#C8392B'}` }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0"
-                           style={{ background: tx.type === 'income' ? 'rgba(232,168,50,0.12)' : 'rgba(200,57,43,0.1)',
-                                    color: tx.type === 'income' ? '#E8A832' : '#C8392B' }}>
-                        {tx.type === 'income' ? '↑' : '↓'}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-sans text-sm font-semibold text-navy truncate">{tx.description}</div>
-                        <div className="font-mono text-[9px] text-cement uppercase tracking-wider mt-0.5">
-                          {tx.category} · {new Date(tx.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                      <div className={`font-display text-xl ${tx.type === 'income' ? 'text-signal' : 'text-red'}`}>
-                        {tx.type === 'income' ? '+' : '-'}{tx.amount.toLocaleString('de-DE')}€
-                      </div>
-                      <button onClick={() => handleDelete(tx.id)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-lg text-cement"
-                        style={{ background: 'rgba(0,0,0,0.05)', WebkitTapHighlightColor: 'transparent' }}>×</button>
-                    </div>
-                  </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState icon={<ArrowRightLeft className="w-6 h-6 text-cement opacity-40"/>} text="Keine Einträge für diesen Monat."/>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((tx, i) => (
+            <motion.div key={tx.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.04 }}
+              className="ak-card p-4 flex items-center gap-3 group">
+              <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center font-display text-sm"
+                   style={{ background: tx.type === 'income' ? 'rgba(232,168,50,0.15)' : 'rgba(200,57,43,0.15)',
+                            color: tx.type === 'income' ? '#E8A832' : '#C8392B' }}>
+                {tx.category?.slice(0,2).toUpperCase() || (tx.type === 'income' ? <TrendingUp className="w-4 h-4"/> : <TrendingDown className="w-4 h-4"/>)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-white truncate">{tx.description}</p>
+                <div className="flex gap-2 text-xs text-cement mt-0.5">
+                  {tx.category && <span>{tx.category}</span>}
+                  {tx.category && <span>·</span>}
+                  <span>{new Date(tx.date).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' })}</span>
                 </div>
-              ))}
-            </div>
-          )
-        )}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="font-mono font-semibold"
+                      style={{ color: tx.type === 'income' ? '#E8A832' : '#E8DFD0' }}>
+                  {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount)}
+                </span>
+                <button onClick={() => handleDelete(tx.id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-cement opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: 'rgba(200,57,43,0.15)' }}>
+                  <Trash2 className="w-3.5 h-3.5 text-red-400"/>
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
-        {/* Wiederkehrende */}
-        {tab === 'wiederkehrend' && (
-          <>
-            <div className="ak-card p-3" style={{ borderLeft: '3px solid #E8A832' }}>
-              <div className="font-mono text-[9px] text-cement tracking-wider">
-                Aktive Einträge werden automatisch am eingestellten Tag gebucht.
-              </div>
-            </div>
-            {recurring.length === 0 ? (
-              <div className="ak-card p-8 text-center">
-                <div className="text-3xl mb-2">🔁</div>
-                <p className="font-sans text-sm text-cement">Noch keine wiederkehrenden Einträge.</p>
-                <p className="font-sans text-xs text-cement mt-1">Beim + Hinzufügen "Wiederkehrend" aktivieren.</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {recurring.map(r => (
-                  <div key={r.id} className="ak-card p-3.5"
-                       style={{ borderLeft: `3px solid ${r.type === 'income' ? '#E8A832' : '#C8392B'}`, opacity: r.active ? 1 : 0.5 }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0"
-                             style={{ background: r.type === 'income' ? 'rgba(232,168,50,0.12)' : 'rgba(200,57,43,0.1)' }}>
-                          🔁
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-sans text-sm font-semibold text-navy truncate">{r.description}</div>
-                          <div className="font-mono text-[9px] text-cement uppercase tracking-wider mt-0.5">
-                            {r.category} · jeden {r.day_of_month}.
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <div className={`font-display text-xl ${r.type === 'income' ? 'text-signal' : 'text-red'}`}>
-                          {r.type === 'income' ? '+' : '-'}{r.amount.toLocaleString('de-DE')}€
-                        </div>
-                        <button onClick={() => handleToggleRecurring(r.id)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
-                          style={{ background: r.active ? '#0D1B2A' : 'rgba(0,0,0,0.05)', color: r.active ? 'white' : '#9AA0A6', WebkitTapHighlightColor: 'transparent' }}>
-                          {r.active ? '✓' : '○'}
-                        </button>
-                        <button onClick={() => handleDeleteRecurring(r.id)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-lg text-cement"
-                          style={{ background: 'rgba(0,0,0,0.05)', WebkitTapHighlightColor: 'transparent' }}>×</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {showAdd && <AddSheet onClose={() => setShowAdd(false)} defaultType={tab === 'einnahmen' ? 'income' : 'expense'}/>}
+      {showAdd && <AddSheet onClose={() => setShowAdd(false)}/>}
     </div>
   )
 }
 
-// ── Add Sheet (mit Wiederkehrend-Option) ─────────────────────────────────────
-function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 'income'|'expense' }) {
+function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 rounded-2xl gap-4"
+         style={{ border: '2px dashed rgba(61,81,102,0.4)' }}>
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(61,81,102,0.2)' }}>{icon}</div>
+      <p className="text-sm text-cement text-center px-4">{text}</p>
+    </div>
+  )
+}
+
+function AddSheet({ onClose }: { onClose: () => void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
-  const [type, setType]           = useState<'income'|'expense'>(defaultType)
-  const [amount, setAmount]       = useState('')
-  const [desc, setDesc]           = useState('')
-  const [category, setCategory]   = useState('')
-  const [date, setDate]           = useState(
+  const [type, setType]             = useState<'income'|'expense'>('expense')
+  const [amount, setAmount]         = useState('')
+  const [desc, setDesc]             = useState('')
+  const [category, setCategory]     = useState('')
+  const [date, setDate]             = useState(
     new Date(viewYear, viewMonth, Math.min(new Date().getDate(), new Date(viewYear, viewMonth+1, 0).getDate()))
       .toISOString().split('T')[0]
   )
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [recurringDay, setRecurringDay] = useState(new Date().getDate().toString())
-  const [saving, setSaving]       = useState(false)
-  const [error, setError]         = useState('')
+  const [recurrence, setRecurrence] = useState<'once'|'monthly'|'yearly'>('once')
+  const [recurringDay, setDay]      = useState(new Date().getDate().toString())
+  const [saving, setSaving]         = useState(false)
+  const [error, setError]           = useState('')
 
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
   async function handleSave() {
     if (!amount || !desc || !category) { setError('Bitte alle Felder ausfüllen.'); return }
     setSaving(true); setError('')
-
     try {
-      // Eintrag buchen
       const tx = { user_id: userId ?? 'demo', type, amount: parseFloat(amount), description: desc, category, date }
       if (userId) {
         const { data: row, error: err } = await supabase.from('transactions').insert(tx).select().single()
@@ -240,10 +231,8 @@ function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 
       } else {
         setTransactions([{ ...tx, id: Date.now().toString(), created_at: new Date().toISOString() }, ...transactions])
       }
-
-      // Wiederkehrend anlegen
-      if (isRecurring) {
-        const entry: Omit<RecurringEntry, 'id'|'created_at'> = {
+      if (recurrence !== 'once') {
+        const entry: Omit<RecurringEntry,'id'|'created_at'> = {
           user_id: userId ?? 'demo', type, amount: parseFloat(amount),
           description: desc, category, day_of_month: parseInt(recurringDay), active: true,
         }
@@ -251,23 +240,22 @@ function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 
           const { data: row } = await supabase.from('recurring_entries').insert(entry).select().single()
           if (row) setRecurring([...recurring, row])
         } else {
-          setRecurring([...recurring, { ...entry, id: Date.now().toString()+'r', created_at: new Date().toISOString() }])
+          setRecurring([...recurring, { ...entry, id: Date.now()+'r', created_at: new Date().toISOString() }])
         }
       }
       onClose()
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Fehler beim Speichern.')
-    }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Fehler') }
     setSaving(false)
   }
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-sheet">
-        <div className="flex justify-center mb-3"><div className="w-10 h-1 rounded-full bg-navy/15"/></div>
-        <div className="flex justify-between items-center mb-4">
-          <div className="font-display text-navy text-2xl">EINTRAG</div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-navy/6 flex items-center justify-center text-cement text-xl leading-none">×</button>
+        <div className="flex justify-center mb-3"><div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}/></div>
+        <div className="flex justify-between items-center mb-5">
+          <div className="font-display text-white text-2xl">NEUER EINTRAG</div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-cement text-xl"
+            style={{ background: 'rgba(255,255,255,0.08)' }}>×</button>
         </div>
 
         {/* Type */}
@@ -275,7 +263,8 @@ function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 
           {(['expense','income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCategory('') }}
               className="flex-1 py-3 rounded-xl font-display text-base tracking-wider transition-all"
-              style={{ background: type===t ? (t==='expense'?'#C8392B':'#E8A832') : '#F4F2EE', color: type===t?'white':'#9AA0A6' }}>
+              style={{ background: type===t ? (t==='expense'?'#C8392B':'#E8A832') : 'rgba(255,255,255,0.06)',
+                       color: type===t ? (t==='expense'?'white':'#0D1B2A') : '#9AA0A6' }}>
               {t === 'expense' ? '↓ Ausgabe' : '↑ Einnahme'}
             </button>
           ))}
@@ -283,15 +272,13 @@ function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 
 
         <div className="space-y-3">
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 font-display text-2xl text-navy/30">€</div>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 font-display text-2xl" style={{ color: 'rgba(255,255,255,0.2)' }}>€</div>
             <input className="ak-input pl-10 font-display text-3xl" type="number" inputMode="decimal"
               placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} autoFocus/>
           </div>
-
           <input className="ak-input" placeholder="Beschreibung" value={desc} onChange={e => setDesc(e.target.value)}/>
           <input className="ak-input" type="date" value={date} onChange={e => setDate(e.target.value)}/>
 
-          {/* Kategorien */}
           <div>
             <div className="font-mono text-[9px] text-cement tracking-widest uppercase mb-2">Kategorie</div>
             <div className="flex flex-wrap gap-1.5">
@@ -302,38 +289,34 @@ function AddSheet({ onClose, defaultType }: { onClose: () => void; defaultType: 
             </div>
           </div>
 
-          {/* Wiederkehrend Toggle */}
-          <button onClick={() => setIsRecurring(!isRecurring)}
-            className="w-full flex items-center justify-between p-3.5 rounded-xl transition-all"
-            style={{ background: isRecurring ? 'rgba(13,27,42,0.06)' : '#F4F2EE', border: isRecurring ? '1.5px solid #0D1B2A' : '1.5px solid transparent' }}>
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🔁</span>
-              <div className="text-left">
-                <div className="font-sans text-sm font-semibold text-navy">Wiederkehrend</div>
-                <div className="font-mono text-[9px] text-cement uppercase tracking-wider">Automatisch jeden Monat buchen</div>
-              </div>
+          {/* Recurrence */}
+          <div>
+            <div className="font-mono text-[9px] text-cement tracking-widest uppercase mb-2">Wiederholung</div>
+            <div className="flex gap-1.5">
+              {([['once','Einmalig'],['monthly','Monatlich'],['yearly','Jährlich']] as const).map(([val, label]) => (
+                <button key={val} onClick={() => setRecurrence(val)}
+                  className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
+                  style={{ background: recurrence===val ? '#C8392B' : 'rgba(255,255,255,0.06)',
+                           color: recurrence===val ? 'white' : '#9AA0A6' }}>
+                  {label}
+                </button>
+              ))}
             </div>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center"
-                 style={{ background: isRecurring ? '#0D1B2A' : 'rgba(0,0,0,0.08)', color: isRecurring ? 'white' : '#9AA0A6' }}>
-              {isRecurring ? '✓' : '○'}
-            </div>
-          </button>
+          </div>
 
-          {isRecurring && (
+          {recurrence !== 'once' && (
             <div>
               <label className="font-mono text-[9px] text-cement tracking-widest uppercase block mb-1">Tag im Monat</label>
-              <select className="ak-input" value={recurringDay} onChange={e => setRecurringDay(e.target.value)}>
-                {Array.from({length: 28}, (_, i) => i+1).map(d => (
-                  <option key={d} value={d}>{d}. des Monats</option>
-                ))}
+              <select className="ak-input" value={recurringDay} onChange={e => setDay(e.target.value)}>
+                {Array.from({length:28},(_,i)=>i+1).map(d => <option key={d} value={d}>{d}. des Monats</option>)}
               </select>
             </div>
           )}
 
-          {error && <div className="bg-red/10 text-red font-mono text-[10px] px-3 py-2 rounded-lg">{error}</div>}
+          {error && <div className="text-red-400 font-mono text-[10px] px-3 py-2 rounded-lg" style={{ background: 'rgba(200,57,43,0.15)' }}>{error}</div>}
 
           <button onClick={handleSave} disabled={saving} className="w-full ak-btn ak-btn-primary">
-            {saving ? 'Speichern...' : isRecurring ? 'Eintragen & Wiederholen' : 'Eintragen'}
+            {saving ? 'Speichern...' : recurrence !== 'once' ? 'Eintragen & wiederholen' : 'Eintragen'}
           </button>
         </div>
       </div>

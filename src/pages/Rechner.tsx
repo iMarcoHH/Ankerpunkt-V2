@@ -1,199 +1,159 @@
 import { useState } from 'react'
 
+const fmt = (v: number) => v.toLocaleString('de-DE', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+const fmtCur = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
+
+const TABS = [
+  { id: 'kredit',   label: 'Kredit'      },
+  { id: 'zins',     label: 'Zinseszins'  },
+  { id: 'alg',      label: 'ALG I'       },
+  { id: 'waehrung', label: 'Währung'     },
+]
+
+const RATES: Record<string, number> = {
+  EUR: 1, USD: 1.08, GBP: 0.86, CHF: 0.96,
+  JPY: 163.5, DKK: 7.46, SEK: 11.2, NOK: 11.5,
+}
+
 export function RechnerPage() {
   const [tab, setTab] = useState('kredit')
-  const [kredit, setKredit] = useState({ betrag: '10000', zins: '5', laufzeit: '5' })
-  const [waehrung, setWaehrung] = useState({ betrag: '100', kurs: '1.08', von: 'EUR', nach: 'USD' })
-  const [zins, setZins] = useState({ kapital: '1000', zins: '5', jahre: '10' })
-  const [alg, setAlg] = useState({ gehalt: '3000', kinder: 'nein' })
 
-  const RATES: Record<string, number> = { EUR: 1, USD: 1.08, GBP: 0.86, CHF: 0.96, JPY: 163.5, DKK: 7.46, SEK: 11.2, NOK: 11.5 }
+  // Kredit
+  const [kBetrag, setKBetrag]   = useState('10000')
+  const [kZins,   setKZins]     = useState('5')
+  const [kLauf,   setKLauf]     = useState('5')
+
+  // Zins
+  const [zKap,    setZKap]      = useState('1000')
+  const [zZins,   setZZins]     = useState('5')
+  const [zJahre,  setZJahre]    = useState('10')
+
+  // ALG
+  const [aGehalt, setAGehalt]   = useState('3000')
+  const [aKinder, setAKinder]   = useState<'nein'|'ja'>('nein')
+
+  // Währung
+  const [wBetrag, setWBetrag]   = useState('100')
+  const [wVon,    setWVon]      = useState('EUR')
+  const [wNach,   setWNach]     = useState('USD')
 
   const kreditRate = () => {
-    const p = parseFloat(kredit.betrag), r = parseFloat(kredit.zins)/100/12, n = parseFloat(kredit.laufzeit)*12
-    if (!p || !r || !n) return 0
-    return (p * r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1)
+    const p = parseFloat(kBetrag), r = parseFloat(kZins)/100/12, n = parseFloat(kLauf)*12
+    if (!p||!r||!n) return 0
+    return (p*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1)
   }
-
-  const zinsResult = () => {
-    const k = parseFloat(zins.kapital), z = parseFloat(zins.zins)/100, j = parseFloat(zins.jahre)
-    if (!k || !z || !j) return 0
-    return k * Math.pow(1+z, j)
-  }
-
-  const algResult = () => {
-    const n = parseFloat(alg.gehalt)
-    if (!n) return 0
-    return n * (alg.kinder === 'ja' ? 0.67 : 0.60)
-  }
-
-  const waehrungResult = () => {
-    const b = parseFloat(waehrung.betrag)
-    const from = RATES[waehrung.von] ?? 1
-    const to   = RATES[waehrung.nach] ?? 1
-    return (b / from) * to
-  }
-
-  const tabs = [
-    { id: 'kredit',   label: 'Kredit'     },
-    { id: 'zins',     label: 'Zinseszins' },
-    { id: 'alg',      label: 'ALG I'      },
-    { id: 'waehrung', label: 'Währung'    },
-  ]
+  const zinsResult  = () => { const k=parseFloat(zKap),z=parseFloat(zZins)/100,j=parseFloat(zJahre); if(!k||!z||!j) return 0; return k*Math.pow(1+z,j) }
+  const algResult   = () => { const n=parseFloat(aGehalt); if(!n) return 0; return n*(aKinder==='ja'?0.67:0.60) }
+  const waehrResult = () => (parseFloat(wBetrag)/(RATES[wVon]??1))*(RATES[wNach]??1)
 
   return (
-    <div className="pb-24 min-h-screen" style={{ background: '#F4F2EE' }}>
-
-      {/* Header */}
-      <div className="bg-navy px-5 pt-14 pb-6" style={{ borderBottom: '3px solid #C8392B' }}>
-        <div className="font-mono text-[10px] text-red tracking-widest uppercase mb-1">// Werkzeug</div>
-        <div className="font-display text-white text-4xl tracking-wide">RECHNER</div>
+    <div className="p-5 space-y-5 pb-8">
+      <div className="pt-14">
+        <p className="text-xs text-red font-mono tracking-widest uppercase mb-1">// Werkzeug</p>
+        <h1 className="font-display text-4xl tracking-widest text-white">Rechner</h1>
       </div>
 
-      <div className="px-4 py-5 space-y-5">
+      {/* Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            style={{ background: tab===t.id ? '#0D1B2A' : 'rgba(255,255,255,0.06)',
+                     color: tab===t.id ? 'white' : '#9AA0A6',
+                     border: tab===t.id ? '1px solid rgba(61,81,102,0.6)' : '1px solid transparent' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Tab switcher */}
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className="flex-shrink-0 px-4 py-2 rounded-xl font-mono text-[10px] tracking-widest uppercase transition-all"
-              style={{
-                background: tab === t.id ? '#0D1B2A' : 'white',
-                color:      tab === t.id ? 'white'   : '#9AA0A6',
-                border:     tab === t.id ? 'none'    : '1px solid rgba(0,0,0,0.08)',
-              }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="ak-card p-5 max-w-md space-y-4">
 
-        {/* ── KREDIT ── */}
-        {tab === 'kredit' && (
-          <div className="space-y-3">
-            <Field label="Kreditbetrag (€)"  value={kredit.betrag}   onChange={v => setKredit({...kredit, betrag: v})}/>
-            <Field label="Zinssatz (% p.a.)" value={kredit.zins}     onChange={v => setKredit({...kredit, zins: v})}/>
-            <Field label="Laufzeit (Jahre)"  value={kredit.laufzeit} onChange={v => setKredit({...kredit, laufzeit: v})}/>
-            <Result
-              label="Monatliche Rate"
-              value={`${kreditRate().toFixed(2).replace('.',',')} €`}
-              sub={`Gesamtkosten: ${(kreditRate() * parseFloat(kredit.laufzeit) * 12).toLocaleString('de-DE', {maximumFractionDigits: 0})} €`}
-            />
+        {/* KREDIT */}
+        {tab === 'kredit' && <>
+          <h2 className="font-display text-xl tracking-wide text-white">KREDITRECHNER</h2>
+          <Field label="Betrag (€)"         value={kBetrag} onChange={setKBetrag}/>
+          <Field label="Zinssatz (% p.a.)"  value={kZins}   onChange={setKZins}/>
+          <Field label="Laufzeit (Jahre)"   value={kLauf}   onChange={setKLauf}/>
+          <Result label="Monatliche Rate" value={`${fmt(kreditRate())} €`}
+            sub={`Gesamt: ${fmt(kreditRate()*parseFloat(kLauf)*12)} €`}/>
+        </>}
+
+        {/* ZINS */}
+        {tab === 'zins' && <>
+          <h2 className="font-display text-xl tracking-wide text-white">ZINSESZINS</h2>
+          <Field label="Startkapital (€)"  value={zKap}   onChange={setZKap}/>
+          <Field label="Zinssatz (%)"       value={zZins}  onChange={setZZins}/>
+          <Field label="Jahre"              value={zJahre} onChange={setZJahre}/>
+          <Result label={`Endkapital nach ${zJahre} Jahren`}
+            value={`${fmt(zinsResult())} €`}
+            sub={`Gewinn: +${fmt(zinsResult()-parseFloat(zKap))} €`}
+            accent="#E8A832"/>
+        </>}
+
+        {/* ALG I */}
+        {tab === 'alg' && <>
+          <h2 className="font-display text-xl tracking-wide text-white">ALG I RECHNER</h2>
+          <p className="text-xs text-cement">ALG I = 60% (ohne Kind) bzw. 67% (mit Kind) des letzten Nettogehalts.</p>
+          <Field label="Letztes Nettoeinkommen (€)" value={aGehalt} onChange={setAGehalt}/>
+          <div>
+            <label className="text-xs text-cement uppercase tracking-wider block mb-2">Kind mit Kindergeldanspruch?</label>
+            <div className="flex gap-2">
+              {(['nein','ja'] as const).map(v => (
+                <button key={v} onClick={() => setAKinder(v)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all"
+                  style={{ background: aKinder===v ? '#C8392B' : 'rgba(255,255,255,0.06)', color: aKinder===v?'white':'#9AA0A6' }}>
+                  {v==='ja'?'Ja (67%)':'Nein (60%)'}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+          <Result label="Monatliches ALG I (ca.)"
+            value={`${fmt(algResult())} €`}
+            sub="Richtwert · genaue Berechnung via Bundesagentur"/>
+        </>}
 
-        {/* ── ZINSESZINS ── */}
-        {tab === 'zins' && (
-          <div className="space-y-3">
-            <Field label="Startkapital (€)" value={zins.kapital} onChange={v => setZins({...zins, kapital: v})}/>
-            <Field label="Jahreszins (%)"   value={zins.zins}    onChange={v => setZins({...zins, zins: v})}/>
-            <Field label="Laufzeit (Jahre)" value={zins.jahre}   onChange={v => setZins({...zins, jahre: v})}/>
-            <Result
-              label={`Endkapital nach ${zins.jahre} Jahren`}
-              value={`${zinsResult().toLocaleString('de-DE', {maximumFractionDigits: 0})} €`}
-              sub={`Gewinn: +${(zinsResult() - parseFloat(zins.kapital)).toLocaleString('de-DE', {maximumFractionDigits: 0})} €`}
-              accent="#E8A832"
-            />
-          </div>
-        )}
-
-        {/* ── ALG I ── */}
-        {tab === 'alg' && (
-          <div className="space-y-3">
-            <Field label="Letztes Nettoeinkommen (€)" value={alg.gehalt} onChange={v => setAlg({...alg, gehalt: v})}/>
+        {/* WÄHRUNG */}
+        {tab === 'waehrung' && <>
+          <h2 className="font-display text-xl tracking-wide text-white">WÄHRUNGSRECHNER</h2>
+          <Field label="Betrag" value={wBetrag} onChange={setWBetrag}/>
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-mono text-[9px] text-cement tracking-widest uppercase block mb-2">
-                Kind mit Kindergeldanspruch?
-              </label>
-              <div className="flex gap-2">
-                {(['nein', 'ja'] as const).map(v => (
-                  <button key={v} onClick={() => setAlg({...alg, kinder: v})}
-                    className="flex-1 py-2.5 rounded-xl font-mono text-[10px] tracking-widest uppercase transition-all"
-                    style={{
-                      background: alg.kinder === v ? '#0D1B2A' : 'white',
-                      color:      alg.kinder === v ? 'white'   : '#9AA0A6',
-                      border:     alg.kinder === v ? 'none'    : '1px solid rgba(0,0,0,0.08)',
-                    }}>
-                    {v === 'ja' ? 'Ja (67%)' : 'Nein (60%)'}
-                  </button>
-                ))}
-              </div>
+              <label className="text-xs text-cement uppercase tracking-wider block mb-1">Von</label>
+              <select className="ak-input" value={wVon} onChange={e => setWVon(e.target.value)}>
+                {Object.keys(RATES).map(c => <option key={c} style={{ background:'#1e2e40' }}>{c}</option>)}
+              </select>
             </div>
-            <div className="ak-card p-3" style={{ borderLeft: '3px solid #E8A832' }}>
-              <div className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Hinweis</div>
-              <div className="font-sans text-xs text-steel font-light leading-relaxed">
-                ALG I beträgt 60% (ohne Kind) bzw. 67% (mit Kind) des letzten Nettolohns.
-                Richtwert — genaue Berechnung via Bundesagentur für Arbeit.
-              </div>
+            <div>
+              <label className="text-xs text-cement uppercase tracking-wider block mb-1">Nach</label>
+              <select className="ak-input" value={wNach} onChange={e => setWNach(e.target.value)}>
+                {Object.keys(RATES).map(c => <option key={c} style={{ background:'#1e2e40' }}>{c}</option>)}
+              </select>
             </div>
-            <Result
-              label="Monatliches ALG I (ca.)"
-              value={`${algResult().toLocaleString('de-DE', {maximumFractionDigits: 0})} €`}
-              sub={`${alg.kinder === 'ja' ? '67%' : '60%'} des Nettoeinkommens`}
-            />
           </div>
-        )}
-
-        {/* ── WÄHRUNG ── */}
-        {tab === 'waehrung' && (
-          <div className="space-y-3">
-            <Field label="Betrag" value={waehrung.betrag} onChange={v => setWaehrung({...waehrung, betrag: v})}/>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="font-mono text-[9px] text-cement tracking-widest uppercase block mb-1">Von</label>
-                <select className="ak-input"
-                  value={waehrung.von}
-                  onChange={e => setWaehrung({...waehrung, von: e.target.value})}>
-                  {Object.keys(RATES).map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="flex items-end pb-2">
-                <span className="font-display text-navy text-2xl">→</span>
-              </div>
-              <div className="flex-1">
-                <label className="font-mono text-[9px] text-cement tracking-widest uppercase block mb-1">Nach</label>
-                <select className="ak-input"
-                  value={waehrung.nach}
-                  onChange={e => setWaehrung({...waehrung, nach: e.target.value})}>
-                  {Object.keys(RATES).map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-            </div>
-            <Result
-              label={`${waehrung.betrag} ${waehrung.von} =`}
-              value={`${waehrungResult().toFixed(2).replace('.',',')} ${waehrung.nach}`}
-              sub="Richtwert · Kurs kann abweichen"
-            />
-          </div>
-        )}
-
+          <Result label={`${wBetrag} ${wVon} =`}
+            value={`${fmt(waehrResult())} ${wNach}`}
+            sub="Richtwert · Kurs kann abweichen"/>
+        </>}
       </div>
     </div>
   )
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Field({ label, value, onChange }: { label:string; value:string; onChange:(v:string)=>void }) {
   return (
     <div>
-      <label className="font-mono text-[9px] text-cement tracking-widest uppercase block mb-1">{label}</label>
-      <input
-        className="ak-input"
-        type="number"
-        inputMode="decimal"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
+      <label className="text-xs text-cement uppercase tracking-wider block mb-1">{label}</label>
+      <input className="ak-input" type="number" inputMode="decimal" value={value} onChange={e => onChange(e.target.value)}/>
     </div>
   )
 }
 
-function Result({ label, value, sub, accent = '#C8392B' }: {
-  label: string; value: string; sub?: string; accent?: string
-}) {
+function Result({ label, value, sub, accent='#C8392B' }: { label:string; value:string; sub?:string; accent?:string }) {
   return (
-    <div className="rounded-2xl p-5 text-center" style={{ background: '#0D1B2A' }}>
-      <div className="font-mono text-[9px] text-white/40 tracking-widest uppercase mb-2">{label}</div>
-      <div className="font-display text-white tracking-wide" style={{ fontSize: 42, lineHeight: 1 }}>{value}</div>
-      {sub && <div className="font-mono text-[10px] mt-2" style={{ color: accent }}>{sub}</div>}
+    <div className="rounded-2xl p-5 text-center mt-2" style={{ background:'#0D1B2A' }}>
+      <div className="text-xs text-cement uppercase tracking-wider mb-2">{label}</div>
+      <div className="font-display text-4xl text-white tracking-wide">{value}</div>
+      {sub && <div className="text-xs mt-2 font-mono" style={{ color: accent }}>{sub}</div>}
     </div>
   )
 }

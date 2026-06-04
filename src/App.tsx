@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from './store'
-import { BottomNav } from './components/BottomNav'
-import { SwipeContainer } from './components/SwipeContainer'
-import { LageberichtPage }    from './pages/Lagebericht'
-import { AnalysenPage }       from './pages/Analysen'
-import { BuchungenPage }      from './pages/Buchungen'
-import { RechnerPage }        from './pages/Rechner'
-import { MehrPage }           from './pages/Mehr'
-import { AuthPage }           from './pages/Auth'
-import { supabase }           from './lib/supabase'
+import { PillNav, SwipeContainer } from './components/PillNav'
+import { DashboardPage }     from './pages/Dashboard'
+import { BuchungenPage }     from './pages/Buchungen'
+import { AnalysenPage }      from './pages/Analysen'
+import { ZielePage }         from './pages/Ziele'
+import { VersicherungenPage }from './pages/Versicherungen'
+import { GamificationPage }  from './pages/Gamification'
+import { RechnerPage }       from './pages/Rechner'
+import { NewsPage }          from './pages/News'
+import { LexikonPage }       from './pages/Lexikon'
+import { AuthPage }          from './pages/Auth'
+import { supabase }          from './lib/supabase'
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
@@ -30,20 +33,21 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Wiederkehrende Einträge automatisch buchen
+  // Auto-book recurring entries
   useEffect(() => {
     if (!userId || recurring.length === 0) return
     const today = new Date()
-    recurring.filter(r => r.active).forEach(async (r) => {
-      const alreadyBooked = transactions.some(t =>
+    recurring.filter(r => r.active).forEach(async r => {
+      const already = transactions.some(t =>
         t.description === r.description && t.amount === r.amount && t.type === r.type &&
         new Date(t.date).getMonth() === today.getMonth() &&
         new Date(t.date).getFullYear() === today.getFullYear()
       )
-      if (!alreadyBooked && today.getDate() >= r.day_of_month) {
+      if (!already && today.getDate() >= r.day_of_month) {
         const date = new Date(today.getFullYear(), today.getMonth(), r.day_of_month).toISOString().split('T')[0]
-        const tx = { user_id: userId, type: r.type, amount: r.amount, description: r.description, category: r.category, date }
-        const { data: row } = await supabase.from('transactions').insert(tx).select().single()
+        const { data: row } = await supabase.from('transactions')
+          .insert({ user_id: userId, type: r.type, amount: r.amount, description: r.description, category: r.category, date })
+          .select().single()
         if (row) setTransactions([row, ...transactions])
       }
     })
@@ -52,21 +56,22 @@ export default function App() {
   async function loadData(uid: string) {
     setLoading(true)
     try {
-      const [txsRes, insRes, goalsRes, achRes, profileRes, recRes] = await Promise.allSettled([
-        supabase.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
-        supabase.from('insurances').select('*').eq('user_id', uid),
-        supabase.from('savings_goals').select('*').eq('user_id', uid),
-        supabase.from('achievements').select('*').eq('user_id', uid),
-        supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
+      const results = await Promise.allSettled([
+        supabase.from('transactions')    .select('*').eq('user_id', uid).order('date', { ascending: false }),
+        supabase.from('insurances')      .select('*').eq('user_id', uid),
+        supabase.from('savings_goals')   .select('*').eq('user_id', uid),
+        supabase.from('achievements')    .select('*').eq('user_id', uid),
+        supabase.from('profiles')        .select('*').eq('id', uid).maybeSingle(),
         supabase.from('recurring_entries').select('*').eq('user_id', uid),
       ])
-      if (txsRes.status === 'fulfilled' && txsRes.value.data)        setTransactions(txsRes.value.data)
-      if (insRes.status === 'fulfilled' && insRes.value.data)         setInsurances(insRes.value.data)
-      if (goalsRes.status === 'fulfilled' && goalsRes.value.data)     setGoals(goalsRes.value.data)
-      if (achRes.status === 'fulfilled' && achRes.value.data)         setAchievements(achRes.value.data)
-      if (profileRes.status === 'fulfilled' && profileRes.value.data) setProfile(profileRes.value.data)
-      if (recRes.status === 'fulfilled' && recRes.value.data)         setRecurring(recRes.value.data)
-    } catch (e) { console.error('loadData error:', e) }
+      const [txs, ins, goals, ach, profile, rec] = results
+      if (txs.status     === 'fulfilled' && txs.value.data)     setTransactions(txs.value.data)
+      if (ins.status     === 'fulfilled' && ins.value.data)     setInsurances(ins.value.data)
+      if (goals.status   === 'fulfilled' && goals.value.data)   setGoals(goals.value.data)
+      if (ach.status     === 'fulfilled' && ach.value.data)     setAchievements(ach.value.data)
+      if (profile.status === 'fulfilled' && profile.value.data) setProfile(profile.value.data)
+      if (rec.status     === 'fulfilled' && rec.value.data)     setRecurring(rec.value.data)
+    } catch (e) { console.error(e) }
     setLoading(false)
   }
 
@@ -74,16 +79,18 @@ export default function App() {
   if (!userId) return <AuthPage/>
 
   return (
-    <div className="relative" style={{ background: '#F4F2EE' }}>
-      <SwipeContainer>
-        {activeTab === 'lagebericht' && <LageberichtPage/>}
-        {activeTab === 'analysen'    && <AnalysenPage/>}
-        {activeTab === 'buchungen'   && <BuchungenPage/>}
-        {activeTab === 'rechner'     && <RechnerPage/>}
-        {activeTab === 'mehr'        && <MehrPage/>}
-      </SwipeContainer>
-      <BottomNav/>
-    </div>
+    <SwipeContainer>
+      {activeTab === 'dashboard'      && <DashboardPage/>}
+      {activeTab === 'buchungen'      && <BuchungenPage/>}
+      {activeTab === 'analysen'       && <AnalysenPage/>}
+      {activeTab === 'ziele'          && <ZielePage/>}
+      {activeTab === 'versicherungen' && <VersicherungenPage/>}
+      {activeTab === 'gamification'   && <GamificationPage/>}
+      {activeTab === 'rechner'        && <RechnerPage/>}
+      {activeTab === 'news'           && <NewsPage/>}
+      {activeTab === 'lexikon'        && <LexikonPage/>}
+      <PillNav/>
+    </SwipeContainer>
   )
 }
 
@@ -99,8 +106,8 @@ function Splash() {
         <circle cx="12" cy="36" r="3" fill="#C8392B"/>
         <circle cx="40" cy="36" r="3" fill="#C8392B"/>
       </svg>
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'white', fontSize: 24, letterSpacing: '0.2em' }}>ANKERPUNKT</div>
-      <div style={{ fontFamily: "'IBM Plex Mono', monospace", color: 'rgba(255,255,255,0.3)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Laden...</div>
+      <div style={{ fontFamily:"'Bebas Neue',sans-serif", color:'white', fontSize:24, letterSpacing:'0.2em' }}>ANKERPUNKT</div>
+      <div style={{ fontFamily:"'IBM Plex Mono',monospace", color:'rgba(255,255,255,0.3)', fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase' }}>Laden...</div>
     </div>
   )
 }
