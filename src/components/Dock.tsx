@@ -20,104 +20,108 @@ export const ALL_TABS = [
 ]
 
 export const ALL_TAB_IDS = ALL_TABS.map(t => t.id)
-const PILL_TABS = ALL_TABS.slice(0, 4)
 
 export function Dock() {
   const { activeTab, setActiveTab } = useStore()
-  const swipeX = useRef(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Aktiver Tab außerhalb der ersten 4
-  const extraIdx  = ALL_TAB_IDS.indexOf(activeTab)
-  const isExtra   = extraIdx >= 4
-  const activeObj = ALL_TABS[extraIdx]
+  // Scroll aktiven Tab ins Sichtfeld
+  function scrollToTab(id: string) {
+    const container = scrollRef.current
+    if (!container) return
+    const btn = container.querySelector(`[data-tab="${id}"]`) as HTMLElement
+    if (!btn) return
+    const containerCenter = container.offsetWidth / 2
+    const btnCenter = btn.offsetLeft + btn.offsetWidth / 2
+    container.scrollTo({ left: btnCenter - containerCenter, behavior: 'smooth' })
+  }
+
+  function handleTabClick(id: string) {
+    setActiveTab(id)
+    scrollToTab(id)
+  }
 
   return (
-    <div className="fixed z-50" style={{ bottom: 'max(14px, env(safe-area-inset-bottom, 14px))', left: '50%', transform: 'translateX(-50%)' }}>
-      <motion.div
-        className="flex items-center rounded-full"
-        style={{
-          background: 'rgba(11,22,36,0.97)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          padding: '5px 6px',
-          gap: 2,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-        }}
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 26, delay: 0.1 }}
-        onTouchStart={e => { swipeX.current = e.touches[0].clientX }}
-        onTouchEnd={e => {
-          const dx = e.changedTouches[0].clientX - swipeX.current
-          if (Math.abs(dx) < 44) return
-          const i = ALL_TAB_IDS.indexOf(activeTab)
-          if (dx < 0 && i < ALL_TAB_IDS.length - 1) setActiveTab(ALL_TAB_IDS[i + 1])
-          else if (dx > 0 && i > 0) setActiveTab(ALL_TAB_IDS[i - 1])
-        }}
-      >
-        {PILL_TABS.map(tab => {
-          const active = activeTab === tab.id
-          return (
-            <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className="relative flex flex-col items-center rounded-full"
-              style={{ padding: '8px 12px', minWidth: 58, color: active ? '#fff' : '#9AA0A6', gap: 3 }}
-              whileTap={{ scale: 0.85 }}>
-              {active && (
-                <motion.div className="absolute inset-0 rounded-full"
-                  style={{ background: 'linear-gradient(135deg, #C8392B, #a82e22)' }}
-                  layoutId="pill-active"
-                  transition={{ type: 'spring', stiffness: 460, damping: 30 }}/>
-              )}
-              <tab.Icon className="w-[17px] h-[17px] relative z-10 shrink-0" strokeWidth={active ? 2 : 1.75}/>
-              <span className="relative z-10 whitespace-nowrap"
-                style={{ fontSize: 8, fontWeight: active ? 600 : 400, lineHeight: 1, letterSpacing: '0.02em' }}>
-                {tab.label}
-              </span>
-            </motion.button>
-          )
-        })}
-
-        {/* Wenn ein Tab außerhalb der ersten 4 aktiv ist — als 5. Element zeigen */}
-        {isExtra && activeObj && (
-          <>
-            <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 2px', flexShrink: 0 }}/>
-            <motion.button onClick={() => setActiveTab(activeObj.id)}
-              className="relative flex flex-col items-center rounded-full"
-              style={{ padding: '8px 12px', minWidth: 58, color: '#fff', gap: 3 }}
-              whileTap={{ scale: 0.85 }}>
-              <motion.div className="absolute inset-0 rounded-full"
-                style={{ background: 'linear-gradient(135deg, #C8392B, #a82e22)' }}
-                layoutId="pill-active"
-                transition={{ type: 'spring', stiffness: 460, damping: 30 }}/>
-              <activeObj.Icon className="w-[17px] h-[17px] relative z-10 shrink-0" strokeWidth={2}/>
-              <span className="relative z-10 whitespace-nowrap"
-                style={{ fontSize: 8, fontWeight: 600, lineHeight: 1, letterSpacing: '0.02em' }}>
-                {activeObj.label}
-              </span>
-            </motion.button>
-          </>
-        )}
-      </motion.div>
-    </div>
+    <motion.div
+      className="fixed z-50"
+      style={{
+        bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 'min(calc(100vw - 32px), 380px)',
+      }}
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 26, delay: 0.1 }}
+    >
+      <div style={{
+        background: 'rgba(11,22,36,0.97)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderRadius: 999,
+        padding: '5px 6px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+        overflow: 'hidden',
+      }}>
+        {/* Scrollable inner */}
+        <div
+          ref={scrollRef}
+          style={{
+            display: 'flex',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            gap: 2,
+          }}
+          className="scrollbar-hide"
+        >
+          {ALL_TABS.map(tab => {
+            const active = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                data-tab={tab.id}
+                onClick={() => handleTabClick(tab.id)}
+                className="relative flex flex-col items-center rounded-full flex-shrink-0"
+                style={{
+                  padding: '8px 12px',
+                  minWidth: 58,
+                  color: active ? '#fff' : '#9AA0A6',
+                  gap: 3,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  WebkitTapHighlightColor: 'transparent',
+                  transition: 'color 0.2s',
+                }}
+              >
+                {active && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full"
+                    style={{ background: 'linear-gradient(135deg, #C8392B, #a82e22)' }}
+                    layoutId="pill-active"
+                    transition={{ type: 'spring', stiffness: 460, damping: 30 }}
+                  />
+                )}
+                <tab.Icon
+                  className="relative z-10 shrink-0"
+                  style={{ width: 17, height: 17 }}
+                  strokeWidth={active ? 2 : 1.75}
+                />
+                <span className="relative z-10 whitespace-nowrap"
+                  style={{ fontSize: 8, fontWeight: active ? 600 : 400, lineHeight: 1, letterSpacing: '0.02em' }}>
+                  {tab.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
 export function SwipeContainer({ children }: { children: React.ReactNode }) {
-  const { activeTab, setActiveTab } = useStore()
-  const x = useRef(0), y = useRef(0)
-  return (
-    <div
-      onTouchStart={e => { x.current = e.touches[0].clientX; y.current = e.touches[0].clientY }}
-      onTouchEnd={e => {
-        const dx = e.changedTouches[0].clientX - x.current
-        const dy = e.changedTouches[0].clientY - y.current
-        if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
-        const i = ALL_TAB_IDS.indexOf(activeTab)
-        if (dx < 0 && i < ALL_TAB_IDS.length - 1) setActiveTab(ALL_TAB_IDS[i + 1])
-        else if (dx > 0 && i > 0) setActiveTab(ALL_TAB_IDS[i - 1])
-      }}>
-      {children}
-    </div>
-  )
+  return <div>{children}</div>
 }
