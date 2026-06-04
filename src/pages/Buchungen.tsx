@@ -53,12 +53,11 @@ export function BuchungenPage() {
 
   return (
     <div className="p-4 space-y-3 pb-8">
-      {/* Header */}
       <div className="flex items-center justify-between pt-14">
         <h1 className="font-display text-3xl tracking-widest text-white">Buchungen</h1>
         <div className="flex items-center gap-2">
           <button onClick={() => { setShowSearch(v=>!v); setSearch('') }}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-cement"
+            className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ background: showSearch ? 'rgba(200,57,43,0.2)' : 'rgba(255,255,255,0.06)', color: showSearch ? '#C8392B' : '#9AA0A6' }}>
             {showSearch ? <X className="w-3.5 h-3.5"/> : <Search className="w-3.5 h-3.5"/>}
           </button>
@@ -70,20 +69,17 @@ export function BuchungenPage() {
         </div>
       </div>
 
-      {/* Suche */}
       <AnimatePresence>
         {showSearch && (
-          <motion.div initial={{ opacity:0, y:-8, height:0 }} animate={{ opacity:1, y:0, height:'auto' }} exit={{ opacity:0, y:-8, height:0 }}>
+          <motion.div initial={{ opacity:0,y:-8,height:0 }} animate={{ opacity:1,y:0,height:'auto' }} exit={{ opacity:0,y:-8,height:0 }}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement"/>
-              <input className="ak-input pl-9" placeholder="Beschreibung oder Kategorie..."
-                value={search} onChange={e => setSearch(e.target.value)} autoFocus/>
+              <input className="ak-input pl-9" placeholder="Suchen..." value={search} onChange={e => setSearch(e.target.value)} autoFocus/>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Monat */}
       <div className="flex items-center justify-between ak-card p-3">
         <button onClick={goToPrevMonth} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.06)' }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -94,7 +90,6 @@ export function BuchungenPage() {
         </button>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-2">
         <div className="ak-card p-3 flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:'rgba(232,168,50,0.15)' }}>
@@ -110,7 +105,6 @@ export function BuchungenPage() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 p-0.5 rounded-xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(61,81,102,0.35)' }}>
         {([['all','Alle'],['income','Einnahmen'],['expense','Ausgaben'],['recurring','Wiederk.']] as const).map(([v,l]) => (
           <button key={v} onClick={() => setTab(v)}
@@ -121,7 +115,6 @@ export function BuchungenPage() {
         ))}
       </div>
 
-      {/* Liste */}
       {tab === 'recurring' ? (
         recurring.length === 0 ? <Leer text="Beim + 'Monatlich' wählen um Einträge zu wiederholen."/> : (
           <div className="space-y-1.5">
@@ -182,41 +175,26 @@ export function BuchungenPage() {
   )
 }
 
-// ── Swipe-to-delete ──────────────────────────────────────────────────────────
 function SwipeDelete({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
-  const startX    = useRef(0)
+  const startX = useRef(0)
   const [offset, setOffset] = useState(0)
   const [deleting, setDeleting] = useState(false)
-  const THRESHOLD = 80
-
-  function onTouchStart(e: React.TouchEvent) { startX.current = e.touches[0].clientX }
-  function onTouchMove(e: React.TouchEvent) {
-    const dx = e.touches[0].clientX - startX.current
-    if (dx < 0) setOffset(Math.max(dx, -120))
-  }
-  function onTouchEnd() {
-    if (offset < -THRESHOLD) {
-      setDeleting(true)
-      setTimeout(() => onDelete(), 250)
-    } else {
-      setOffset(0)
-    }
-  }
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
-      {/* Red delete bg */}
-      <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl"
-           style={{ background:'#C8392B' }}>
+      <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
         <Trash2 className="w-5 h-5 text-white"/>
       </div>
       <motion.div
         style={{ x: offset, opacity: deleting ? 0 : 1 }}
         animate={{ x: offset }}
         transition={{ type:'spring', stiffness:400, damping:35 }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}>
+        onTouchStart={e => { startX.current = e.touches[0].clientX }}
+        onTouchMove={e => { const dx = e.touches[0].clientX - startX.current; if (dx < 0) setOffset(Math.max(dx, -120)) }}
+        onTouchEnd={() => {
+          if (offset < -80) { setDeleting(true); setTimeout(() => onDelete(), 250) }
+          else setOffset(0)
+        }}>
         {children}
       </motion.div>
     </div>
@@ -232,6 +210,7 @@ function Leer({ text }: { text: string }) {
   )
 }
 
+// ── Add Sheet — kompakt wie Versicherungen ────────────────────────────────────
 function AddSheet({ onClose }: { onClose: () => void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
   const [type, setType]     = useState<'income'|'expense'>('expense')
@@ -281,11 +260,16 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
       <div className="modal-sheet">
-        <div className="flex justify-center mb-3"><div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/></div>
+        <div className="flex justify-center mb-3">
+          <div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/>
+        </div>
         <div className="flex justify-between items-center mb-4">
           <span className="font-display text-white text-xl">NEUER EINTRAG</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
+            style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
         </div>
+
+        {/* Typ */}
         <div className="flex gap-2 mb-4">
           {(['expense','income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCat('') }}
@@ -296,20 +280,31 @@ function AddSheet({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+
         <div className="space-y-2.5">
-          <input className="ak-input font-display text-3xl" type="number" inputMode="decimal"
-            placeholder="0 €" value={amount} onChange={e => setAmount(e.target.value)} autoFocus/>
+          {/* Betrag — gleiche Größe wie Versicherung */}
+          <input className="ak-input" type="number" inputMode="decimal"
+            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)} autoFocus/>
+
           <input className="ak-input" placeholder="Beschreibung" value={desc} onChange={e => setDesc(e.target.value)}/>
+
           <input className="ak-input" type="date" value={date} onChange={e => setDate(e.target.value)}/>
+
+          {/* Kategorien */}
           <div>
             <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1.5">Kategorie</p>
             <div className="flex flex-wrap gap-1.5">
               {cats.map(c => (
-                <button key={c} onClick={() => setCat(c)} className={`cat-chip ${cat===c?'selected':''}`}
-                  style={{ fontSize:11, padding:'4px 10px' }}>{c}</button>
+                <button key={c} onClick={() => setCat(c)}
+                  className={`cat-chip ${cat===c?'selected':''}`}
+                  style={{ fontSize:11, padding:'4px 10px' }}>
+                  {c}
+                </button>
               ))}
             </div>
           </div>
+
+          {/* Wiederholung */}
           <div className="flex gap-2">
             {([['once','Einmalig'],['monthly','Monatlich']] as const).map(([v,l]) => (
               <button key={v} onClick={() => setRec(v)}
@@ -319,12 +314,20 @@ function AddSheet({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+
           {rec === 'monthly' && (
             <select className="ak-input" value={recDay} onChange={e => setRecDay(e.target.value)}>
-              {Array.from({length:28},(_,i)=>i+1).map(d => <option key={d} value={d}>{d}. des Monats</option>)}
+              {Array.from({length:28},(_,i)=>i+1).map(d => (
+                <option key={d} value={d}>{d}. des Monats</option>
+              ))}
             </select>
           )}
-          {err && <p className="font-mono text-[10px] px-3 py-2 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
+
+          {err && (
+            <p className="font-mono text-[10px] px-3 py-2 rounded-lg"
+               style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>
+          )}
+
           <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
             {saving ? 'Speichern...' : rec==='monthly' ? 'Eintragen & wiederholen' : 'Eintragen'}
           </button>
