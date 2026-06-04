@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
-import { PillNav, SwipeContainer } from './components/PillNav'
+import { Dock, SwipeContainer, ALL_TAB_IDS } from './components/Dock'
 import { DashboardPage }      from './pages/Dashboard'
 import { BuchungenPage }      from './pages/Buchungen'
 import { AnalysenPage }       from './pages/Analysen'
@@ -14,6 +14,11 @@ import { LexikonPage }        from './pages/Lexikon'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
 import type { Transaction }   from './lib/supabase'
+
+// Alten Cache beim Start löschen
+try {
+  ['ankerpunkt-store','ankerpunkt-store-v2','ankerpunkt-v2','ankerpunkt-v3'].forEach(k => localStorage.removeItem(k))
+} catch {}
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
@@ -35,28 +40,6 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Supabase Realtime ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!userId) return
-
-    const channel = supabase
-      .channel('ankerpunkt-realtime')
-      .on('postgres_changes', { event:'INSERT', schema:'public', table:'transactions', filter:`user_id=eq.${userId}` },
-        payload => {
-          setTransactions([payload.new as Transaction, ...transactions])
-        }
-      )
-      .on('postgres_changes', { event:'DELETE', schema:'public', table:'transactions', filter:`user_id=eq.${userId}` },
-        payload => {
-          setTransactions(transactions.filter(t => t.id !== payload.old.id))
-        }
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [userId, transactions])
-
-  // ── Auto-book recurring ────────────────────────────────────────────────────
   useEffect(() => {
     if (!userId || recurring.length === 0) return
     const today = new Date()
@@ -78,7 +61,7 @@ export default function App() {
   async function loadData(uid: string) {
     setLoading(true)
     try {
-      const results = await Promise.allSettled([
+      const [txs,ins,goals,ach,profile,rec] = await Promise.allSettled([
         supabase.from('transactions').select('*').eq('user_id',uid).order('date',{ascending:false}),
         supabase.from('insurances').select('*').eq('user_id',uid),
         supabase.from('savings_goals').select('*').eq('user_id',uid),
@@ -86,7 +69,6 @@ export default function App() {
         supabase.from('profiles').select('*').eq('id',uid).maybeSingle(),
         supabase.from('recurring_entries').select('*').eq('user_id',uid),
       ])
-      const [txs,ins,goals,ach,profile,rec] = results
       if (txs.status==='fulfilled'     && txs.value.data)     setTransactions(txs.value.data)
       if (ins.status==='fulfilled'     && ins.value.data)     setInsurances(ins.value.data)
       if (goals.status==='fulfilled'   && goals.value.data)   setGoals(goals.value.data)
@@ -97,22 +79,22 @@ export default function App() {
     setLoading(false)
   }
 
-  if (loading) return <Splash/>
-  if (!userId) return <AuthPage/>
+  if (loading) return <Splash />
+  if (!userId)  return <AuthPage />
 
   return (
     <SwipeContainer>
-      {activeTab === 'dashboard'      && <DashboardPage/>}
-      {activeTab === 'buchungen'      && <BuchungenPage/>}
-      {activeTab === 'analysen'       && <AnalysenPage/>}
-      {activeTab === 'ziele'          && <ZielePage/>}
-      {activeTab === 'versicherungen' && <VersicherungenPage/>}
-      {activeTab === 'gamification'   && <GamificationPage/>}
-      {activeTab === 'rechner'        && <RechnerPage/>}
-      {activeTab === 'news'           && <NewsPage/>}
-      {activeTab === 'notizen'        && <NotizenPage/>}
-      {activeTab === 'lexikon'        && <LexikonPage/>}
-      <PillNav/>
+      {activeTab === 'dashboard'      && <DashboardPage />}
+      {activeTab === 'buchungen'      && <BuchungenPage />}
+      {activeTab === 'analysen'       && <AnalysenPage />}
+      {activeTab === 'ziele'          && <ZielePage />}
+      {activeTab === 'versicherungen' && <VersicherungenPage />}
+      {activeTab === 'gamification'   && <GamificationPage />}
+      {activeTab === 'rechner'        && <RechnerPage />}
+      {activeTab === 'news'           && <NewsPage />}
+      {activeTab === 'notizen'        && <NotizenPage />}
+      {activeTab === 'lexikon'        && <LexikonPage />}
+      <Dock />
     </SwipeContainer>
   )
 }
@@ -130,7 +112,6 @@ function Splash() {
         <circle cx="40" cy="36" r="3" fill="#C8392B"/>
       </svg>
       <div style={{ fontFamily:"'Bebas Neue',sans-serif", color:'white', fontSize:24, letterSpacing:'0.2em' }}>ANKERPUNKT</div>
-      <div style={{ fontFamily:"'IBM Plex Mono',monospace", color:'rgba(255,255,255,0.3)', fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase' }}>Laden...</div>
     </div>
   )
 }
