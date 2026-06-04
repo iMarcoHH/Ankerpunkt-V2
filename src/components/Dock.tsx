@@ -25,46 +25,43 @@ export function Dock() {
   const { activeTab, setActiveTab } = useStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Scroll aktiven Tab ins Sichtfeld
-  function scrollToTab(id: string) {
-    const container = scrollRef.current
-    if (!container) return
-    const btn = container.querySelector(`[data-tab="${id}"]`) as HTMLElement
-    if (!btn) return
-    const containerCenter = container.offsetWidth / 2
-    const btnCenter = btn.offsetLeft + btn.offsetWidth / 2
-    container.scrollTo({ left: btnCenter - containerCenter, behavior: 'smooth' })
-  }
-
   function handleTabClick(id: string) {
     setActiveTab(id)
-    scrollToTab(id)
+    // Scroll aktiven Tab in die Mitte
+    setTimeout(() => {
+      const container = scrollRef.current
+      if (!container) return
+      const btn = container.querySelector(`[data-tab="${id}"]`) as HTMLElement
+      if (!btn) return
+      const center = btn.offsetLeft + btn.offsetWidth / 2 - container.offsetWidth / 2
+      container.scrollTo({ left: center, behavior: 'smooth' })
+    }, 50)
   }
 
   return (
-    <motion.div
+    <div
       className="fixed z-50"
       style={{
         bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: 'min(calc(100vw - 32px), 380px)',
+        left: 16,
+        right: 16,
       }}
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 26, delay: 0.1 }}
     >
-      <div style={{
-        background: 'rgba(11,22,36,0.97)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        borderRadius: 999,
-        padding: '5px 6px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-        overflow: 'hidden',
-      }}>
-        {/* Scrollable inner */}
+      <motion.div
+        style={{
+          background: 'rgba(11,22,36,0.97)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderRadius: 999,
+          padding: '5px 8px',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+        }}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 26, delay: 0.1 }}
+      >
         <div
           ref={scrollRef}
           style={{
@@ -85,15 +82,15 @@ export function Dock() {
                 onClick={() => handleTabClick(tab.id)}
                 className="relative flex flex-col items-center rounded-full flex-shrink-0"
                 style={{
-                  padding: '8px 12px',
-                  minWidth: 58,
+                  padding: '8px 0',
+                  flex: '0 0 calc(25% - 2px)',
+                  minWidth: 64,
                   color: active ? '#fff' : '#9AA0A6',
                   gap: 3,
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
-                  transition: 'color 0.2s',
                 }}
               >
                 {active && (
@@ -117,8 +114,8 @@ export function Dock() {
             )
           })}
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
