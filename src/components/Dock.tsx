@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import {
   LayoutDashboard, ListOrdered, PieChart, Target,
-  Shield, Trophy, Calculator, Newspaper, BookOpen, StickyNote,
+  Shield, Trophy, Calculator, Newspaper, BookOpen, StickyNote, UserCircle,
 } from 'lucide-react'
 
 export const ALL_TABS = [
@@ -17,6 +17,7 @@ export const ALL_TABS = [
   { id: 'news',           label: 'News',        Icon: Newspaper       },
   { id: 'notizen',        label: 'Notizen',     Icon: StickyNote      },
   { id: 'lexikon',        label: 'Lexikon',     Icon: BookOpen        },
+  { id: 'profil',         label: 'Profil',      Icon: UserCircle      },
 ]
 
 export const ALL_TAB_IDS = ALL_TABS.map(t => t.id)
@@ -27,7 +28,6 @@ export function Dock() {
 
   function handleTabClick(id: string) {
     setActiveTab(id)
-    // Scroll aktiven Tab in die Mitte
     setTimeout(() => {
       const container = scrollRef.current
       if (!container) return
@@ -39,14 +39,11 @@ export function Dock() {
   }
 
   return (
-    <div
-      className="fixed z-50"
-      style={{
-        bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
-        left: 16,
-        right: 16,
-      }}
-    >
+    <div className="fixed z-50" style={{
+      bottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
+      left: 16,
+      right: 16,
+    }}>
       <motion.div
         style={{
           background: 'rgba(11,22,36,0.97)',
@@ -62,52 +59,25 @@ export function Dock() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 26, delay: 0.1 }}
       >
-        <div
-          ref={scrollRef}
-          style={{
-            display: 'flex',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-            gap: 2,
-          }}
-          className="scrollbar-hide"
-        >
+        <div ref={scrollRef} className="scrollbar-hide"
+          style={{ display:'flex', overflowX:'auto', scrollbarWidth:'none', WebkitOverflowScrolling:'touch', gap:2 }}>
           {ALL_TABS.map(tab => {
             const active = activeTab === tab.id
             return (
-              <button
-                key={tab.id}
-                data-tab={tab.id}
-                onClick={() => handleTabClick(tab.id)}
+              <button key={tab.id} data-tab={tab.id} onClick={() => handleTabClick(tab.id)}
                 className="relative flex flex-col items-center rounded-full flex-shrink-0"
-                style={{
-                  padding: '8px 0',
-                  flex: '0 0 calc(25% - 2px)',
-                  minWidth: 64,
-                  color: active ? '#fff' : '#9AA0A6',
-                  gap: 3,
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-              >
+                style={{ padding:'8px 0', flex:'0 0 calc(25% - 2px)', minWidth:64,
+                         color:active?'#fff':'#9AA0A6', gap:3, border:'none',
+                         background:'transparent', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
                 {active && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full"
-                    style={{ background: 'linear-gradient(135deg, #C8392B, #a82e22)' }}
+                  <motion.div className="absolute inset-0 rounded-full"
+                    style={{ background:'linear-gradient(135deg, #C8392B, #a82e22)' }}
                     layoutId="pill-active"
-                    transition={{ type: 'spring', stiffness: 460, damping: 30 }}
-                  />
+                    transition={{ type:'spring', stiffness:460, damping:30 }}/>
                 )}
-                <tab.Icon
-                  className="relative z-10 shrink-0"
-                  style={{ width: 17, height: 17 }}
-                  strokeWidth={active ? 2 : 1.75}
-                />
+                <tab.Icon className="relative z-10 shrink-0" style={{ width:17, height:17 }} strokeWidth={active?2:1.75}/>
                 <span className="relative z-10 whitespace-nowrap"
-                  style={{ fontSize: 8, fontWeight: active ? 600 : 400, lineHeight: 1, letterSpacing: '0.02em' }}>
+                  style={{ fontSize:8, fontWeight:active?600:400, lineHeight:1, letterSpacing:'0.02em' }}>
                   {tab.label}
                 </span>
               </button>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
-import { Dock, SwipeContainer, ALL_TAB_IDS } from './components/Dock'
+import { Dock, SwipeContainer } from './components/Dock'
 import { DashboardPage }      from './pages/Dashboard'
 import { BuchungenPage }      from './pages/Buchungen'
 import { AnalysenPage }       from './pages/Analysen'
@@ -11,13 +11,13 @@ import { RechnerPage }        from './pages/Rechner'
 import { NewsPage }           from './pages/News'
 import { NotizenPage }        from './pages/Notizen'
 import { LexikonPage }        from './pages/Lexikon'
+import { ProfilPage }         from './pages/Profil'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
 import type { Transaction }   from './lib/supabase'
 
-// Alten Cache beim Start löschen
 try {
-  ['ankerpunkt-store','ankerpunkt-store-v2','ankerpunkt-v2','ankerpunkt-v3'].forEach(k => localStorage.removeItem(k))
+  ['ankerpunkt-store','ankerpunkt-store-v2','ankerpunkt-v2','ankerpunkt-v3','ankerpunkt-v4'].forEach(k => localStorage.removeItem(k))
 } catch {}
 
 export default function App() {
@@ -94,6 +94,7 @@ export default function App() {
       {activeTab === 'news'           && <NewsPage />}
       {activeTab === 'notizen'        && <NotizenPage />}
       {activeTab === 'lexikon'        && <LexikonPage />}
+      {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
     </SwipeContainer>
   )
@@ -102,7 +103,7 @@ export default function App() {
 function Splash() {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gap-4" style={{ background:'#0D1B2A' }}>
-      <svg width="56" height="56" viewBox="0 0 52 52" fill="none" style={{ animation:'pulse 2s ease-in-out infinite' }}>
+      <svg width="56" height="56" viewBox="0 0 52 52" fill="none">
         <circle cx="26" cy="10" r="5" stroke="#C8392B" strokeWidth="2.5" fill="none"/>
         <circle cx="26" cy="10" r="2" fill="#C8392B"/>
         <line x1="26" y1="15" x2="26" y2="44" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>

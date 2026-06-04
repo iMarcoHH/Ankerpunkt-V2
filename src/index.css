@@ -111,7 +111,7 @@ html, body {
   width: 100%;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   animation: sheetUp 0.32s cubic-bezier(0.32,0.72,0,1) forwards;
-  max-height: 92dvh;
+  max-height: 75dvh;
   overflow-y: auto;
 }
 
