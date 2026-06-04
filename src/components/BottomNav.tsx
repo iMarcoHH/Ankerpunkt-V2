@@ -36,6 +36,26 @@ const TABS = [
     ),
   },
   {
+    id: 'rechner',
+    label: 'Rechner',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke={active ? '#C8392B' : '#9AA0A6'} strokeWidth="2" strokeLinecap="round">
+        <rect x="4" y="2" width="16" height="20" rx="2"/>
+        <line x1="8" y1="6" x2="16" y2="6"/>
+        <line x1="8" y1="10" x2="8" y2="10" strokeWidth="2.5"/>
+        <line x1="12" y1="10" x2="12" y2="10" strokeWidth="2.5"/>
+        <line x1="16" y1="10" x2="16" y2="10" strokeWidth="2.5"/>
+        <line x1="8" y1="14" x2="8" y2="14" strokeWidth="2.5"/>
+        <line x1="12" y1="14" x2="12" y2="14" strokeWidth="2.5"/>
+        <line x1="16" y1="14" x2="16" y2="14" strokeWidth="2.5"/>
+        <line x1="8" y1="18" x2="8" y2="18" strokeWidth="2.5"/>
+        <line x1="12" y1="18" x2="12" y2="18" strokeWidth="2.5"/>
+        <line x1="16" y1="18" x2="16" y2="18" strokeWidth="2.5"/>
+      </svg>
+    ),
+  },
+  {
     id: 'mehr',
     label: 'Mehr',
     icon: (active: boolean) => (
@@ -49,6 +69,8 @@ const TABS = [
   },
 ]
 
+export const TAB_IDS = TABS.map(t => t.id)
+
 export function BottomNav() {
   const { activeTab, setActiveTab } = useStore()
 
@@ -58,25 +80,24 @@ export function BottomNav() {
       style={{
         background: 'rgba(255,255,255,0.97)',
         backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(0,0,0,0.08)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="flex items-center justify-around px-2" style={{ height: '64px' }}>
+      <div className="flex items-center justify-around px-1" style={{ height: '60px' }}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex flex-col items-center gap-1 flex-1 py-1 transition-all"
+              className="flex flex-col items-center gap-0.5 flex-1 py-2 transition-all"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {tab.icon(isActive)}
-              <span
-                className="font-mono uppercase transition-colors"
-                style={{ fontSize: 8, letterSpacing: '0.08em', color: isActive ? '#C8392B' : '#9AA0A6' }}
-              >
+              <span className="font-mono uppercase transition-colors"
+                style={{ fontSize: 7, letterSpacing: '0.06em', color: isActive ? '#C8392B' : '#9AA0A6' }}>
                 {tab.label}
               </span>
             </button>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useStore } from './store'
 import { BottomNav } from './components/BottomNav'
+import { SwipeContainer } from './components/SwipeContainer'
 import { LageberichtPage }    from './pages/Lagebericht'
 import { AnalysenPage }       from './pages/Analysen'
 import { BuchungenPage }      from './pages/Buchungen'
+import { RechnerPage }        from './pages/Rechner'
 import { MehrPage }           from './pages/Mehr'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
@@ -32,26 +34,15 @@ export default function App() {
   useEffect(() => {
     if (!userId || recurring.length === 0) return
     const today = new Date()
-    const activeRecurring = recurring.filter(r => r.active)
-
-    activeRecurring.forEach(async (r) => {
-      // Prüfen ob dieser Eintrag diesen Monat schon gebucht wurde
+    recurring.filter(r => r.active).forEach(async (r) => {
       const alreadyBooked = transactions.some(t =>
-        t.description === r.description &&
-        t.amount === r.amount &&
-        t.type === r.type &&
+        t.description === r.description && t.amount === r.amount && t.type === r.type &&
         new Date(t.date).getMonth() === today.getMonth() &&
         new Date(t.date).getFullYear() === today.getFullYear()
       )
-
-      // Heute ist der Fälligkeitstag oder später (aber noch nicht gebucht)
       if (!alreadyBooked && today.getDate() >= r.day_of_month) {
-        const date = new Date(today.getFullYear(), today.getMonth(), r.day_of_month)
-          .toISOString().split('T')[0]
-        const tx = {
-          user_id: userId, type: r.type, amount: r.amount,
-          description: r.description, category: r.category, date,
-        }
+        const date = new Date(today.getFullYear(), today.getMonth(), r.day_of_month).toISOString().split('T')[0]
+        const tx = { user_id: userId, type: r.type, amount: r.amount, description: r.description, category: r.category, date }
         const { data: row } = await supabase.from('transactions').insert(tx).select().single()
         if (row) setTransactions([row, ...transactions])
       }
@@ -83,13 +74,14 @@ export default function App() {
   if (!userId) return <AuthPage/>
 
   return (
-    <div className="relative min-h-screen" style={{ background: '#F4F2EE' }}>
-      <main>
+    <div className="relative" style={{ background: '#F4F2EE' }}>
+      <SwipeContainer>
         {activeTab === 'lagebericht' && <LageberichtPage/>}
         {activeTab === 'analysen'    && <AnalysenPage/>}
         {activeTab === 'buchungen'   && <BuchungenPage/>}
+        {activeTab === 'rechner'     && <RechnerPage/>}
         {activeTab === 'mehr'        && <MehrPage/>}
-      </main>
+      </SwipeContainer>
       <BottomNav/>
     </div>
   )
