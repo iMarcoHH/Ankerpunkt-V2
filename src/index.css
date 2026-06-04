@@ -31,29 +31,19 @@ html, body {
 
 #root {
   min-height: 100dvh;
-  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  /* Etwas weniger padding — Pill ist kleiner */
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--steel); border-radius: 2px; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Cards */
-.ak-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-}
-.ak-card2 {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-}
+.ak-card  { background: var(--card);  border: 1px solid var(--border); border-radius: 16px; }
+.ak-card2 { background: var(--card2); border: 1px solid var(--border); border-radius: 16px; }
 
-/* Input */
 .ak-input {
   background: var(--card2);
   border: 1.5px solid var(--border);
@@ -66,11 +56,11 @@ html, body {
   outline: none;
   transition: border-color 0.2s;
   -webkit-appearance: none;
+  appearance: none;
 }
 .ak-input:focus { border-color: var(--red); }
 .ak-input::placeholder { color: var(--cement); }
 
-/* Buttons */
 .ak-btn {
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.1em;
@@ -86,11 +76,9 @@ html, body {
   gap: 8px;
 }
 .ak-btn:active { transform: scale(0.96); }
-.ak-btn-primary { background: var(--red);   color: white; }
+.ak-btn-primary   { background: var(--red);   color: white; }
 .ak-btn-secondary { background: var(--card2); color: var(--sand); border: 1px solid var(--border); }
-.ak-btn-signal  { background: var(--signal); color: var(--navy); }
 
-/* Chips */
 .cat-chip {
   display: inline-flex;
   align-items: center;
@@ -106,11 +94,9 @@ html, body {
 }
 .cat-chip.selected { background: var(--red); color: white; border-color: var(--red); }
 
-/* Progress */
 .progress-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
 .progress-fill  { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
 
-/* Modal */
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.7);
@@ -130,46 +116,23 @@ html, body {
   overflow-y: auto;
 }
 
-/* Bubble chat */
 .bubble-user {
-  background: var(--red);
-  color: white;
+  background: var(--red); color: white;
   border-radius: 16px 16px 4px 16px;
-  padding: 10px 14px;
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 80%;
-  align-self: flex-end;
+  padding: 10px 14px; font-size: 13px; line-height: 1.5;
+  max-width: 80%; align-self: flex-end;
 }
 .bubble-ai {
-  background: var(--card);
-  color: var(--sand);
+  background: var(--card); color: var(--sand);
   border-radius: 16px 16px 16px 4px;
-  padding: 10px 14px;
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 90%;
-  align-self: flex-start;
+  padding: 10px 14px; font-size: 13px; line-height: 1.5;
+  max-width: 90%; align-self: flex-start;
   border: 1px solid var(--border);
 }
 
-/* Animations */
-@keyframes sheetUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes pulse-dot {
-  0%,100% { opacity: 0.4; transform: scale(1); }
-  50%      { opacity: 1;   transform: scale(1.3); }
-}
+@keyframes sheetUp  { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin     { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .fade-up   { animation: fadeUp 0.4s ease forwards; }
 .fade-up-2 { animation: fadeUp 0.4s 0.07s ease forwards; opacity: 0; }
