@@ -68,14 +68,23 @@ export interface Profile {
 }
 
 export const ACHIEVEMENT_DEFS = [
-  { key: 'first_entry',       label: 'Erster Eintrag',     desc: 'Erste Transaktion erfasst',        xp: 10,  icon: '⚓' },
-  { key: 'first_insurance',   label: 'Abgesichert',        desc: 'Erste Versicherung eingetragen',   xp: 15,  icon: '🛡' },
-  { key: 'first_goal',        label: 'Kurs gesetzt',       desc: 'Erstes Sparziel definiert',        xp: 25,  icon: '🎯' },
-  { key: 'ten_entries',       label: 'Buchhalter',         desc: '10 Transaktionen erfasst',         xp: 50,  icon: '📊' },
-  { key: 'goal_reached',      label: 'Ziel erreicht',      desc: 'Ein Sparziel abgeschlossen',       xp: 100, icon: '🏆' },
-  { key: 'week_streak',       label: '7 Tage aktiv',       desc: '7 Tage in Folge geöffnet',        xp: 75,  icon: '🔥' },
-  { key: 'ai_first_chat',     label: 'KI Kontakt',         desc: 'Ersten Chat mit KI geführt',      xp: 20,  icon: '🤖' },
-  { key: 'positive_balance',  label: 'Im Plus',            desc: 'Positives Monatssaldo erreicht',  xp: 30,  icon: '💚' },
+  // Buchungen
+  { key: 'first_entry',     label: 'Erster Eintrag',      desc: 'Erste Transaktion erfasst',          xp: 10,  icon: '⚓' },
+  { key: 'ten_entries',     label: 'Buchhalter',          desc: '10 Transaktionen erfasst',           xp: 50,  icon: '📊' },
+  { key: 'fifty_entries',   label: 'Fleißiger Tracker',   desc: '50 Transaktionen erfasst',           xp: 100, icon: '📈' },
+  { key: 'hundred_entries', label: 'Profi',               desc: '100 Transaktionen erfasst',          xp: 200, icon: '🏅' },
+  // Finanzen
+  { key: 'positive_balance',label: 'Im Plus',             desc: 'Positives Monatssaldo erreicht',     xp: 30,  icon: '💚' },
+  { key: 'savings_1k',      label: 'Erste Tausend',       desc: '1.000€ gespart',                     xp: 75,  icon: '💰' },
+  { key: 'savings_5k',      label: 'Auf Kurs',            desc: '5.000€ gespart',                     xp: 150, icon: '🚀' },
+  // Versicherungen & Ziele
+  { key: 'first_insurance', label: 'Abgesichert',         desc: 'Erste Versicherung eingetragen',     xp: 15,  icon: '🛡' },
+  { key: 'first_goal',      label: 'Kurs gesetzt',        desc: 'Erstes Sparziel definiert',          xp: 25,  icon: '🎯' },
+  { key: 'goal_reached',    label: 'Ziel erreicht!',      desc: 'Ein Sparziel abgeschlossen',         xp: 100, icon: '🏆' },
+  // Streak
+  { key: 'week_streak',     label: '7 Tage aktiv',        desc: '7 Tage in Folge geöffnet',           xp: 75,  icon: '🔥' },
+  { key: 'month_streak',    label: '30 Tage aktiv',       desc: '30 Tage in Folge geöffnet',          xp: 200, icon: '🌟' },
+  { key: 'century_streak',  label: '100 Tage aktiv',      desc: '100 Tage in Folge geöffnet',         xp: 500, icon: '👑' },
 ]
 
 export const CATEGORIES_EXPENSE = [

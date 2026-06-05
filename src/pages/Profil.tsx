@@ -320,6 +320,8 @@ function ErfolgeTab({ achievements, profile }: { achievements: any[]; profile: a
   const xpToNext = level * 100
   const xpPct    = Math.min(100, Math.round(xp / xpToNext * 100))
   const unlockedKeys = new Set(achievements.map((a:any) => a.key))
+  const userId   = profile?.id
+  const streak   = userId ? parseInt(localStorage.getItem(`streak_count_${userId}`) ?? '0') : 0
 
   return (
     <div className="space-y-4">
@@ -360,7 +362,7 @@ function ErfolgeTab({ achievements, profile }: { achievements: any[]; profile: a
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:'rgba(200,57,43,0.15)' }}>
             <Flame className="w-5 h-5" style={{ color:'#C8392B' }}/>
           </div>
-          <p className="text-3xl font-display text-white">0</p>
+          <p className="text-3xl font-display text-white">{streak}</p>
           <p className="text-xs text-cement uppercase tracking-wider">Tage Streak</p>
         </div>
       </div>

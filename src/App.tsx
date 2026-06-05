@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
 import { Dock, SwipeContainer } from './components/Dock'
+import { useGamification } from './lib/gamification'
 import { DashboardPage }      from './pages/Dashboard'
 import { BuchungenPage }      from './pages/Buchungen'
 import { AnalysenPage }       from './pages/Analysen'
@@ -23,6 +24,7 @@ try {
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
           setProfile, setUserId, setRecurring, setBudgets, userId, transactions, recurring } = useStore()
+  const { checkStreak } = useGamification()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function App() {
       if (bud.status==='fulfilled'     && bud.value.data)     setBudgets(bud.value.data)
     } catch (e) { console.error(e) }
     setLoading(false)
+    checkStreak()
   }
 
   if (loading) return <Splash />

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import type { RecurringEntry } from '../store'
 import { supabase, CATEGORIES_EXPENSE, CATEGORIES_INCOME } from '../lib/supabase'
 import type { Transaction } from '../lib/supabase'
+import { useGamification } from '../lib/gamification'
 import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X, Pencil } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
@@ -292,6 +293,7 @@ function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
 
 function AddSheet({ onClose }: { onClose: () => void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
+  const { checkAfterTransaction } = useGamification()
   const [type, setType]     = useState<'income'|'expense'>('expense')
   const [amount, setAmount] = useState('')
   const [desc,   setDesc]   = useState('')
@@ -312,9 +314,12 @@ function AddSheet({ onClose }: { onClose: () => void }) {
     try {
       const tx = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, date }
       if (userId) {
-        const { data: row, error: e } = await supabase.from('transactions').insert(tx).select().single()
-        if (e) throw e
-        setTransactions([row, ...transactions])
+      const { data: row, error: e } = await supabase.from('transactions').insert(tx).select().single()
+      if (e) throw e
+      const newTxs = [row, ...transactions]
+        setTransactions(newTxs)
+        const balance = newTxs.reduce((s,t) => t.type==='income'?s+t.amount:s-t.amount, 0)
+        await checkAfterTransaction(newTxs.length, balance)
       } else {
         setTransactions([{ ...tx, id:Date.now().toString(), created_at:new Date().toISOString() }, ...transactions])
       }
