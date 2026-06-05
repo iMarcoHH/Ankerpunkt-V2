@@ -144,8 +144,8 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
 
   return (
     <>
-      <div className="pb-24 min-h-screen" style={{ background: '#0D1B2A' }}>
-        <div className="px-5 pt-14 pb-5" style={{ borderBottom: '3px solid #C8392B' }}>
+      <div className="news-bg pb-24 min-h-screen" style={{ background: 'var(--navy)' }}>
+        <div className="news-header px-5 pt-14 pb-5" style={{ borderBottom: '3px solid #C8392B' }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="font-mono text-[10px] text-red-500 tracking-widest uppercase mb-1">// Live</div>
@@ -192,7 +192,7 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
             const colors = SOURCE_COLORS[item.source] ?? { bg: 'rgba(200,57,43,0.1)', text: '#C8392B' }
             return (
               <button key={i} onClick={() => setSelected(item)}
-                className="ak-card p-4 w-full text-left block"
+                className="news-card ak-card p-4 w-full text-left block"
                 style={{ WebkitTapHighlightColor: 'transparent' }}>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="text-xs px-2 py-0.5 rounded-full font-mono tracking-wider" style={{ background: colors.bg, color: colors.text }}>{item.source}</span>

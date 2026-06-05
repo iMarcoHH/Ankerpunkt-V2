@@ -88,7 +88,7 @@ export function SchuldenPage() {
         <>
           {/* Hero */}
           <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }}
-            className="relative overflow-hidden rounded-2xl p-5"
+            className="hero-card relative overflow-hidden rounded-2xl p-5"
             style={{ background:'linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%)' }}>
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20"
                  style={{ background:'#C8392B', filter:'blur(50px)', transform:'translate(20%,-20%)' }}/>

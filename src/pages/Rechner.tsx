@@ -150,9 +150,9 @@ function Field({ label, value, onChange }: { label:string; value:string; onChang
 
 function Result({ label, value, sub, accent='#C8392B' }: { label:string; value:string; sub?:string; accent?:string }) {
   return (
-    <div className="rounded-2xl p-5 text-center mt-2" style={{ background:'#0D1B2A' }}>
+    <div className="rechner-output rounded-2xl p-5 text-center mt-2" style={{ background:'var(--card2)' }}>
       <div className="text-xs text-cement uppercase tracking-wider mb-2">{label}</div>
-      <div className="font-display text-4xl text-white tracking-wide">{value}</div>
+      <div className="font-display text-4xl tracking-wide" style={{ color:'var(--sand)' }}>{value}</div>
       {sub && <div className="text-xs mt-2 font-mono" style={{ color: accent }}>{sub}</div>}
     </div>
   )

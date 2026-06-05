@@ -150,7 +150,7 @@ export function DashboardPage() {
 
       {/* Hero balance */}
       <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }}
-        className="relative overflow-hidden rounded-2xl p-6"
+        className="hero-card relative overflow-hidden rounded-2xl p-6"
         style={{ background:'linear-gradient(135deg, #162030 0%, #1e3048 60%, #243850 100%)' }}>
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
              style={{ background:'#E8A832', filter:'blur(60px)', transform:'translate(20%,-20%)' }}/>

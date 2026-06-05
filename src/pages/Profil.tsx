@@ -444,7 +444,7 @@ function ProfileField({ icon, label, value, placeholder, type='text', editing, e
   saving: boolean; accent?: string
 }) {
   return (
-    <div className="ak-card p-3.5 flex items-center gap-3">
+    <div className="profile-field ak-card p-3.5 flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
            style={{ background: accent ? `${accent}22` : 'rgba(61,81,102,0.3)',
                     color: accent ?? '#9AA0A6' }}>
