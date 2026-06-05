@@ -11,7 +11,7 @@ import { GamificationPage }   from './pages/Gamification'
 import { RechnerPage }        from './pages/Rechner'
 import { NewsPage }           from './pages/News'
 import { NotizenPage }        from './pages/Notizen'
-import { LexikonPage }        from './pages/Lexikon'
+import { SteuerPage }        from './pages/Steuern'
 import { ProfilPage }         from './pages/Profil'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
@@ -103,7 +103,7 @@ export default function App() {
       {activeTab === 'rechner'        && <RechnerPage />}
       {activeTab === 'news'           && <NewsPage />}
       {activeTab === 'notizen'        && <NotizenPage />}
-      {activeTab === 'lexikon'        && <LexikonPage />}
+      {activeTab === 'steuern'       && <SteuerPage />}
       {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
     </SwipeContainer>
