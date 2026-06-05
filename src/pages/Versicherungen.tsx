@@ -94,7 +94,7 @@ export function VersicherungenPage() {
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right">
                   <div className="font-display text-lg text-white">{fmt(ins.amount)}</div>
-                  <div className="text-xs text-cement font-mono">{fmt(ins.period==='monthly'?ins.amount:ins.amount/12)}/mo</div>
+                  <div className="text-xs text-cement font-mono">{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</div>
                 </div>
                 <button onClick={() => handleDelete(ins.id)}
                   className="w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
