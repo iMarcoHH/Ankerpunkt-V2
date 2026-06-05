@@ -96,11 +96,11 @@ function VersicherungenView({ onBack }: { onBack: () => void }) {
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', provider: '', amount: '', period: 'yearly' as 'monthly'|'yearly', category: 'Haftpflicht' })
 
-  const totalMonthly = insurances.reduce((s, i) => s + (i.period==='monthly' ? i.amount : i.amount/12), 0)
+  const totalMonthly = insurances.reduce((s, i) => s + (i.recurrence==='monthly' ? i.amount : i.amount/12), 0)
 
   async function handleAdd() {
     if (!form.name || !form.amount) return
-    const ins = { user_id: userId??'demo', name: form.name, provider: form.provider, amount: parseFloat(form.amount), period: form.period, category: form.category }
+    const ins = { user_id: userId??'demo', name: form.name, provider: form.provider, amount: parseFloat(form.amount), recurrence: form.period, category: form.category }
     if (userId) {
       const { data: row } = await supabase.from('insurances').insert(ins).select().single()
       if (row) setInsurances([...insurances, row])
@@ -141,14 +141,14 @@ function VersicherungenView({ onBack }: { onBack: () => void }) {
                   <div>
                     <div className="font-sans text-sm font-semibold text-navy">{ins.name}</div>
                     <div className="font-mono text-[9px] text-cement uppercase tracking-wider mt-0.5">
-                      {ins.provider} · {ins.period === 'yearly' ? 'jährlich' : 'monatlich'}
+                      {ins.provider} · {ins.recurrence === 'yearly' ? 'jährlich' : 'monatlich'}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-right">
                     <div className="font-display text-navy text-lg">{ins.amount.toLocaleString('de-DE')}€</div>
-                    <div className="font-mono text-[9px] text-cement">{(ins.period==='monthly'?ins.amount:ins.amount/12).toFixed(2)}€/mo</div>
+                    <div className="font-mono text-[9px] text-cement">{(ins.recurrence==='monthly'?ins.amount:ins.amount/12).toFixed(2)}€/mo</div>
                   </div>
                   <button onClick={() => handleDelete(ins.id)}
                     className="w-7 h-7 rounded-full flex items-center justify-center text-cement text-lg"
@@ -201,7 +201,7 @@ function SparzieleView({ onBack }: { onBack: () => void }) {
 
   async function handleAdd() {
     if (!form.name || !form.target) return
-    const goal = { user_id: userId??'demo', name: form.name, target: parseFloat(form.target), current: 0, deadline: form.deadline||null, color }
+    const goal = { user_id: userId??'demo', name: form.name, target_amount: parseFloat(form.target), current_amount: 0, deadline: form.deadline||null }
     if (userId) {
       const { data: row } = await supabase.from('savings_goals').insert(goal).select().single()
       if (row) setGoals([...goals, row])
@@ -213,9 +213,9 @@ function SparzieleView({ onBack }: { onBack: () => void }) {
 
   async function handleQuickAdd(id: string, amount: number) {
     const g = goals.find(g => g.id===id); if (!g) return
-    const updated = { ...g, current: Math.min(g.target, g.current+amount) }
-    if (userId) await supabase.from('savings_goals').update({ current: updated.current }).eq('id', id)
-    setGoals(goals.map(g => g.id===id ? updated : g))
+    const newCurrent = Math.min(g.target_amount, g.current_amount + amount)
+    if (userId) await supabase.from('savings_goals').update({ current_amount: newCurrent }).eq('id', id)
+    setGoals(goals.map(g => g.id===id ? { ...g, current_amount: newCurrent } : g))
   }
 
   async function handleDelete(id: string) {
@@ -230,7 +230,7 @@ function SparzieleView({ onBack }: { onBack: () => void }) {
         {goals.length === 0 ? (
           <div className="ak-card p-8 text-center"><div className="text-4xl mb-3">🎯</div><p className="font-sans text-sm text-cement">Noch keine Ziele.</p></div>
         ) : goals.map(g => {
-          const pct = g.target > 0 ? Math.min(100, Math.round(g.current/g.target*100)) : 0
+          const pct = g.target_amount > 0 ? Math.min(100, Math.round(g.current_amount/g.target_amount*100)) : 0
           return (
             <div key={g.id} className="ak-card p-4" style={{ borderLeft: `3px solid ${g.color}` }}>
               <div className="flex justify-between mb-2">
@@ -243,8 +243,8 @@ function SparzieleView({ onBack }: { onBack: () => void }) {
               </div>
               <div className="progress-track mb-2"><div className="progress-fill" style={{ width: `${pct}%`, background: g.color }}/></div>
               <div className="flex justify-between mb-3">
-                <span className="font-mono text-[9px] text-cement">{fmt(g.current)}€</span>
-                <span className="font-mono text-[9px] text-cement">{fmt(g.target)}€</span>
+                <span className="font-mono text-[9px] text-cement">{fmt(g.current_amount)}€</span>
+                <span className="font-mono text-[9px] text-cement">{fmt(g.target_amount)}€</span>
               </div>
               <div className="flex gap-2">
                 {[50,100,500].map(amt => (

@@ -45,7 +45,7 @@ export function DashboardPage() {
   const balance      = totalIncome - totalExpense
   const prevBalance  = prevIncome - prevExpense
   const savingsRate  = totalIncome > 0 ? Math.round((balance/totalIncome)*100) : 0
-  const monthlyIns   = useMemo(() => insurances.reduce((s,i)=>s+(i.period==='monthly'?i.amount:i.amount/12),0), [insurances])
+  const monthlyIns = useMemo(() => insurances.reduce((s,i)=>s+(i.recurrence==='monthly'?i.amount:i.amount/12),0), [insurances])
   const recentTx     = useMemo(() => [...transactions].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).slice(0,6), [transactions])
 
   // Kategorien-Ausgaben diesen Monat
