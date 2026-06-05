@@ -181,7 +181,6 @@ export function BuchungenPage() {
   )
 }
 
-// SwipeDelete: onTap nur wenn kein Swipe stattfand
 function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode; onDelete: () => void; onTap: () => void }) {
   const startX = useRef(0)
   const startY = useRef(0)
@@ -213,10 +212,7 @@ function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode;
         }}
         onTouchEnd={() => {
           if (offset < -80) { setDeleting(true); setTimeout(() => onDelete(), 250) }
-          else {
-            setOffset(0)
-            if (!moved.current) onTap()
-          }
+          else { setOffset(0); if (!moved.current) onTap() }
         }}>
         {children}
       </motion.div>
@@ -270,18 +266,7 @@ function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => { setDesc(e.target.value); suggestCategory(e.target.value) }}/>
-          {aiSuggesting && (
-            <div className="flex items-center gap-2 px-1">
-              <div className="w-3 h-3 rounded-full animate-pulse" style={{ background:'rgba(200,57,43,0.5)' }}/>
-              <span className="text-[10px] text-cement">KI erkennt Kategorie...</span>
-            </div>
-          )}
-          {aiSuggested && !aiSuggesting && cat === aiSuggested && (
-            <div className="flex items-center gap-2 px-1">
-              <span className="text-[10px]" style={{ color:'#34D399' }}>✓ KI hat Kategorie erkannt: <strong>{aiSuggested}</strong></span>
-            </div>
-          )}
+            value={desc} onChange={e => setDesc(e.target.value)}/>
           <input className="ak-input" type="date"
             value={date} onChange={e => setDate(e.target.value)}/>
           <div>
@@ -324,9 +309,8 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   const descTimer = useRef<ReturnType<typeof setTimeout>|null>(null)
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
-  // Auto-Kategorisierung via KI
   async function suggestCategory(text: string) {
-    if (!text || text.length < 3 || type === 'income') return
+    if (!text || text.length < 3 || type === 'income') { setAiSuggested(null); return }
     if (descTimer.current) clearTimeout(descTimer.current)
     descTimer.current = setTimeout(async () => {
       setAiSuggesting(true)
@@ -337,23 +321,15 @@ function AddSheet({ onClose }: { onClose: () => void }) {
           body: JSON.stringify({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 20,
-            messages: [{
-              role: 'user',
-              content: `Ordne diese Ausgabe einer Kategorie zu. Antworte NUR mit dem Kategorienamen, nichts anderes.
-
-Kategorien: ${CATEGORIES_EXPENSE.join(', ')}
-
-Ausgabe: "${text}"
-
-Kategorie:`
-            }]
+            messages: [{ role: 'user', content:
+              `Ordne diese Ausgabe einer Kategorie zu. Antworte NUR mit dem Kategorienamen.\nKategorien: ${CATEGORIES_EXPENSE.join(', ')}\nAusgabe: "${text}"\nKategorie:` }]
           })
         })
         const data = await res.json()
         const suggested = data.content?.[0]?.text?.trim()
         if (suggested && CATEGORIES_EXPENSE.includes(suggested)) {
           setAiSuggested(suggested)
-          if (!cat) setCat(suggested)
+          setCat(prev => prev ? prev : suggested)
         }
       } catch {}
       setAiSuggesting(false)
@@ -402,7 +378,7 @@ Kategorie:`
         </div>
         <div className="flex gap-2 mb-3">
           {(['expense','income'] as const).map(t => (
-            <button key={t} onClick={() => { setType(t); setCat('') }}
+            <button key={t} onClick={() => { setType(t); setCat(''); setAiSuggested(null) }}
               className="flex-1 py-2 rounded-xl font-display text-sm tracking-wider"
               style={{ background:type===t?(t==='expense'?'#C8392B':'#E8A832'):'rgba(255,255,255,0.06)',
                        color:type===t?(t==='expense'?'white':'#0D1B2A'):'#9AA0A6' }}>
@@ -414,7 +390,19 @@ Kategorie:`
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => setDesc(e.target.value)}/>
+            value={desc} onChange={e => { setDesc(e.target.value); suggestCategory(e.target.value) }}/>
+          {/* KI Feedback */}
+          {aiSuggesting && (
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:'#C8392B' }}/>
+              <span className="text-[10px] text-cement">KI erkennt Kategorie...</span>
+            </div>
+          )}
+          {aiSuggested && !aiSuggesting && (
+            <div className="flex items-center gap-1.5 px-1">
+              <span className="text-[10px]" style={{ color:'#34D399' }}>✓ KI: <strong>{aiSuggested}</strong></span>
+            </div>
+          )}
           <input className="ak-input" type="date"
             value={date} onChange={e => setDate(e.target.value)}/>
           <div>
