@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (match) {
       res.json({ category: match })
     } else {
-      res.json({ category: null, debug: suggested, raw: JSON.stringify(data).slice(0,100) })
+      res.json({ category: null, debug: suggested, raw: JSON.stringify(data).slice(0,300) })
     }
   } catch (e) {
     res.status(500).json({ error: 'AI error' })
