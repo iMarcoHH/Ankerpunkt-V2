@@ -104,7 +104,7 @@ export function ProfilPage() {
       </div>
 
       {/* Tab Toggle */}
-      <div style={{ padding:'0 20px 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, background:'var(--bg)',borderRadius:16,margin:'0 20px 16px',padding:4 }}>
+      <div style={{ margin:'0 20px 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, background:'var(--bg)', borderRadius:16, padding:4 }}>
         {(['profil','erfolge'] as const).map(t=>(
           <button key={t} onClick={()=>setTab(t)}
             style={{ padding:'10px',borderRadius:12,border:'none',cursor:'pointer',fontWeight:600,fontSize:14,
