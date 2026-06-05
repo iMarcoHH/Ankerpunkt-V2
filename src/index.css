@@ -29,19 +29,39 @@
   --border:   rgba(45,74,107,0.15);
 }
 
-[data-theme="light"] body,
-[data-theme="light"] html {
-  background: #F0F4F8;
+[data-theme="light"] html,
+[data-theme="light"] body {
+  background: #F0F4F8 !important;
   color: #1a2a3a;
 }
 
-[data-theme="light"] .text-white { color: #1a2a3a !important; }
+/* Cards */
+[data-theme="light"] .ak-card  { background: #FFFFFF !important; border-color: rgba(45,74,107,0.12) !important; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+[data-theme="light"] .ak-card2 { background: #EEF3F8 !important; border-color: rgba(45,74,107,0.12) !important; }
+
+/* Text */
+[data-theme="light"] .text-white  { color: #1a2a3a !important; }
 [data-theme="light"] .text-cement { color: #5A7080 !important; }
-[data-theme="light"] .ak-card { background: #FFFFFF; border-color: rgba(45,74,107,0.12); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-[data-theme="light"] .ak-input { background: #EEF3F8; border-color: rgba(45,74,107,0.2); color: #1a2a3a; }
-[data-theme="light"] .ak-input::placeholder { color: #8AA0B0; }
-[data-theme="light"] .modal-sheet { background: #FFFFFF; }
 [data-theme="light"] .font-display { color: #1a2a3a; }
+
+/* Inputs */
+[data-theme="light"] .ak-input { background: #EEF3F8 !important; border-color: rgba(45,74,107,0.2) !important; color: #1a2a3a !important; }
+[data-theme="light"] .ak-input::placeholder { color: #8AA0B0 !important; }
+[data-theme="light"] select.ak-input option { background: #FFFFFF; color: #1a2a3a; }
+
+/* Modal */
+[data-theme="light"] .modal-sheet   { background: #FFFFFF !important; }
+[data-theme="light"] .modal-overlay { background: rgba(0,0,0,0.4) !important; }
+
+/* Dock */
+[data-theme="light"] #dock-pill { background: rgba(240,244,248,0.96) !important; border-color: rgba(45,74,107,0.15) !important; }
+
+/* Cat chips */
+[data-theme="light"] .cat-chip { background: #EEF3F8 !important; color: #2D4A6B !important; border-color: rgba(45,74,107,0.2) !important; }
+[data-theme="light"] .cat-chip.selected { background: #C8392B !important; color: white !important; }
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #B0C0CC; }
 
 *, *::before, *::after { box-sizing: border-box; }
 

@@ -3,10 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import type { CategoryBudget } from '../store'
 import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck,
-         Trophy, AlertTriangle, X, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react'
+         AlertTriangle, X, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { supabase } from '../lib/supabase'
-import { CATEGORIES_EXPENSE } from '../lib/supabase'
+import { supabase, CATEGORIES_EXPENSE } from '../lib/supabase'
 
 const fmt        = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const fmtTooltip = (v: unknown) => [fmt(v as number), '']
@@ -20,7 +19,7 @@ const fadeUp = {
 }
 
 export function DashboardPage() {
-  const { transactions, insurances, goals, achievements, budgets, setBudgets,
+  const { transactions, insurances, goals, debts, budgets, setBudgets,
           setActiveTab, viewMonth, viewYear, goToPrevMonth, goToNextMonth, userId, profile } = useStore()
 
   const now            = new Date()
@@ -45,19 +44,20 @@ export function DashboardPage() {
   const balance      = totalIncome - totalExpense
   const prevBalance  = prevIncome - prevExpense
   const savingsRate  = totalIncome > 0 ? Math.round((balance/totalIncome)*100) : 0
-  const monthlyIns = useMemo(() => insurances.reduce((s,i)=>s+(i.recurrence==='monthly'?i.amount:i.amount/12),0), [insurances])
+  const monthlyIns   = useMemo(() => insurances.reduce((s,i)=>s+(i.recurrence==='monthly'?i.amount:i.amount/12),0), [insurances])
   const recentTx     = useMemo(() => [...transactions].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).slice(0,6), [transactions])
 
-  // Kategorien-Ausgaben diesen Monat
+  // Schulden
+  const totalDebtLeft = debts.reduce((s,d) => s + (d.total_amount - d.paid_amount), 0)
+
+  // Kategorien-Ausgaben
   const catSpend = useMemo(() => {
     const map: Record<string,number> = {}
-    monthTx.filter(t=>t.type==='expense').forEach(t => {
-      map[t.category] = (map[t.category] ?? 0) + t.amount
-    })
+    monthTx.filter(t=>t.type==='expense').forEach(t => { map[t.category] = (map[t.category]??0)+t.amount })
     return map
   }, [monthTx])
 
-  // Prognose — nur Ausgaben hochrechnen, Einnahmen bleiben wie sie sind
+  // Prognose
   const today       = now.getDate()
   const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate()
   const daysPassed  = isCurrentMonth ? today : daysInMonth
@@ -67,12 +67,11 @@ export function DashboardPage() {
   const showForecast = isCurrentMonth && daysPassed < daysInMonth && totalExpense > 0
 
   // Budget-Warnung
-  const monthlyBudget = (profile as any)?.monthly_budget ?? 0
-  const budgetPct     = monthlyBudget > 0 ? (totalExpense / monthlyBudget) * 100 : 0
+  const monthlyBudget  = (profile as any)?.monthly_budget ?? 0
+  const budgetPct      = monthlyBudget > 0 ? (totalExpense / monthlyBudget) * 100 : 0
   const showBudgetWarn = isCurrentMonth && monthlyBudget > 0 && budgetPct >= 80
 
-  // Monatsabschluss (letzter Monat)
-  const isLastMonth = !isCurrentMonth && viewMonth === prevMonth && viewYear === prevYear
+  // Monatsabschluss
   const showSummary = !isCurrentMonth && (prevIncome > 0 || prevExpense > 0)
 
   // Trend
@@ -94,7 +93,7 @@ export function DashboardPage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div className="text-center">
-          <div className="font-display text-white text-2xl tracking-wide">{MONTH_LONG[viewMonth]} {viewYear}</div>
+          <div className="font-display text-2xl tracking-wide" style={{ color:'var(--sand)' }}>{MONTH_LONG[viewMonth]} {viewYear}</div>
           <div className="font-mono text-[10px] text-cement tracking-widest uppercase mt-0.5">
             {isCurrentMonth ? 'Aktueller Monat' : 'Vergangener Monat'}
           </div>
@@ -109,21 +108,15 @@ export function DashboardPage() {
       {/* Budget-Warnung */}
       <AnimatePresence>
         {showBudgetWarn && (
-          <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
+          <motion.div initial={{ opacity:0,y:-8 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0,y:-8 }}
             className="rounded-2xl p-4 flex items-start gap-3"
-            style={{ background: budgetPct >= 100 ? 'rgba(200,57,43,0.2)' : 'rgba(232,168,50,0.15)',
-                     border: `1px solid ${budgetPct >= 100 ? 'rgba(200,57,43,0.4)' : 'rgba(232,168,50,0.3)'}` }}>
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: budgetPct >= 100 ? '#C8392B' : '#E8A832' }}/>
+            style={{ background:budgetPct>=100?'rgba(200,57,43,0.2)':'rgba(232,168,50,0.15)', border:`1px solid ${budgetPct>=100?'rgba(200,57,43,0.4)':'rgba(232,168,50,0.3)'}` }}>
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color:budgetPct>=100?'#C8392B':'#E8A832' }}/>
             <div className="flex-1">
-              <p className="font-semibold text-sm text-white">
-                {budgetPct >= 100 ? 'Budget überschritten!' : 'Budget fast aufgebraucht'}
-              </p>
-              <p className="text-xs text-cement mt-0.5">
-                {fmt(totalExpense)} von {fmt(monthlyBudget)} — {Math.round(budgetPct)}% verbraucht
-              </p>
+              <p className="font-semibold text-sm" style={{ color:'var(--sand)' }}>{budgetPct>=100?'Budget überschritten!':'Budget fast aufgebraucht'}</p>
+              <p className="text-xs text-cement mt-0.5">{fmt(totalExpense)} von {fmt(monthlyBudget)} — {Math.round(budgetPct)}% verbraucht</p>
               <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.1)' }}>
-                <div className="h-full rounded-full transition-all"
-                  style={{ width:`${Math.min(budgetPct,100)}%`, background: budgetPct >= 100 ? '#C8392B' : '#E8A832' }}/>
+                <div className="h-full rounded-full" style={{ width:`${Math.min(budgetPct,100)}%`, background:budgetPct>=100?'#C8392B':'#E8A832' }}/>
               </div>
             </div>
           </motion.div>
@@ -133,48 +126,30 @@ export function DashboardPage() {
       {/* Monatsabschluss */}
       <AnimatePresence>
         {showSummary && (
-          <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
-            className="ak-card p-4" style={{ border:'1px solid rgba(61,81,102,0.5)' }}>
+          <motion.div initial={{ opacity:0,y:-8 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0,y:-8 }}
+            className="ak-card p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full" style={{ background:'#3D5166' }}/>
               <p className="font-mono text-[10px] text-cement tracking-widest uppercase">Monatsabschluss</p>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl p-3 text-center" style={{ background:'rgba(232,168,50,0.08)' }}>
-                <p className="text-[9px] text-cement mb-1">Einnahmen</p>
-                <p className="font-display text-sm" style={{ color:'#E8A832' }}>{fmt(prevIncome)}</p>
-                {prevIncome > 0 && totalIncome > 0 && (
-                  <p className="text-[8px] mt-0.5" style={{ color: totalIncome >= prevIncome ? '#34D399' : '#f87171' }}>
-                    {totalIncome >= prevIncome ? '↑' : '↓'} vs. Vormonat
-                  </p>
-                )}
-              </div>
-              <div className="rounded-xl p-3 text-center" style={{ background:'rgba(200,57,43,0.08)' }}>
-                <p className="text-[9px] text-cement mb-1">Ausgaben</p>
-                <p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(prevExpense)}</p>
-                {prevExpense > 0 && totalExpense > 0 && (
-                  <p className="text-[8px] mt-0.5" style={{ color: totalExpense <= prevExpense ? '#34D399' : '#f87171' }}>
-                    {totalExpense <= prevExpense ? '↓ Weniger' : '↑ Mehr'}
-                  </p>
-                )}
-              </div>
-              <div className="rounded-xl p-3 text-center"
-                style={{ background: prevBalance >= 0 ? 'rgba(232,168,50,0.08)' : 'rgba(200,57,43,0.08)' }}>
-                <p className="text-[9px] text-cement mb-1">Netto</p>
-                <p className="font-display text-sm" style={{ color: prevBalance >= 0 ? '#E8A832' : '#C8392B' }}>
-                  {fmt(prevBalance)}
-                </p>
-                {prevBalance > 0 && (
-                  <p className="text-[8px] mt-0.5 text-cement">gespart</p>
-                )}
-              </div>
+              {[
+                { label:'Einnahmen', val:prevIncome,  color:'#E8A832' },
+                { label:'Ausgaben',  val:prevExpense, color:'#C8392B' },
+                { label:'Netto',     val:prevBalance, color:prevBalance>=0?'#E8A832':'#C8392B' },
+              ].map(k => (
+                <div key={k.label} className="rounded-xl p-3 text-center" style={{ background:'rgba(255,255,255,0.04)' }}>
+                  <p className="text-[9px] text-cement mb-1">{k.label}</p>
+                  <p className="font-display text-sm" style={{ color:k.color }}>{fmt(k.val)}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Hero balance */}
-      <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ duration:0.4 }}
+      <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }}
         className="relative overflow-hidden rounded-2xl p-6"
         style={{ background:'linear-gradient(135deg, #162030 0%, #1e3048 60%, #243850 100%)' }}>
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
@@ -194,10 +169,10 @@ export function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label:'Einnahmen',    value:fmt(totalIncome),      Icon:TrendingUp,  accent:'#E8A832' },
-          { label:'Ausgaben',     value:fmt(totalExpense),     Icon:TrendingDown,accent:'#C8392B' },
-          { label:'Sparquote',    value:`${savingsRate}%`,     Icon:Wallet,      accent:'#E8A832' },
-          { label:'Versicherung', value:fmt(monthlyIns)+'/mo', Icon:ShieldCheck, accent:'#3D5166' },
+          { label:'Einnahmen',    value:fmt(totalIncome),      Icon:TrendingUp,   accent:'#E8A832' },
+          { label:'Ausgaben',     value:fmt(totalExpense),     Icon:TrendingDown, accent:'#C8392B' },
+          { label:'Sparquote',    value:`${savingsRate}%`,     Icon:Wallet,       accent:'#E8A832' },
+          { label:'Versicherung', value:fmt(monthlyIns)+'/mo', Icon:ShieldCheck,  accent:'#3D5166' },
         ].map(({ label, value, Icon, accent }, i) => (
           <motion.div key={label} variants={fadeUp} custom={i} initial="hidden" animate="show">
             <div className="ak-card p-4 flex items-center gap-3">
@@ -206,19 +181,48 @@ export function DashboardPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-cement uppercase tracking-wider">{label}</p>
-                <p className="font-display text-lg text-white mt-0.5 truncate">{value}</p>
+                <p className="font-display text-lg mt-0.5 truncate" style={{ color:'var(--sand)' }}>{value}</p>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Kategorien-Budgets */}
-      <CategoryBudgets catSpend={catSpend} />
+      {/* Ziele + Schulden Quick Cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <button onClick={() => setActiveTab('ziele')}
+          className="ak-card p-4 flex flex-col gap-2 text-left">
+          <div className="flex items-center justify-between">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'rgba(232,168,50,0.15)' }}>
+              <Target className="w-4 h-4" style={{ color:'#E8A832' }}/>
+            </div>
+            <span className="font-mono text-[9px] text-cement">→</span>
+          </div>
+          <div>
+            <p className="font-display text-xl" style={{ color:'var(--sand)' }}>{goals.length}</p>
+            <p className="text-xs text-cement">Sparziele</p>
+          </div>
+        </button>
+        <button onClick={() => setActiveTab('schulden')}
+          className="ak-card p-4 flex flex-col gap-2 text-left">
+          <div className="flex items-center justify-between">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'rgba(200,57,43,0.15)' }}>
+              <TrendingDown className="w-4 h-4" style={{ color:'#C8392B' }}/>
+            </div>
+            <span className="font-mono text-[9px] text-cement">→</span>
+          </div>
+          <div>
+            <p className="font-display text-xl" style={{ color: totalDebtLeft > 0 ? '#C8392B' : 'var(--sand)' }}>
+              {totalDebtLeft > 0 ? fmt(totalDebtLeft) : '0 €'}
+            </p>
+            <p className="text-xs text-cement">Schulden offen</p>
+          </div>
+        </button>
+      </div>
 
       {/* Prognose */}
       {showForecast && (
-        <motion.div className="ak-card p-4" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.25 }}
+        <motion.div className="ak-card p-4" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }}
           style={{ border:'1px solid rgba(232,168,50,0.2)' }}>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full" style={{ background:'#E8A832' }}/>
@@ -229,23 +233,21 @@ export function DashboardPage() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl p-3 text-center" style={{ background:'rgba(200,57,43,0.08)' }}>
-              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Ausgaben (proj.)</p>
+              <p className="text-[9px] text-cement uppercase mb-1">Ausgaben (proj.)</p>
               <p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(projExpense)}</p>
             </div>
-            <div className="rounded-xl p-3 text-center" style={{ background: projBalance>=0?'rgba(232,168,50,0.08)':'rgba(200,57,43,0.08)' }}>
-              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Netto (proj.)</p>
+            <div className="rounded-xl p-3 text-center" style={{ background:projBalance>=0?'rgba(232,168,50,0.08)':'rgba(200,57,43,0.08)' }}>
+              <p className="text-[9px] text-cement uppercase mb-1">Netto (proj.)</p>
               <p className="font-display text-sm" style={{ color:projBalance>=0?'#E8A832':'#C8392B' }}>{fmt(projBalance)}</p>
             </div>
           </div>
-          <p className="text-[10px] text-cement mt-2 text-center">
-            Hochrechnung basierend auf {daysPassed} von {daysInMonth} Tagen
-          </p>
+          <p className="text-[10px] text-cement mt-2 text-center">Hochrechnung basierend auf {daysPassed} von {daysInMonth} Tagen</p>
         </motion.div>
       )}
 
       {/* Chart */}
       <motion.div className="ak-card p-5" initial={{ opacity:0,y:16 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.3 }}>
-        <p className="font-display text-xl tracking-wide text-white mb-1">Cashflow</p>
+        <p className="font-display text-xl tracking-wide mb-1" style={{ color:'var(--sand)' }}>Cashflow</p>
         <p className="text-xs text-cement mb-4">6-Monats-Verlauf</p>
         <div style={{ height:200 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -266,10 +268,10 @@ export function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Recent */}
+      {/* Letzte Buchungen */}
       <motion.div className="ak-card p-5" initial={{ opacity:0,y:16 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.35 }}>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-display text-xl tracking-wide text-white">Aktuell</p>
+          <p className="font-display text-xl tracking-wide" style={{ color:'var(--sand)' }}>Aktuell</p>
           <button onClick={() => setActiveTab('buchungen')} className="text-xs text-cement">Alle →</button>
         </div>
         {recentTx.length === 0 ? (
@@ -287,10 +289,10 @@ export function DashboardPage() {
                   <ArrowRightLeft className="w-4 h-4" style={{ color:tx.type==='income'?'#E8A832':'#C8392B' }}/>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{tx.description}</p>
+                  <p className="text-sm font-medium truncate" style={{ color:'var(--sand)' }}>{tx.description}</p>
                   <p className="text-xs text-cement">{new Date(tx.date).toLocaleDateString('de-DE')}</p>
                 </div>
-                <span className="text-sm font-mono font-semibold shrink-0" style={{ color:tx.type==='income'?'#E8A832':'#E8DFD0' }}>
+                <span className="text-sm font-mono font-semibold shrink-0" style={{ color:tx.type==='income'?'#E8A832':'var(--sand)' }}>
                   {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
                 </span>
               </motion.div>
@@ -298,150 +300,6 @@ export function DashboardPage() {
           </div>
         )}
       </motion.div>
-
-      {/* Quick nav */}
-      <motion.div className="grid grid-cols-3 gap-3" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.5 }}>
-        {[
-          { label:'Versicherungen', tab:'versicherungen', Icon:ShieldCheck, color:'#3D5166' },
-          { label:`${goals.length} Ziele`,          tab:'ziele',       Icon:Target,  color:'#E8A832' },
-          { label:`${achievements.length} Erfolge`, tab:'gamification',Icon:Trophy,  color:'#C8392B' },
-        ].map(({ label, tab, Icon, color }) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className="ak-card p-4 flex flex-col items-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:color+'22' }}>
-              <Icon className="w-5 h-5" style={{ color }}/>
-            </div>
-            <span className="text-xs font-medium text-cement text-center leading-tight">{label}</span>
-          </button>
-        ))}
-      </motion.div>
     </div>
-  )
-}
-
-// ── Kategorien-Budgets Komponente ─────────────────────────────────────────────
-function CategoryBudgets({ catSpend }: { catSpend: Record<string,number> }) {
-  const { budgets, setBudgets, userId } = useStore()
-  const [open, setOpen]     = useState(false)
-  const [showAdd, setAdd]   = useState(false)
-  const [selCat, setSelCat] = useState(CATEGORIES_EXPENSE[0])
-  const [amount, setAmount] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  async function addBudget() {
-    if (!amount || !selCat) return
-    setSaving(true)
-    const entry = { user_id: userId??'demo', category: selCat, amount: parseFloat(amount) }
-    if (userId) {
-      const { data: row } = await supabase
-        .from('category_budgets')
-        .upsert(entry, { onConflict: 'user_id,category' })
-        .select().single()
-      if (row) setBudgets([...budgets.filter(b => b.category !== selCat), row as CategoryBudget])
-    } else {
-      setBudgets([...budgets.filter(b => b.category !== selCat),
-        { ...entry, id: Date.now().toString(), created_at: new Date().toISOString() } as CategoryBudget])
-    }
-    setAmount(''); setAdd(false); setSaving(false)
-  }
-
-  async function delBudget(id: string, cat: string) {
-    if (userId) await supabase.from('category_budgets').delete().eq('id', id)
-    setBudgets(budgets.filter(b => b.id !== id))
-  }
-
-  const overBudget = budgets.filter(b => (catSpend[b.category] ?? 0) >= b.amount * 0.8)
-
-  return (
-    <motion.div className="ak-card overflow-hidden" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.2 }}>
-      <button onClick={() => setOpen(v=>!v)}
-        className="w-full p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Wallet className="w-4 h-4" style={{ color:'#E8A832' }}/>
-          <p className="font-display text-sm tracking-wide text-white">Kategorien-Budgets</p>
-          {overBudget.length > 0 && (
-            <span className="text-[9px] px-2 py-0.5 rounded-full font-mono"
-              style={{ background:'rgba(200,57,43,0.2)', color:'#C8392B' }}>
-              {overBudget.length} ⚠
-            </span>
-          )}
-        </div>
-        {open ? <ChevronUp className="w-4 h-4 text-cement"/> : <ChevronDown className="w-4 h-4 text-cement"/>}
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }} exit={{ height:0, opacity:0 }}
-            transition={{ duration:0.25 }} style={{ overflow:'hidden' }}>
-            <div className="px-4 pb-4 space-y-2" style={{ borderTop:'1px solid rgba(61,81,102,0.3)' }}>
-              <div className="pt-3 space-y-2">
-                {budgets.length === 0 && !showAdd && (
-                  <p className="text-xs text-cement text-center py-2">Noch keine Budgets gesetzt.</p>
-                )}
-                {budgets.map(b => {
-                  const spent = catSpend[b.category] ?? 0
-                  const pct   = Math.min((spent / b.amount) * 100, 100)
-                  const warn  = pct >= 80
-                  return (
-                    <div key={b.id} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-white">{b.category}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono" style={{ color: warn ? '#C8392B' : '#9AA0A6' }}>
-                            {fmt(spent)} / {fmt(b.amount)}
-                          </span>
-                          <button onClick={() => delBudget(b.id, b.category)}
-                            className="text-cement opacity-50 hover:opacity-100">
-                            <X className="w-3 h-3"/>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
-                        <div className="h-full rounded-full transition-all"
-                          style={{ width:`${pct}%`, background: pct >= 100 ? '#C8392B' : pct >= 80 ? '#E8A832' : '#3D5166' }}/>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {showAdd ? (
-                <div className="pt-1 space-y-2">
-                  <div className="flex gap-2 flex-wrap">
-                    {CATEGORIES_EXPENSE.map(c => (
-                      <button key={c} onClick={() => setSelCat(c)}
-                        className="text-[10px] px-2.5 py-1 rounded-full transition-all"
-                        style={{ background: selCat===c ? '#C8392B' : 'rgba(255,255,255,0.06)',
-                                 color: selCat===c ? 'white' : '#9AA0A6' }}>
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input className="ak-input text-sm flex-1" type="number" inputMode="decimal"
-                      placeholder="Budget in €" value={amount} onChange={e => setAmount(e.target.value)}/>
-                    <button onClick={addBudget} disabled={saving}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background:'#C8392B' }}>
-                      <Check className="w-4 h-4 text-white"/>
-                    </button>
-                    <button onClick={() => setAdd(false)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background:'rgba(255,255,255,0.06)' }}>
-                      <X className="w-4 h-4 text-cement"/>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button onClick={() => setAdd(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs text-cement"
-                  style={{ border:'1px dashed rgba(61,81,102,0.5)' }}>
-                  <Plus className="w-3.5 h-3.5"/> Budget hinzufügen
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
   )
 }

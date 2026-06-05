@@ -45,7 +45,7 @@ export function Dock() {
       right: 16,
       zIndex: 50,
     }}>
-      <div style={{
+      <div id="dock-pill" style={{
         background: 'rgba(11,22,36,0.96)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
