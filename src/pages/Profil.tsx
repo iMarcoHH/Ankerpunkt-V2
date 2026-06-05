@@ -2,15 +2,17 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
+import { ACHIEVEMENT_DEFS } from '../lib/supabase'
 import { LogOut, Trash2, AlertTriangle, Pencil, Check, X,
-         User, MapPin, Briefcase, Calendar, Wallet, Trophy } from 'lucide-react'
+         User, MapPin, Briefcase, Calendar, Wallet, Trophy, Star, Lock, Flame } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(v)
 
 export function ProfilPage() {
-  const { userId, profile, setUserId, setTransactions, setInsurances,
+  const { userId, profile, achievements, setUserId, setTransactions, setInsurances,
           setGoals, setAchievements, setProfile, setRecurring } = useStore()
 
+  const [tab, setTab]         = useState<'profil'|'erfolge'>('profil')
   const [showReset, setShowReset] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [done, setDone]           = useState(false)
@@ -69,11 +71,25 @@ export function ProfilPage() {
 
   return (
     <div className="p-5 space-y-4 pb-8">
-      <div className="pt-14">
-        <h1 className="font-display text-4xl tracking-widest text-white">Profil</h1>
-        <p className="text-cement text-sm mt-0.5">Dein Account</p>
+      <div className="pt-14 flex items-end justify-between">
+        <div>
+          <h1 className="font-display text-4xl tracking-widest text-white">Profil</h1>
+        </div>
       </div>
 
+      {/* Tab Toggle */}
+      <div className="flex gap-1 p-0.5 rounded-xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(61,81,102,0.35)' }}>
+        {(['profil','erfolge'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className="flex-1 py-2 rounded-lg text-xs font-medium capitalize transition-all"
+            style={{ background:tab===t?'rgba(255,255,255,0.1)':'transparent', color:tab===t?'white':'#9AA0A6' }}>
+            {t === 'profil' ? 'Profil' : 'Erfolge'}
+          </button>
+        ))}
+      </div>
+
+      {/* Profil Tab */}
+      {tab === 'profil' && (<>
       {/* Avatar + Name Hero */}
       <div className="ak-card p-5 flex flex-col items-center gap-3">
         {/* Avatar Circle */}
@@ -287,11 +303,92 @@ export function ProfilPage() {
           </div>
         )}
       </AnimatePresence>
+      </>)}
+
+      {/* Erfolge Tab */}
+      {tab === 'erfolge' && (
+        <ErfolgeTab achievements={achievements} profile={p}/>
+      )}
     </div>
   )
 }
 
-// ── Inline Edit ───────────────────────────────────────────────────────────────
+// ── Erfolge Tab ─────────────────────────────────────────────────────────────
+function ErfolgeTab({ achievements, profile }: { achievements: any[]; profile: any }) {
+  const xp       = profile?.xp    ?? 0
+  const level    = profile?.level ?? 1
+  const xpToNext = level * 100
+  const xpPct    = Math.min(100, Math.round(xp / xpToNext * 100))
+  const unlockedKeys = new Set(achievements.map((a:any) => a.key))
+
+  return (
+    <div className="space-y-4">
+      {/* Level Card */}
+      <motion.div initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }}
+        className="relative overflow-hidden rounded-2xl p-5"
+        style={{ background:'linear-gradient(135deg, #162030 0%, #1e2e40 100%)' }}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background:'rgba(232,168,50,0.2)' }}>
+            <Trophy className="w-5 h-5" style={{ color:'#E8A832' }}/>
+          </div>
+          <div>
+            <p className="text-xs text-cement uppercase tracking-widest">Level</p>
+            <p className="text-2xl font-display tracking-wide text-white">Level {level}</p>
+          </div>
+          <div className="ml-auto text-right">
+            <p className="font-mono font-semibold" style={{ color:'#E8A832' }}>{xp} XP</p>
+            <p className="text-xs text-cement">von {xpToNext} XP</p>
+          </div>
+        </div>
+        <div className="h-2 rounded-full overflow-hidden" style={{ background:'rgba(61,81,102,0.4)' }}>
+          <motion.div className="h-full rounded-full" style={{ background:'linear-gradient(90deg, #E8A832, #f0b84a)' }}
+            initial={{ width:0 }} animate={{ width:`${xpPct}%` }} transition={{ duration:1, ease:'easeOut' }}/>
+        </div>
+        <p className="text-xs text-cement mt-2">Noch {xpToNext - xp} XP bis Level {level + 1}</p>
+      </motion.div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="ak-card p-4 flex flex-col items-center gap-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:'rgba(232,168,50,0.15)' }}>
+            <Star className="w-5 h-5" style={{ color:'#E8A832' }}/>
+          </div>
+          <p className="text-3xl font-display text-white">{achievements.length}</p>
+          <p className="text-xs text-cement uppercase tracking-wider">Abzeichen</p>
+        </div>
+        <div className="ak-card p-4 flex flex-col items-center gap-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:'rgba(200,57,43,0.15)' }}>
+            <Flame className="w-5 h-5" style={{ color:'#C8392B' }}/>
+          </div>
+          <p className="text-3xl font-display text-white">0</p>
+          <p className="text-xs text-cement uppercase tracking-wider">Tage Streak</p>
+        </div>
+      </div>
+
+      {/* Badges */}
+      <div className="grid grid-cols-2 gap-3">
+        {ACHIEVEMENT_DEFS.map((def, i) => {
+          const unlocked = unlockedKeys.has(def.key)
+          return (
+            <motion.div key={def.key} initial={{ opacity:0,scale:0.9 }} animate={{ opacity:1,scale:1 }} transition={{ delay:i*0.05 }}
+              className="ak-card p-4 flex flex-col items-center text-center gap-2"
+              style={{ border: unlocked ? '1px solid rgba(232,168,50,0.3)' : undefined, opacity: unlocked ? 1 : 0.45 }}>
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl"
+                   style={{ background: unlocked ? 'rgba(232,168,50,0.15)' : 'rgba(61,81,102,0.3)' }}>
+                {unlocked ? def.icon : <Lock className="w-4 h-4 text-cement"/>}
+              </div>
+              <p className="font-semibold text-xs text-white leading-snug">{def.label}</p>
+              <p className="text-[9px] text-cement leading-snug">{def.desc}</p>
+              {unlocked && (
+                <span className="text-[9px] font-medium px-2 py-0.5 rounded-full" style={{ background:'rgba(232,168,50,0.15)', color:'#E8A832' }}>+{def.xp} XP</span>
+              )}
+            </motion.div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 function InlineEdit({ value, onChange, onSave, onCancel, saving, placeholder, type='text' }:
   { value:string; onChange:(v:string)=>void; onSave:()=>void; onCancel:()=>void; saving:boolean; placeholder:string; type?:string }) {
   return (

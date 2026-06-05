@@ -12,11 +12,9 @@ export const ALL_TABS = [
   { id: 'analysen',       label: 'Analysen',    Icon: PieChart        },
   { id: 'ziele',          label: 'Ziele',       Icon: Target          },
   { id: 'versicherungen', label: 'Versicher.',  Icon: Shield          },
-  { id: 'gamification',   label: 'Erfolge',     Icon: Trophy          },
   { id: 'rechner',        label: 'Rechner',     Icon: Calculator      },
   { id: 'news',           label: 'News',        Icon: Newspaper       },
   { id: 'notizen',        label: 'Notizen',     Icon: StickyNote      },
-  { id: 'lexikon',        label: 'Lexikon',     Icon: BookOpen        },
   { id: 'profil',         label: 'Profil',      Icon: UserCircle      },
 ]
 
@@ -40,7 +38,7 @@ export function Dock() {
 
   return (
     <div className="fixed z-50" style={{
-      bottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
+      bottom: 'env(safe-area-inset-bottom, 0px)',
       left: 16,
       right: 16,
     }}>

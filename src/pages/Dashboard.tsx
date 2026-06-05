@@ -57,15 +57,14 @@ export function DashboardPage() {
     return map
   }, [monthTx])
 
-  // Prognose
+  // Prognose — nur Ausgaben hochrechnen, Einnahmen bleiben wie sie sind
   const today       = now.getDate()
   const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate()
   const daysPassed  = isCurrentMonth ? today : daysInMonth
   const factor      = daysInMonth / Math.max(daysPassed, 1)
-  const projIncome  = Math.round(totalIncome  * factor)
   const projExpense = Math.round(totalExpense * factor)
-  const projBalance = projIncome - projExpense
-  const showForecast = isCurrentMonth && daysPassed < daysInMonth && (totalIncome > 0 || totalExpense > 0)
+  const projBalance = totalIncome - projExpense
+  const showForecast = isCurrentMonth && daysPassed < daysInMonth && totalExpense > 0
 
   // Budget-Warnung
   const monthlyBudget = (profile as any)?.monthly_budget ?? 0
@@ -228,17 +227,13 @@ export function DashboardPage() {
               Tag {daysPassed}/{daysInMonth}
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-xl p-3 text-center" style={{ background:'rgba(232,168,50,0.08)' }}>
-              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Einnahmen</p>
-              <p className="font-display text-sm" style={{ color:'#E8A832' }}>{fmt(projIncome)}</p>
-            </div>
+          <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl p-3 text-center" style={{ background:'rgba(200,57,43,0.08)' }}>
-              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Ausgaben</p>
+              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Ausgaben (proj.)</p>
               <p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(projExpense)}</p>
             </div>
             <div className="rounded-xl p-3 text-center" style={{ background: projBalance>=0?'rgba(232,168,50,0.08)':'rgba(200,57,43,0.08)' }}>
-              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Netto</p>
+              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Netto (proj.)</p>
               <p className="font-display text-sm" style={{ color:projBalance>=0?'#E8A832':'#C8392B' }}>{fmt(projBalance)}</p>
             </div>
           </div>
