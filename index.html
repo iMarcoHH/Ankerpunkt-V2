@@ -8,10 +8,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ankerpunkt" />
     <meta name="description" content="Dein persönlicher Finanz-Manager." />
-    <link rel="manifest" href="/manifest.json" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <title>Ankerpunkt</title>
+    <script>
+      // Force reload if cached version is outdated
+      const VERSION = '20260604-v4';
+      if (localStorage.getItem('app-version') !== VERSION) {
+        localStorage.clear();
+        localStorage.setItem('app-version', VERSION);
+        if (window.location.search !== '?v=' + VERSION) {
+          window.location.replace(window.location.pathname + '?v=' + VERSION);
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
