@@ -11,10 +11,10 @@ const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','Aug
 
 export function BuchungenPage() {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
-  const [tab, setTab]         = useState<'all'|'income'|'expense'|'recurring'>('all')
-  const [showAdd, setAdd]     = useState(false)
-  const [editTx, setEditTx]   = useState<Transaction|null>(null)
-  const [search, setSearch]   = useState('')
+  const [tab, setTab]       = useState<'all'|'income'|'expense'|'recurring'>('all')
+  const [showAdd, setAdd]   = useState(false)
+  const [editTx, setEditTx] = useState<Transaction|null>(null)
+  const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
 
   const now   = new Date()
@@ -121,7 +121,7 @@ export function BuchungenPage() {
         recurring.length === 0 ? <Leer text="Beim Neu-Eintrag 'Monatlich' wählen."/> : (
           <div className="space-y-1.5">
             {recurring.map((r, i) => (
-              <SwipeDelete key={r.id} onDelete={() => delRec(r.id)}>
+              <SwipeDelete key={r.id} onDelete={() => delRec(r.id)} onTap={() => {}}>
                 <motion.div initial={{ opacity:0,y:4 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.03 }}
                   className="ak-card p-3 flex items-center gap-3" style={{ opacity:r.active?1:0.5 }}>
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
@@ -151,10 +151,9 @@ export function BuchungenPage() {
       ) : (
         <div className="space-y-1.5">
           {shown.map((tx, i) => (
-            <SwipeDelete key={tx.id} onDelete={() => del(tx.id)}>
+            <SwipeDelete key={tx.id} onDelete={() => del(tx.id)} onTap={() => setEditTx(tx)}>
               <motion.div initial={{ opacity:0,y:4 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.03 }}
-                className="ak-card p-3 flex items-center gap-3"
-                onClick={() => setEditTx(tx)}>
+                className="ak-card p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-display text-xs font-bold"
                      style={{ background:tx.type==='income'?'rgba(232,168,50,0.15)':'rgba(200,57,43,0.15)',
                               color:tx.type==='income'?'#E8A832':'#C8392B' }}>
@@ -182,10 +181,14 @@ export function BuchungenPage() {
   )
 }
 
-function SwipeDelete({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+// SwipeDelete: onTap nur wenn kein Swipe stattfand
+function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode; onDelete: () => void; onTap: () => void }) {
   const startX = useRef(0)
+  const startY = useRef(0)
   const [offset, setOffset] = useState(0)
   const [deleting, setDeleting] = useState(false)
+  const moved = useRef(false)
+
   return (
     <div className="relative overflow-hidden rounded-2xl">
       <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
@@ -195,11 +198,23 @@ function SwipeDelete({ children, onDelete }: { children: React.ReactNode; onDele
         style={{ x: offset, opacity: deleting ? 0 : 1 }}
         animate={{ x: offset }}
         transition={{ type:'spring', stiffness:400, damping:35 }}
-        onTouchStart={e => { startX.current = e.touches[0].clientX }}
-        onTouchMove={e => { const dx = e.touches[0].clientX - startX.current; if (dx < 0) setOffset(Math.max(dx, -120)) }}
+        onTouchStart={e => {
+          startX.current = e.touches[0].clientX
+          startY.current = e.touches[0].clientY
+          moved.current = false
+        }}
+        onTouchMove={e => {
+          const dx = e.touches[0].clientX - startX.current
+          const dy = e.touches[0].clientY - startY.current
+          if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved.current = true
+          if (dx < 0 && Math.abs(dx) > Math.abs(dy)) setOffset(Math.max(dx, -120))
+        }}
         onTouchEnd={() => {
           if (offset < -80) { setDeleting(true); setTimeout(() => onDelete(), 250) }
-          else setOffset(0)
+          else {
+            setOffset(0)
+            if (!moved.current) onTap()
+          }
         }}>
         {children}
       </motion.div>
