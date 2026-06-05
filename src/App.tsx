@@ -23,9 +23,14 @@ try {
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
-          setProfile, setUserId, setRecurring, setBudgets, userId, transactions, recurring } = useStore()
+          setProfile, setUserId, setRecurring, setBudgets, userId, transactions, recurring, theme } = useStore()
   const { checkStreak } = useGamification()
   const [loading, setLoading] = useState(true)
+
+  // Theme beim Start anwenden
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   useEffect(() => {
     supabase.auth.getSession()

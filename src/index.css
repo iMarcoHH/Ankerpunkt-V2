@@ -16,6 +16,19 @@
   --border:   rgba(61,81,102,0.5);
 }
 
+[data-theme="light"] {
+  --navy:     #F0F4F8;
+  --red:      #C8392B;
+  --steel:    #4A6580;
+  --sand:     #1a2a3a;
+  --cement:   #5A6A7A;
+  --signal:   #D4920A;
+  --offwhite: #FFFFFF;
+  --card:     #FFFFFF;
+  --card2:    #EEF2F7;
+  --border:   rgba(0,0,0,0.1);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {

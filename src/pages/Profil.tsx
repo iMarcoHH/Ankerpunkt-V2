@@ -4,13 +4,13 @@ import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
 import { ACHIEVEMENT_DEFS } from '../lib/supabase'
 import { LogOut, Trash2, AlertTriangle, Pencil, Check, X,
-         User, MapPin, Briefcase, Calendar, Wallet, Trophy, Star, Lock, Flame } from 'lucide-react'
+         MapPin, Briefcase, Calendar, Wallet, Trophy, Star, Lock, Flame, Sun, Moon } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(v)
 
 export function ProfilPage() {
   const { userId, profile, achievements, setUserId, setTransactions, setInsurances,
-          setGoals, setAchievements, setProfile, setRecurring } = useStore()
+          setGoals, setAchievements, setProfile, setRecurring, theme, setTheme } = useStore()
 
   const [tab, setTab]         = useState<'profil'|'erfolge'>('profil')
   const [showReset, setShowReset] = useState(false)
@@ -233,6 +233,29 @@ export function ProfilPage() {
           saving={saving}
           accent="#E8A832"
         />
+      </div>
+
+      {/* Einstellungen */}
+      <div className="space-y-2">
+        <p className="font-mono text-[9px] text-cement tracking-widest uppercase px-1">Einstellungen</p>
+        <div className="ak-card p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'rgba(61,81,102,0.3)' }}>
+              {theme === 'dark' ? <Moon className="w-4 h-4 text-cement"/> : <Sun className="w-4 h-4" style={{ color:'#E8A832' }}/>}
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</p>
+              <p className="text-xs text-cement mt-0.5">Erscheinungsbild der App</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="relative w-12 h-6 rounded-full transition-all duration-300"
+            style={{ background: theme === 'dark' ? 'rgba(61,81,102,0.5)' : '#E8A832' }}>
+            <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-300"
+                 style={{ left: theme === 'dark' ? '2px' : '26px' }}/>
+          </button>
+        </div>
       </div>
 
       {/* Account Aktionen */}

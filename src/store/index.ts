@@ -35,6 +35,9 @@ interface AppState {
   budgets:    CategoryBudget[]
   setBudgets: (b: CategoryBudget[]) => void
 
+  theme:    'dark'
+  setTheme: (t: 'dark'|'light') => void
+
   recurring:    RecurringEntry[]
   setTransactions: (t: Transaction[]) => void
   setInsurances:   (i: Insurance[]) => void
@@ -73,6 +76,12 @@ export const useStore = create<AppState>()(
       achievements: [],
       budgets:    [],
       setBudgets: (b) => set({ budgets: b }),
+
+      theme:    'dark',
+      setTheme: (t) => {
+        set({ theme: t })
+        document.documentElement.setAttribute('data-theme', t)
+      },
 
       recurring:    [],
       setTransactions: (t) => set({ transactions: t }),
