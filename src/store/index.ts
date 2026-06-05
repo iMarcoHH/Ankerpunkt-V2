@@ -35,7 +35,7 @@ interface AppState {
   budgets:    CategoryBudget[]
   setBudgets: (b: CategoryBudget[]) => void
 
-  theme:    'dark'
+  theme:    'dark' | 'light'
   setTheme: (t: 'dark'|'light') => void
 
   recurring:    RecurringEntry[]
