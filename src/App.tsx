@@ -22,7 +22,7 @@ try {
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
-          setProfile, setUserId, setRecurring, userId, transactions, recurring } = useStore()
+          setProfile, setUserId, setRecurring, setBudgets, userId, transactions, recurring } = useStore()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,13 +61,14 @@ export default function App() {
   async function loadData(uid: string) {
     setLoading(true)
     try {
-      const [txs,ins,goals,ach,profile,rec] = await Promise.allSettled([
+      const [txs,ins,goals,ach,profile,rec,bud] = await Promise.allSettled([
         supabase.from('transactions').select('*').eq('user_id',uid).order('date',{ascending:false}),
         supabase.from('insurances').select('*').eq('user_id',uid),
         supabase.from('savings_goals').select('*').eq('user_id',uid),
         supabase.from('achievements').select('*').eq('user_id',uid),
         supabase.from('profiles').select('*').eq('id',uid).maybeSingle(),
         supabase.from('recurring_entries').select('*').eq('user_id',uid),
+        supabase.from('category_budgets').select('*').eq('user_id',uid),
       ])
       if (txs.status==='fulfilled'     && txs.value.data)     setTransactions(txs.value.data)
       if (ins.status==='fulfilled'     && ins.value.data)     setInsurances(ins.value.data)
@@ -75,6 +76,7 @@ export default function App() {
       if (ach.status==='fulfilled'     && ach.value.data)     setAchievements(ach.value.data)
       if (profile.status==='fulfilled' && profile.value.data) setProfile(profile.value.data)
       if (rec.status==='fulfilled'     && rec.value.data)     setRecurring(rec.value.data)
+      if (bud.status==='fulfilled'     && bud.value.data)     setBudgets(bud.value.data)
     } catch (e) { console.error(e) }
     setLoading(false)
   }

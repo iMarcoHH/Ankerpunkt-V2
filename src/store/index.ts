@@ -2,6 +2,14 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Transaction, Insurance, SavingsGoal, Achievement, Profile } from '../lib/supabase'
 
+export interface CategoryBudget {
+  id:         string
+  user_id:    string
+  category:   string
+  amount:     number
+  created_at: string
+}
+
 export interface RecurringEntry {
   id:           string
   user_id:      string
@@ -24,6 +32,9 @@ interface AppState {
   insurances:   Insurance[]
   goals:        SavingsGoal[]
   achievements: Achievement[]
+  budgets:    CategoryBudget[]
+  setBudgets: (b: CategoryBudget[]) => void
+
   recurring:    RecurringEntry[]
   setTransactions: (t: Transaction[]) => void
   setInsurances:   (i: Insurance[]) => void
@@ -60,6 +71,9 @@ export const useStore = create<AppState>()(
       insurances:   [],
       goals:        [],
       achievements: [],
+      budgets:    [],
+      setBudgets: (b) => set({ budgets: b }),
+
       recurring:    [],
       setTransactions: (t) => set({ transactions: t }),
       setInsurances:   (i) => set({ insurances: i }),

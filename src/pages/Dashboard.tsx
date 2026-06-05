@@ -1,8 +1,12 @@
-import { useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useMemo, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
-import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck, Trophy } from 'lucide-react'
+import type { CategoryBudget } from '../store'
+import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck,
+         Trophy, AlertTriangle, X, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { supabase } from '../lib/supabase'
+import { CATEGORIES_EXPENSE } from '../lib/supabase'
 
 const fmt        = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const fmtTooltip = (v: unknown) => [fmt(v as number), '']
@@ -16,23 +20,63 @@ const fadeUp = {
 }
 
 export function DashboardPage() {
-  const { transactions, insurances, goals, achievements, setActiveTab, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
+  const { transactions, insurances, goals, achievements, budgets, setBudgets,
+          setActiveTab, viewMonth, viewYear, goToPrevMonth, goToNextMonth, userId, profile } = useStore()
 
-  const now = new Date()
+  const now            = new Date()
   const isCurrentMonth = viewMonth === now.getMonth() && viewYear === now.getFullYear()
+  const prevMonth      = viewMonth === 0 ? 11 : viewMonth - 1
+  const prevYear       = viewMonth === 0 ? viewYear - 1 : viewYear
 
   const monthTx = useMemo(() => transactions.filter(t => {
     const d = new Date(t.date)
     return d.getMonth() === viewMonth && d.getFullYear() === viewYear
   }), [transactions, viewMonth, viewYear])
 
+  const prevMonthTx = useMemo(() => transactions.filter(t => {
+    const d = new Date(t.date)
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear
+  }), [transactions, prevMonth, prevYear])
+
   const totalIncome  = useMemo(() => monthTx.filter(t=>t.type==='income') .reduce((s,t)=>s+t.amount,0), [monthTx])
   const totalExpense = useMemo(() => monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0), [monthTx])
+  const prevExpense  = useMemo(() => prevMonthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0), [prevMonthTx])
+  const prevIncome   = useMemo(() => prevMonthTx.filter(t=>t.type==='income') .reduce((s,t)=>s+t.amount,0), [prevMonthTx])
   const balance      = totalIncome - totalExpense
+  const prevBalance  = prevIncome - prevExpense
   const savingsRate  = totalIncome > 0 ? Math.round((balance/totalIncome)*100) : 0
   const monthlyIns   = useMemo(() => insurances.reduce((s,i)=>s+(i.period==='monthly'?i.amount:i.amount/12),0), [insurances])
   const recentTx     = useMemo(() => [...transactions].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).slice(0,6), [transactions])
 
+  // Kategorien-Ausgaben diesen Monat
+  const catSpend = useMemo(() => {
+    const map: Record<string,number> = {}
+    monthTx.filter(t=>t.type==='expense').forEach(t => {
+      map[t.category] = (map[t.category] ?? 0) + t.amount
+    })
+    return map
+  }, [monthTx])
+
+  // Prognose
+  const today       = now.getDate()
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate()
+  const daysPassed  = isCurrentMonth ? today : daysInMonth
+  const factor      = daysInMonth / Math.max(daysPassed, 1)
+  const projIncome  = Math.round(totalIncome  * factor)
+  const projExpense = Math.round(totalExpense * factor)
+  const projBalance = projIncome - projExpense
+  const showForecast = isCurrentMonth && daysPassed < daysInMonth && (totalIncome > 0 || totalExpense > 0)
+
+  // Budget-Warnung
+  const monthlyBudget = (profile as any)?.monthly_budget ?? 0
+  const budgetPct     = monthlyBudget > 0 ? (totalExpense / monthlyBudget) * 100 : 0
+  const showBudgetWarn = isCurrentMonth && monthlyBudget > 0 && budgetPct >= 80
+
+  // Monatsabschluss (letzter Monat)
+  const isLastMonth = !isCurrentMonth && viewMonth === prevMonth && viewYear === prevYear
+  const showSummary = !isCurrentMonth && (prevIncome > 0 || prevExpense > 0)
+
+  // Trend
   const trend = useMemo(() => Array.from({length:6},(_,i) => {
     const d = new Date(viewYear, viewMonth-5+i, 1)
     const m = d.getMonth(), y = d.getFullYear()
@@ -41,18 +85,8 @@ export function DashboardPage() {
     return { month:MONTH_NAMES[m], income:inc, expenses:exp }
   }), [transactions, viewMonth, viewYear])
 
-  // Prognose: Hochrechnung auf Monatsende
-  const today        = now.getDate()
-  const daysInMonth  = new Date(viewYear, viewMonth+1, 0).getDate()
-  const daysPassed   = isCurrentMonth ? today : daysInMonth
-  const factor       = daysInMonth / Math.max(daysPassed, 1)
-  const projIncome   = Math.round(totalIncome  * factor)
-  const projExpense  = Math.round(totalExpense * factor)
-  const projBalance  = projIncome - projExpense
-  const showForecast = isCurrentMonth && daysPassed < daysInMonth && (totalIncome > 0 || totalExpense > 0)
-
   return (
-    <div className="p-5 space-y-5 pb-8">
+    <div className="p-5 space-y-4 pb-8">
 
       {/* Monatsnavigation */}
       <div className="flex items-center justify-between pt-14">
@@ -72,6 +106,73 @@ export function DashboardPage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
+
+      {/* Budget-Warnung */}
+      <AnimatePresence>
+        {showBudgetWarn && (
+          <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
+            className="rounded-2xl p-4 flex items-start gap-3"
+            style={{ background: budgetPct >= 100 ? 'rgba(200,57,43,0.2)' : 'rgba(232,168,50,0.15)',
+                     border: `1px solid ${budgetPct >= 100 ? 'rgba(200,57,43,0.4)' : 'rgba(232,168,50,0.3)'}` }}>
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: budgetPct >= 100 ? '#C8392B' : '#E8A832' }}/>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-white">
+                {budgetPct >= 100 ? 'Budget überschritten!' : 'Budget fast aufgebraucht'}
+              </p>
+              <p className="text-xs text-cement mt-0.5">
+                {fmt(totalExpense)} von {fmt(monthlyBudget)} — {Math.round(budgetPct)}% verbraucht
+              </p>
+              <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.1)' }}>
+                <div className="h-full rounded-full transition-all"
+                  style={{ width:`${Math.min(budgetPct,100)}%`, background: budgetPct >= 100 ? '#C8392B' : '#E8A832' }}/>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Monatsabschluss */}
+      <AnimatePresence>
+        {showSummary && (
+          <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
+            className="ak-card p-4" style={{ border:'1px solid rgba(61,81,102,0.5)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full" style={{ background:'#3D5166' }}/>
+              <p className="font-mono text-[10px] text-cement tracking-widest uppercase">Monatsabschluss</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl p-3 text-center" style={{ background:'rgba(232,168,50,0.08)' }}>
+                <p className="text-[9px] text-cement mb-1">Einnahmen</p>
+                <p className="font-display text-sm" style={{ color:'#E8A832' }}>{fmt(prevIncome)}</p>
+                {prevIncome > 0 && totalIncome > 0 && (
+                  <p className="text-[8px] mt-0.5" style={{ color: totalIncome >= prevIncome ? '#34D399' : '#f87171' }}>
+                    {totalIncome >= prevIncome ? '↑' : '↓'} vs. Vormonat
+                  </p>
+                )}
+              </div>
+              <div className="rounded-xl p-3 text-center" style={{ background:'rgba(200,57,43,0.08)' }}>
+                <p className="text-[9px] text-cement mb-1">Ausgaben</p>
+                <p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(prevExpense)}</p>
+                {prevExpense > 0 && totalExpense > 0 && (
+                  <p className="text-[8px] mt-0.5" style={{ color: totalExpense <= prevExpense ? '#34D399' : '#f87171' }}>
+                    {totalExpense <= prevExpense ? '↓ Weniger' : '↑ Mehr'}
+                  </p>
+                )}
+              </div>
+              <div className="rounded-xl p-3 text-center"
+                style={{ background: prevBalance >= 0 ? 'rgba(232,168,50,0.08)' : 'rgba(200,57,43,0.08)' }}>
+                <p className="text-[9px] text-cement mb-1">Netto</p>
+                <p className="font-display text-sm" style={{ color: prevBalance >= 0 ? '#E8A832' : '#C8392B' }}>
+                  {fmt(prevBalance)}
+                </p>
+                {prevBalance > 0 && (
+                  <p className="text-[8px] mt-0.5 text-cement">gespart</p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero balance */}
       <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ duration:0.4 }}
@@ -112,6 +213,9 @@ export function DashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Kategorien-Budgets */}
+      <CategoryBudgets catSpend={catSpend} />
 
       {/* Prognose */}
       {showForecast && (
@@ -215,7 +319,134 @@ export function DashboardPage() {
           </button>
         ))}
       </motion.div>
-
     </div>
+  )
+}
+
+// ── Kategorien-Budgets Komponente ─────────────────────────────────────────────
+function CategoryBudgets({ catSpend }: { catSpend: Record<string,number> }) {
+  const { budgets, setBudgets, userId } = useStore()
+  const [open, setOpen]     = useState(false)
+  const [showAdd, setAdd]   = useState(false)
+  const [selCat, setSelCat] = useState(CATEGORIES_EXPENSE[0])
+  const [amount, setAmount] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function addBudget() {
+    if (!amount || !selCat) return
+    setSaving(true)
+    const entry = { user_id: userId??'demo', category: selCat, amount: parseFloat(amount) }
+    if (userId) {
+      const { data: row } = await supabase
+        .from('category_budgets')
+        .upsert(entry, { onConflict: 'user_id,category' })
+        .select().single()
+      if (row) setBudgets([...budgets.filter(b => b.category !== selCat), row as CategoryBudget])
+    } else {
+      setBudgets([...budgets.filter(b => b.category !== selCat),
+        { ...entry, id: Date.now().toString(), created_at: new Date().toISOString() } as CategoryBudget])
+    }
+    setAmount(''); setAdd(false); setSaving(false)
+  }
+
+  async function delBudget(id: string, cat: string) {
+    if (userId) await supabase.from('category_budgets').delete().eq('id', id)
+    setBudgets(budgets.filter(b => b.id !== id))
+  }
+
+  const overBudget = budgets.filter(b => (catSpend[b.category] ?? 0) >= b.amount * 0.8)
+
+  return (
+    <motion.div className="ak-card overflow-hidden" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.2 }}>
+      <button onClick={() => setOpen(v=>!v)}
+        className="w-full p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Wallet className="w-4 h-4" style={{ color:'#E8A832' }}/>
+          <p className="font-display text-sm tracking-wide text-white">Kategorien-Budgets</p>
+          {overBudget.length > 0 && (
+            <span className="text-[9px] px-2 py-0.5 rounded-full font-mono"
+              style={{ background:'rgba(200,57,43,0.2)', color:'#C8392B' }}>
+              {overBudget.length} ⚠
+            </span>
+          )}
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-cement"/> : <ChevronDown className="w-4 h-4 text-cement"/>}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }} exit={{ height:0, opacity:0 }}
+            transition={{ duration:0.25 }} style={{ overflow:'hidden' }}>
+            <div className="px-4 pb-4 space-y-2" style={{ borderTop:'1px solid rgba(61,81,102,0.3)' }}>
+              <div className="pt-3 space-y-2">
+                {budgets.length === 0 && !showAdd && (
+                  <p className="text-xs text-cement text-center py-2">Noch keine Budgets gesetzt.</p>
+                )}
+                {budgets.map(b => {
+                  const spent = catSpend[b.category] ?? 0
+                  const pct   = Math.min((spent / b.amount) * 100, 100)
+                  const warn  = pct >= 80
+                  return (
+                    <div key={b.id} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-white">{b.category}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono" style={{ color: warn ? '#C8392B' : '#9AA0A6' }}>
+                            {fmt(spent)} / {fmt(b.amount)}
+                          </span>
+                          <button onClick={() => delBudget(b.id, b.category)}
+                            className="text-cement opacity-50 hover:opacity-100">
+                            <X className="w-3 h-3"/>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
+                        <div className="h-full rounded-full transition-all"
+                          style={{ width:`${pct}%`, background: pct >= 100 ? '#C8392B' : pct >= 80 ? '#E8A832' : '#3D5166' }}/>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {showAdd ? (
+                <div className="pt-1 space-y-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {CATEGORIES_EXPENSE.map(c => (
+                      <button key={c} onClick={() => setSelCat(c)}
+                        className="text-[10px] px-2.5 py-1 rounded-full transition-all"
+                        style={{ background: selCat===c ? '#C8392B' : 'rgba(255,255,255,0.06)',
+                                 color: selCat===c ? 'white' : '#9AA0A6' }}>
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input className="ak-input text-sm flex-1" type="number" inputMode="decimal"
+                      placeholder="Budget in €" value={amount} onChange={e => setAmount(e.target.value)}/>
+                    <button onClick={addBudget} disabled={saving}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background:'#C8392B' }}>
+                      <Check className="w-4 h-4 text-white"/>
+                    </button>
+                    <button onClick={() => setAdd(false)}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background:'rgba(255,255,255,0.06)' }}>
+                      <X className="w-4 h-4 text-cement"/>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setAdd(true)}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs text-cement"
+                  style={{ border:'1px dashed rgba(61,81,102,0.5)' }}>
+                  <Plus className="w-3.5 h-3.5"/> Budget hinzufügen
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
