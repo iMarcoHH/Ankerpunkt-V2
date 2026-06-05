@@ -2,173 +2,125 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
-import { StickyNote, Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, X, Trash2, StickyNote } from 'lucide-react'
 
-interface Note {
-  id:         string
-  user_id:    string
-  title:      string
-  content:    string
-  color:      string
-  created_at: string
-}
+const COLORS = ['#FEF3C7','#DBEAFE','#D1FAE5','#FCE7F3','#EDE9FE','#FEE2E2']
 
-const NOTE_COLORS = ['#E8A832','#C8392B','#3D5166','#9AA0A6','#4a6d8c']
+interface Note { id:string; user_id:string; title:string; content:string; color:string; created_at:string }
 
-// Local notes (no dedicated table needed — stored in Supabase notes table if it exists, else local)
 export function NotizenPage() {
   const { userId } = useStore()
-  const [notes, setNotes]       = useState<Note[]>([])
-  const [showAdd, setAdd]       = useState(false)
-  const [editId, setEditId]     = useState<string|null>(null)
-  const [title, setTitle]       = useState('')
-  const [content, setContent]   = useState('')
-  const [color, setColor]       = useState(NOTE_COLORS[0])
-  const [loaded, setLoaded]     = useState(false)
+  const [notes,    setNotes]   = useState<Note[]>([])
+  const [loaded,   setLoaded]  = useState(false)
+  const [showAdd,  setAdd]     = useState(false)
+  const [selected, setSelected]= useState<Note|null>(null)
 
-  // Load once
   if (!loaded) {
-    setLoaded(true)
-    if (userId) {
-      supabase.from('notes').select('*').eq('user_id', userId).order('created_at', { ascending: false })
-        .then(({ data }) => { if (data) setNotes(data as Note[]) })
-    }
+    if (userId) supabase.from('notes').select('*').eq('user_id',userId).order('created_at',{ascending:false}).then(({data})=>{ if(data)setNotes(data); setLoaded(true) })
+    else setLoaded(true)
   }
 
-  function resetForm() { setTitle(''); setContent(''); setColor(NOTE_COLORS[0]); setEditId(null) }
-
-  async function saveNote() {
-    if (!title.trim()) return
-    if (editId) {
-      const up = { title, content, color }
-      if (userId) await supabase.from('notes').update(up).eq('id', editId)
-      setNotes(notes.map(n => n.id === editId ? { ...n, ...up } : n))
-    } else {
-      const note = { user_id: userId ?? 'demo', title, content, color }
-      if (userId) {
-        const { data: row } = await supabase.from('notes').insert(note).select().single()
-        if (row) setNotes([row as Note, ...notes])
-      } else {
-        setNotes([{ ...note, id: Date.now().toString(), created_at: new Date().toISOString() }, ...notes])
-      }
-    }
-    resetForm(); setAdd(false)
-  }
-
-  async function deleteNote(id: string) {
-    if (!confirm('Notiz löschen?')) return
-    if (userId) await supabase.from('notes').delete().eq('id', id)
-    setNotes(notes.filter(n => n.id !== id))
-  }
-
-  function startEdit(n: Note) {
-    setTitle(n.title); setContent(n.content); setColor(n.color)
-    setEditId(n.id); setAdd(true)
+  async function del(id: string) {
+    if (userId) await supabase.from('notes').delete().eq('id',id)
+    setNotes(notes.filter(n=>n.id!==id))
+    setSelected(null)
   }
 
   return (
-    <div className="p-5 space-y-5 pb-8">
-      <div className="flex items-end justify-between pt-14">
-        <div>
-          <h1 className="font-display text-4xl tracking-widest text-white">Notizen</h1>
-          <p className="text-cement text-sm mt-0.5">Gedanken & Erinnerungen</p>
-        </div>
-        <button onClick={() => { resetForm(); setAdd(true) }}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-display tracking-wide text-sm text-white"
-          style={{ background:'#C8392B' }}>
-          <Plus className="w-4 h-4"/> Neu
+    <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
+      <div style={{ padding:'56px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+        <h1 className="page-title">Notizen</h1>
+        <button onClick={()=>setAdd(true)}
+          style={{ width:40,height:40,borderRadius:12,background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',marginTop:4 }}>
+          <Plus width={20} height={20} style={{ color:'white' }}/>
         </button>
       </div>
 
-      {notes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 rounded-2xl gap-4"
-             style={{ border:'2px dashed rgba(61,81,102,0.4)' }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background:'rgba(232,168,50,0.1)' }}>
-            <StickyNote className="w-7 h-7" style={{ color:'#E8A832', opacity:0.6 }}/>
+      <div style={{ padding:'0 20px' }}>
+        {notes.length===0 ? (
+          <div style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 0',gap:12 }}>
+            <StickyNote width={48} height={48} style={{ color:'var(--tertiary)',opacity:0.3 }}/>
+            <p style={{ fontSize:15,color:'var(--tertiary)' }}>Noch keine Notizen.</p>
           </div>
-          <p className="text-sm text-cement">Noch keine Notizen.</p>
-          <button onClick={() => setAdd(true)} className="ak-btn ak-btn-secondary text-sm px-4 py-2 gap-2">
-            <Plus className="w-4 h-4"/> Erste Notiz
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {notes.map((note, i) => (
-            <motion.div key={note.id} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}
-              className="ak-card p-5 group flex flex-col gap-3"
-              style={{ borderTopWidth:3, borderTopColor: note.color }}>
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-white leading-snug flex-1">{note.title}</h3>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  <button onClick={() => startEdit(note)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-cement hover:text-white"
-                    style={{ background:'rgba(255,255,255,0.06)' }}>
-                    <Edit2 className="w-3.5 h-3.5"/>
-                  </button>
-                  <button onClick={() => deleteNote(note.id)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-cement hover:text-red-400"
-                    style={{ background:'rgba(200,57,43,0.12)' }}>
-                    <Trash2 className="w-3.5 h-3.5"/>
-                  </button>
-                </div>
-              </div>
-              {note.content && (
-                <p className="text-sm text-sand/70 whitespace-pre-wrap leading-relaxed line-clamp-4 flex-1">
-                  {note.content}
-                </p>
-              )}
-              <div className="pt-2 flex items-center justify-between" style={{ borderTop:'1px solid rgba(61,81,102,0.4)' }}>
-                <span className="font-mono text-xs text-cement">
-                  {new Date(note.created_at).toLocaleDateString('de-DE')}
-                </span>
-                <div className="w-3 h-3 rounded-full" style={{ background: note.color }}/>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+        ) : (
+          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:12 }}>
+            {notes.map((note,i)=>(
+              <motion.button key={note.id} initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} transition={{delay:i*0.04}}
+                onClick={()=>setSelected(note)}
+                style={{ background:note.color,borderRadius:20,padding:16,textAlign:'left',border:'none',cursor:'pointer',boxShadow:'var(--shadow-sm)',WebkitTapHighlightColor:'transparent' }}>
+                <p style={{ fontSize:14,fontWeight:700,color:'#1a1a1a',marginBottom:6,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{note.title||'Notiz'}</p>
+                <p style={{ fontSize:12,color:'#444',lineHeight:1.4,display:'-webkit-box',WebkitLineClamp:4,WebkitBoxOrient:'vertical',overflow:'hidden' }}>{note.content}</p>
+                <p style={{ fontSize:10,color:'#888',marginTop:8 }}>{new Date(note.created_at).toLocaleDateString('de-DE')}</p>
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Add / Edit Sheet */}
-      {showAdd && (
-        <div className="modal-overlay" onClick={e => e.target===e.currentTarget && setAdd(false)}>
-          <div className="modal-sheet">
-            <div className="flex justify-center mb-3"><div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/></div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="font-display text-white text-xl">{editId ? 'BEARBEITEN' : 'NEUE NOTIZ'}</span>
-              <div className="flex gap-2">
-                <button onClick={saveNote}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ background:'rgba(232,168,50,0.2)', color:'#E8A832' }}>
-                  <Check className="w-4 h-4"/>
-                </button>
-                <button onClick={() => { setAdd(false); resetForm() }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-cement"
-                  style={{ background:'rgba(255,255,255,0.08)' }}>
-                  <X className="w-4 h-4"/>
-                </button>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <input className="ak-input font-semibold" placeholder="Titel" value={title} onChange={e => setTitle(e.target.value)} autoFocus/>
-              <textarea className="ak-input resize-none" placeholder="Inhalt (optional)" rows={4}
-                value={content} onChange={e => setContent(e.target.value)}
-                style={{ fontFamily:"'IBM Plex Sans',sans-serif" }}/>
-              <div>
-                <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-2">Farbe</p>
-                <div className="flex gap-2">
-                  {NOTE_COLORS.map(c => (
-                    <button key={c} onClick={() => setColor(c)} className="w-7 h-7 rounded-full transition-all"
-                      style={{ background:c, outline: color===c?`2px solid ${c}`:'none', outlineOffset:2 }}/>
-                  ))}
-                </div>
-              </div>
-              <button onClick={saveNote} className="w-full ak-btn ak-btn-primary">
-                {editId ? 'Speichern' : 'Erstellen'}
+      {showAdd   && <NoteSheet onClose={()=>setAdd(false)}    onSave={n=>{setNotes([n,...notes]);setAdd(false)}} userId={userId}/>}
+      {selected  && <NoteSheet note={selected} onClose={()=>setSelected(null)} onSave={n=>{setNotes(notes.map(x=>x.id===n.id?n:x));setSelected(null)}} onDelete={()=>del(selected.id)} userId={userId}/>}
+    </div>
+  )
+}
+
+function NoteSheet({ note, onClose, onSave, onDelete, userId }: {
+  note?: Note; onClose:()=>void; onSave:(n:Note)=>void; onDelete?:()=>void; userId:string|null
+}) {
+  const [title,   setTitle]   = useState(note?.title??'')
+  const [content, setContent] = useState(note?.content??'')
+  const [color,   setColor]   = useState(note?.color??COLORS[0])
+  const [saving,  setSaving]  = useState(false)
+
+  async function save() {
+    setSaving(true)
+    if (note) {
+      if (userId) await supabase.from('notes').update({title,content,color}).eq('id',note.id)
+      onSave({...note,title,content,color})
+    } else {
+      const entry = { user_id:userId??'demo', title, content, color }
+      if (userId) {
+        const { data:row } = await supabase.from('notes').insert(entry).select().single()
+        if (row) onSave(row as Note)
+      } else {
+        onSave({...entry, id:Date.now().toString(), created_at:new Date().toISOString()} as Note)
+      }
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal-sheet" style={{ background:color }}>
+        <div style={{ width:36,height:4,borderRadius:2,background:'rgba(0,0,0,0.1)',margin:'0 auto 16px' }}/>
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16 }}>
+          <div style={{ display:'flex',gap:6 }}>
+            {COLORS.map(c=>(
+              <button key={c} onClick={()=>setColor(c)}
+                style={{ width:22,height:22,borderRadius:'50%',background:c,border:`2px solid ${color===c?'#333':'transparent'}`,cursor:'pointer' }}/>
+            ))}
+          </div>
+          <div style={{ display:'flex',gap:8 }}>
+            {onDelete && (
+              <button onClick={onDelete} style={{ width:30,height:30,borderRadius:10,background:'rgba(0,0,0,0.08)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer' }}>
+                <Trash2 width={14} height={14} style={{ color:'#666' }}/>
               </button>
-            </div>
+            )}
+            <button onClick={onClose} style={{ width:30,height:30,borderRadius:10,background:'rgba(0,0,0,0.08)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer' }}>
+              <X width={14} height={14} style={{ color:'#666' }}/>
+            </button>
           </div>
         </div>
-      )}
+        <input
+          style={{ width:'100%',background:'transparent',border:'none',outline:'none',fontSize:20,fontWeight:700,color:'#1a1a1a',marginBottom:12,fontFamily:'var(--font)' }}
+          placeholder="Titel..." value={title} onChange={e=>setTitle(e.target.value)}/>
+        <textarea
+          style={{ width:'100%',background:'transparent',border:'none',outline:'none',fontSize:15,color:'#333',lineHeight:1.6,resize:'none',minHeight:160,fontFamily:'var(--font)' }}
+          placeholder="Notiz schreiben..." value={content} onChange={e=>setContent(e.target.value)}/>
+        <button onClick={save} disabled={saving}
+          style={{ width:'100%',height:50,borderRadius:16,background:'rgba(0,0,0,0.1)',border:'none',color:'#333',fontWeight:600,fontSize:15,cursor:'pointer',marginTop:12 }}>
+          {saving?'Speichern...':'Speichern'}
+        </button>
+      </div>
     </div>
   )
 }

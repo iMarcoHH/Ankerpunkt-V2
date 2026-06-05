@@ -232,6 +232,25 @@ select.ak-input { appearance: none; }
 .scrollbar-hide { scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+/* ── Dark Mode ── */
+[data-theme="dark"] {
+  --bg:        #0F172A;
+  --surface:   #1E293B;
+  --primary:   #F1F5F9;
+  --secondary: #94A3B8;
+  --tertiary:  #64748B;
+  --border:    rgba(241,245,249,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.2);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.3);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.4);
+  --navy:      #0F172A;
+  --sand:      #F1F5F9;
+  --cement:    #64748B;
+  --card:      #1E293B;
+  --card2:     #0F172A;
+}
+[data-theme="dark"] .bottom-nav { background: rgba(30,41,59,.95); }
+
 /* ── Accent Card (Hero) ── */
 .accent-card {
   background: var(--accent);

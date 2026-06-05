@@ -1,222 +1,121 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
-import { Info, TrendingDown, Home, Car, Laptop, Heart, BookOpen, Briefcase, AlertCircle } from 'lucide-react'
+import { AlertCircle, Info } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(v)
 
 interface TaxTip {
-  id:        string
-  icon:      React.ReactNode
-  title:     string
-  desc:      string
-  limit?:    string
-  category:  string[]
-  color:     string
+  id: string; icon: string; title: string; desc: string; limit?: string
+  category: string[]; color: string
 }
 
 const ALL_TIPS: TaxTip[] = [
-  {
-    id: 'homeoffice',
-    icon: <Home className="w-5 h-5"/>,
-    title: 'Homeoffice-Pauschale',
-    desc: 'Arbeitest du von zuhause? Du kannst bis zu 210 Tage × 6€ = 1.260€ pro Jahr als Werbungskosten absetzen — ohne Einzelnachweis.',
-    limit: 'Max. 1.260€/Jahr',
-    category: ['Wohnen', 'Abos'],
-    color: '#3B82F6',
-  },
-  {
-    id: 'fahrtkosten',
-    icon: <Car className="w-5 h-5"/>,
-    title: 'Pendlerpauschale',
-    desc: 'Für jeden Arbeitstag kannst du 0,30€ pro Entfernungskilometer (ab dem 21. km: 0,38€) zwischen Wohnung und Arbeit absetzen.',
-    limit: '0,30€/km (ab 21km: 0,38€)',
-    category: ['Transport'],
-    color: '#10B981',
-  },
-  {
-    id: 'arbeitsmittel',
-    icon: <Laptop className="w-5 h-5"/>,
-    title: 'Arbeitsmittel',
-    desc: 'Computer, Schreibtisch, Bürostuhl, Telefon — wenn du sie beruflich nutzt, sind sie absetzbar. Geräte unter 952€ (netto) kannst du sofort abschreiben.',
-    limit: 'Sofortabschreibung bis 952€',
-    category: ['Bildung', 'Abos', 'Sonstiges'],
-    color: '#8B5CF6',
-  },
-  {
-    id: 'weiterbildung',
-    icon: <BookOpen className="w-5 h-5"/>,
-    title: 'Weiterbildung & Fortbildung',
-    desc: 'Kurse, Bücher, Fachzeitschriften und Seminare die mit deinem Beruf zusammenhängen sind als Werbungskosten voll absetzbar.',
-    limit: 'Unbegrenzt bei Berufsrelevanz',
-    category: ['Bildung'],
-    color: '#F59E0B',
-  },
-  {
-    id: 'krankenversicherung',
-    icon: <Heart className="w-5 h-5"/>,
-    title: 'Kranken- & Pflegeversicherung',
-    desc: 'Beiträge zur Kranken- und Pflegeversicherung zählen als Sonderausgaben und reduzieren dein zu versteuerndes Einkommen direkt.',
-    limit: 'Bis 1.900€ (Arbeitnehmer)',
-    category: ['Gesundheit', 'Versicherung'],
-    color: '#EF4444',
-  },
-  {
-    id: 'handwerker',
-    icon: <Briefcase className="w-5 h-5"/>,
-    title: 'Handwerkerleistungen',
-    desc: 'Reparaturen, Renovierungen oder andere Handwerksleistungen in deiner Wohnung: 20% der Arbeitskosten (nicht Material) kannst du direkt von der Steuer abziehen.',
-    limit: 'Max. 1.200€ Steuerersparnis/Jahr',
-    category: ['Wohnen'],
-    color: '#F97316',
-  },
-  {
-    id: 'spenden',
-    icon: <Heart className="w-5 h-5"/>,
-    title: 'Spenden',
-    desc: 'Spenden an gemeinnützige Organisationen sind als Sonderausgaben absetzbar. Bis 300€ reicht der Kontoauszug als Nachweis.',
-    limit: 'Bis 20% des Gesamtbetrags',
-    category: ['Sonstiges'],
-    color: '#EC4899',
-  },
-  {
-    id: 'riester',
-    icon: <TrendingDown className="w-5 h-5"/>,
-    title: 'Altersvorsorge (Riester/Rürup)',
-    desc: 'Beiträge zur Riester- oder Rürup-Rente sind als Sonderausgaben absetzbar und bringen oft staatliche Zulagen oben drauf.',
-    limit: 'Bis 2.100€/Jahr (Riester)',
-    category: ['Sparen', 'Sonstiges'],
-    color: '#14B8A6',
-  },
+  { id:'homeoffice',     icon:'🏠', title:'Homeoffice-Pauschale',   desc:'Bis zu 210 Tage × 6€ = 1.260€ ohne Einzelnachweis absetzbar.',   limit:'Max. 1.260€/Jahr',        category:['Wohnen','Abos'],        color:'#3B82F6' },
+  { id:'fahrtkosten',    icon:'🚗', title:'Pendlerpauschale',        desc:'0,30€ pro km (ab 21. km: 0,38€) für jeden Arbeitstag.',          limit:'0,30€/km einfache Strecke',category:['Transport'],            color:'#22C55E' },
+  { id:'arbeitsmittel',  icon:'💻', title:'Arbeitsmittel',           desc:'PC, Schreibtisch, Bürostuhl bei beruflicher Nutzung absetzbar.',  limit:'Sofortabschreibung bis 952€',category:['Bildung','Abos'],      color:'#8B5CF6' },
+  { id:'weiterbildung',  icon:'📚', title:'Weiterbildung',           desc:'Kurse, Bücher und Fachzeitschriften voll absetzbar.',            limit:'Unbegrenzt',               category:['Bildung'],              color:'#F59E0B' },
+  { id:'kranken',        icon:'💊', title:'Krankenversicherung',     desc:'Beiträge zählen als Sonderausgaben.',                            limit:'Bis 1.900€/Jahr',          category:['Gesundheit'],           color:'#EF4444' },
+  { id:'handwerker',     icon:'🔧', title:'Handwerkerleistungen',    desc:'20% der Arbeitskosten direkt von der Steuer abziehbar.',         limit:'Max. 1.200€ Ersparnis',    category:['Wohnen'],               color:'#F97316' },
+  { id:'spenden',        icon:'❤️', title:'Spenden',                 desc:'Bis 300€ reicht der Kontoauszug als Nachweis.',                  limit:'Bis 20% des Gesamtbetrags',category:['Sonstiges'],            color:'#EC4899' },
+  { id:'riester',        icon:'📈', title:'Altersvorsorge',          desc:'Riester/Rürup-Beiträge als Sonderausgaben + staatliche Zulage.', limit:'Bis 2.100€/Jahr',          category:['Sonstiges','Sparen'],   color:'#14B8A6' },
 ]
 
 export function SteuerPage() {
   const { transactions } = useStore()
 
-  // Welche Kategorien hat der User genutzt?
-  const usedCategories = useMemo(() => {
-    const cats = new Set(transactions.map(t => t.category))
-    return cats
-  }, [transactions])
-
-  // Jahresausgaben pro Kategorie
-  const yearSpend = useMemo(() => {
-    const now = new Date()
-    const map: Record<string,number> = {}
-    transactions
-      .filter(t => { const d=new Date(t.date); return d.getFullYear()===now.getFullYear()&&t.type==='expense' })
-      .forEach(t => { map[t.category]=(map[t.category]??0)+t.amount })
+  const usedCats = useMemo(()=>new Set(transactions.map(t=>t.category)),[transactions])
+  const yearSpend = useMemo(()=>{
+    const now=new Date(), map:Record<string,number>={}
+    transactions.filter(t=>{const d=new Date(t.date);return d.getFullYear()===now.getFullYear()&&t.type==='expense'})
+      .forEach(t=>{map[t.category]=(map[t.category]??0)+t.amount})
     return map
-  }, [transactions])
+  },[transactions])
 
-  // Relevante Tipps — mit Userdaten anreichern
-  const relevantTips = ALL_TIPS.filter(tip =>
-    tip.category.some(c => usedCategories.has(c))
-  )
-  const otherTips = ALL_TIPS.filter(tip =>
-    !tip.category.some(c => usedCategories.has(c))
-  )
-
-  const totalRelevant = relevantTips.length
+  const relevant = ALL_TIPS.filter(t=>t.category.some(c=>usedCats.has(c)))
+  const other    = ALL_TIPS.filter(t=>!t.category.some(c=>usedCats.has(c)))
 
   return (
-    <div className="p-5 space-y-4 pb-8">
-      <div className="pt-14">
-        <h1 className="font-display text-4xl tracking-widest text-white">Steuern</h1>
-        <p className="text-cement text-sm mt-0.5">Tipps & Abzüge</p>
+    <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
+      <div style={{ padding:'56px 20px 16px' }}>
+        <h1 className="page-title">Steuern</h1>
+        <p style={{ fontSize:15,color:'var(--secondary)',marginTop:4 }}>Tipps & Abzüge</p>
       </div>
 
-      {/* Info Banner */}
-      <div className="rounded-2xl p-4 flex gap-3" style={{ background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)' }}>
-        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color:'#60A5FA' }}/>
-        <div>
-          <p className="text-sm font-semibold text-white mb-0.5">Kein Steuerberater-Ersatz</p>
-          <p className="text-xs text-cement leading-relaxed">Diese Tipps sind allgemeine Hinweise. Für deine individuelle Situation empfehlen wir einen Steuerberater oder ELSTER.</p>
+      {/* Disclaimer */}
+      <div style={{ padding:'0 20px 20px' }}>
+        <div style={{ background:'rgba(59,130,246,0.08)',borderRadius:16,padding:'14px 16px',display:'flex',gap:12,border:'1px solid rgba(59,130,246,0.15)' }}>
+          <AlertCircle width={18} height={18} style={{ color:'#3B82F6',flexShrink:0,marginTop:1 }}/>
+          <div>
+            <p style={{ fontSize:14,fontWeight:600,color:'var(--primary)',marginBottom:2 }}>Kein Steuerberater-Ersatz</p>
+            <p style={{ fontSize:13,color:'var(--secondary)',lineHeight:1.5 }}>Allgemeine Hinweise. Für deine Situation empfehlen wir einen Steuerberater oder ELSTER.</p>
+          </div>
         </div>
       </div>
 
-      {/* Basierend auf deinen Daten */}
-      {relevantTips.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <p className="font-mono text-[10px] text-cement tracking-widest uppercase">Für dich relevant</p>
-            <span className="text-[9px] px-2 py-0.5 rounded-full font-mono" style={{ background:'rgba(200,57,43,0.2)', color:'#C8392B' }}>
-              {totalRelevant} Tipps
-            </span>
+      {/* Relevant */}
+      {relevant.length>0 && (
+        <div style={{ padding:'0 20px 20px' }}>
+          <div style={{ display:'flex',alignItems:'center',gap:8,marginBottom:12 }}>
+            <p style={{ fontSize:17,fontWeight:700,color:'var(--primary)' }}>Für dich relevant</p>
+            <span style={{ fontSize:11,fontWeight:600,padding:'2px 10px',borderRadius:20,background:'rgba(229,72,63,0.1)',color:'var(--accent)' }}>{relevant.length}</span>
           </div>
-          {relevantTips.map((tip, i) => {
-            const relCats = tip.category.filter(c => usedCategories.has(c))
-            const relSpend = relCats.reduce((s,c) => s+(yearSpend[c]??0), 0)
-            return (
-              <motion.div key={tip.id} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}
-                className="ak-card p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                       style={{ background:`${tip.color}22`, color:tip.color }}>
-                    {tip.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="font-semibold text-sm text-white">{tip.title}</p>
-                      {tip.limit && (
-                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full shrink-0"
-                              style={{ background:`${tip.color}22`, color:tip.color }}>
-                          {tip.limit}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-cement leading-relaxed">{tip.desc}</p>
-                    {relSpend > 0 && (
-                      <div className="mt-2 flex items-center gap-1.5 rounded-lg p-2"
-                           style={{ background:'rgba(255,255,255,0.04)' }}>
-                        <Info className="w-3 h-3 shrink-0" style={{ color:tip.color }}/>
-                        <p className="text-[10px] text-cement">
-                          Du hast dieses Jahr <span className="font-semibold" style={{ color:tip.color }}>{fmt(relSpend)}</span> in relevanten Kategorien ausgegeben.
-                        </p>
+          <div style={{ display:'flex',flexDirection:'column',gap:10 }}>
+            {relevant.map((tip,i)=>{
+              const relSpend = tip.category.filter(c=>usedCats.has(c)).reduce((s,c)=>s+(yearSpend[c]??0),0)
+              return (
+                <motion.div key={tip.id} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}}>
+                  <div className="app-card">
+                    <div style={{ display:'flex',alignItems:'flex-start',gap:14 }}>
+                      <div style={{ width:44,height:44,borderRadius:14,background:`${tip.color}18`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22 }}>
+                        {tip.icon}
                       </div>
-                    )}
+                      <div style={{ flex:1,minWidth:0 }}>
+                        <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4 }}>
+                          <p style={{ fontSize:15,fontWeight:600,color:'var(--primary)' }}>{tip.title}</p>
+                          {tip.limit && <span style={{ fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:10,background:`${tip.color}18`,color:tip.color,whiteSpace:'nowrap',marginLeft:8,flexShrink:0 }}>{tip.limit}</span>}
+                        </div>
+                        <p style={{ fontSize:13,color:'var(--secondary)',lineHeight:1.5 }}>{tip.desc}</p>
+                        {relSpend>0 && (
+                          <div style={{ marginTop:10,background:'var(--bg)',borderRadius:10,padding:'8px 12px',display:'flex',alignItems:'center',gap:8 }}>
+                            <Info width={12} height={12} style={{ color:tip.color,flexShrink:0 }}/>
+                            <p style={{ fontSize:12,color:'var(--secondary)' }}>
+                              Du hast dieses Jahr <span style={{ fontWeight:600,color:tip.color }}>{fmt(relSpend)}</span> in relevanten Kategorien ausgegeben.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )
-          })}
+                </motion.div>
+              )
+            })}
+          </div>
         </div>
       )}
 
-      {/* Weitere Tipps */}
-      {otherTips.length > 0 && (
-        <div className="space-y-3">
-          <p className="font-mono text-[10px] text-cement tracking-widest uppercase">Weitere Tipps</p>
-          {otherTips.map((tip, i) => (
-            <motion.div key={tip.id} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.04 }}
-              className="ak-card p-4" style={{ opacity:0.6 }}>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                     style={{ background:`${tip.color}22`, color:tip.color }}>
-                  {tip.icon}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="font-semibold text-sm text-white">{tip.title}</p>
-                    {tip.limit && (
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded-full shrink-0"
-                            style={{ background:`${tip.color}22`, color:tip.color }}>
-                        {tip.limit}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-cement leading-relaxed">{tip.desc}</p>
+      {/* Other */}
+      {other.length>0 && (
+        <div style={{ padding:'0 20px 20px' }}>
+          <p style={{ fontSize:17,fontWeight:700,color:'var(--primary)',marginBottom:12 }}>Weitere Tipps</p>
+          <div className="app-card" style={{ padding:0,overflow:'hidden',opacity:0.6 }}>
+            {other.map((tip,i)=>(
+              <div key={tip.id} style={{ display:'flex',alignItems:'center',gap:14,padding:'14px 20px',borderBottom:i<other.length-1?'1px solid var(--border)':'none' }}>
+                <span style={{ fontSize:20 }}>{tip.icon}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:14,fontWeight:600,color:'var(--primary)' }}>{tip.title}</p>
+                  <p style={{ fontSize:12,color:'var(--tertiary)' }}>{tip.limit}</p>
                 </div>
               </div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {transactions.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="text-4xl">📊</div>
-          <p className="text-sm text-cement text-center">Trag erst ein paar Ausgaben ein —<br/>dann zeigen wir dir relevante Steuer-Tipps.</p>
+      {transactions.length===0 && (
+        <div style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 20px',gap:12 }}>
+          <p style={{ fontSize:40 }}>📊</p>
+          <p style={{ fontSize:15,color:'var(--tertiary)',textAlign:'center' }}>Trag erst Ausgaben ein —{'\n'}dann zeigen wir dir relevante Tipps.</p>
         </div>
       )}
     </div>

@@ -1,159 +1,193 @@
 import { useState } from 'react'
 
-const fmt = (v: number) => v.toLocaleString('de-DE', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
-const fmtCur = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
+const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
+const fmtPct = (v: number) => v.toFixed(2) + '%'
 
-const TABS = [
-  { id: 'kredit',   label: 'Kredit'      },
-  { id: 'zins',     label: 'Zinseszins'  },
-  { id: 'alg',      label: 'ALG I'       },
-  { id: 'waehrung', label: 'Währung'     },
-]
-
-const RATES: Record<string, number> = {
-  EUR: 1, USD: 1.08, GBP: 0.86, CHF: 0.96,
-  JPY: 163.5, DKK: 7.46, SEK: 11.2, NOK: 11.5,
-}
+type Mode = 'kredit'|'zins'|'waehrung'|'sparplan'
 
 export function RechnerPage() {
-  const [tab, setTab] = useState('kredit')
-
-  // Kredit
-  const [kBetrag, setKBetrag]   = useState('10000')
-  const [kZins,   setKZins]     = useState('5')
-  const [kLauf,   setKLauf]     = useState('5')
-
-  // Zins
-  const [zKap,    setZKap]      = useState('1000')
-  const [zZins,   setZZins]     = useState('5')
-  const [zJahre,  setZJahre]    = useState('10')
-
-  // ALG
-  const [aGehalt, setAGehalt]   = useState('3000')
-  const [aKinder, setAKinder]   = useState<'nein'|'ja'>('nein')
-
-  // Währung
-  const [wBetrag, setWBetrag]   = useState('100')
-  const [wVon,    setWVon]      = useState('EUR')
-  const [wNach,   setWNach]     = useState('USD')
-
-  const kreditRate = () => {
-    const p = parseFloat(kBetrag), r = parseFloat(kZins)/100/12, n = parseFloat(kLauf)*12
-    if (!p||!r||!n) return 0
-    return (p*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1)
-  }
-  const zinsResult  = () => { const k=parseFloat(zKap),z=parseFloat(zZins)/100,j=parseFloat(zJahre); if(!k||!z||!j) return 0; return k*Math.pow(1+z,j) }
-  const algResult   = () => { const n=parseFloat(aGehalt); if(!n) return 0; return n*(aKinder==='ja'?0.67:0.60) }
-  const waehrResult = () => (parseFloat(wBetrag)/(RATES[wVon]??1))*(RATES[wNach]??1)
+  const [mode, setMode] = useState<Mode>('kredit')
 
   return (
-    <div className="p-5 space-y-5 pb-8">
-      <div className="pt-14">
-        <p className="text-xs text-red font-mono tracking-widest uppercase mb-1">// Werkzeug</p>
-        <h1 className="font-display text-4xl tracking-widest text-white">Rechner</h1>
+    <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
+      <div style={{ padding:'56px 20px 16px' }}>
+        <h1 className="page-title">Rechner</h1>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-            style={{ background: tab===t.id ? '#0D1B2A' : 'rgba(255,255,255,0.06)',
-                     color: tab===t.id ? 'white' : '#9AA0A6',
-                     border: tab===t.id ? '1px solid rgba(61,81,102,0.6)' : '1px solid transparent' }}>
-            {t.label}
+      {/* Mode Tabs */}
+      <div style={{ padding:'0 20px 20px', display:'flex', gap:8, overflowX:'auto' }}>
+        {([['kredit','Kredit'],['zins','Zinsen'],['waehrung','Währung'],['sparplan','Sparplan']] as const).map(([v,l])=>(
+          <button key={v} onClick={()=>setMode(v)}
+            style={{ padding:'7px 16px',borderRadius:20,fontSize:13,fontWeight:500,cursor:'pointer',border:'none',whiteSpace:'nowrap',flexShrink:0,
+                     background:mode===v?'var(--accent)':'var(--surface)',
+                     color:mode===v?'white':'var(--secondary)',
+                     boxShadow:mode===v?'0 4px 12px rgba(229,72,63,.25)':'var(--shadow-sm)' }}>
+            {l}
           </button>
         ))}
       </div>
 
-      <div className="ak-card p-5 max-w-md space-y-4">
-
-        {/* KREDIT */}
-        {tab === 'kredit' && <>
-          <h2 className="font-display text-xl tracking-wide text-white">KREDITRECHNER</h2>
-          <Field label="Betrag (€)"         value={kBetrag} onChange={setKBetrag}/>
-          <Field label="Zinssatz (% p.a.)"  value={kZins}   onChange={setKZins}/>
-          <Field label="Laufzeit (Jahre)"   value={kLauf}   onChange={setKLauf}/>
-          <Result label="Monatliche Rate" value={`${fmt(kreditRate())} €`}
-            sub={`Gesamt: ${fmt(kreditRate()*parseFloat(kLauf)*12)} €`}/>
-        </>}
-
-        {/* ZINS */}
-        {tab === 'zins' && <>
-          <h2 className="font-display text-xl tracking-wide text-white">ZINSESZINS</h2>
-          <Field label="Startkapital (€)"  value={zKap}   onChange={setZKap}/>
-          <Field label="Zinssatz (%)"       value={zZins}  onChange={setZZins}/>
-          <Field label="Jahre"              value={zJahre} onChange={setZJahre}/>
-          <Result label={`Endkapital nach ${zJahre} Jahren`}
-            value={`${fmt(zinsResult())} €`}
-            sub={`Gewinn: +${fmt(zinsResult()-parseFloat(zKap))} €`}
-            accent="#E8A832"/>
-        </>}
-
-        {/* ALG I */}
-        {tab === 'alg' && <>
-          <h2 className="font-display text-xl tracking-wide text-white">ALG I RECHNER</h2>
-          <p className="text-xs text-cement">ALG I = 60% (ohne Kind) bzw. 67% (mit Kind) des letzten Nettogehalts.</p>
-          <Field label="Letztes Nettoeinkommen (€)" value={aGehalt} onChange={setAGehalt}/>
-          <div>
-            <label className="text-xs text-cement uppercase tracking-wider block mb-2">Kind mit Kindergeldanspruch?</label>
-            <div className="flex gap-2">
-              {(['nein','ja'] as const).map(v => (
-                <button key={v} onClick={() => setAKinder(v)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={{ background: aKinder===v ? '#C8392B' : 'rgba(255,255,255,0.06)', color: aKinder===v?'white':'#9AA0A6' }}>
-                  {v==='ja'?'Ja (67%)':'Nein (60%)'}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Result label="Monatliches ALG I (ca.)"
-            value={`${fmt(algResult())} €`}
-            sub="Richtwert · genaue Berechnung via Bundesagentur"/>
-        </>}
-
-        {/* WÄHRUNG */}
-        {tab === 'waehrung' && <>
-          <h2 className="font-display text-xl tracking-wide text-white">WÄHRUNGSRECHNER</h2>
-          <Field label="Betrag" value={wBetrag} onChange={setWBetrag}/>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-cement uppercase tracking-wider block mb-1">Von</label>
-              <select className="ak-input" value={wVon} onChange={e => setWVon(e.target.value)}>
-                {Object.keys(RATES).map(c => <option key={c} style={{ background:'#1e2e40' }}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-cement uppercase tracking-wider block mb-1">Nach</label>
-              <select className="ak-input" value={wNach} onChange={e => setWNach(e.target.value)}>
-                {Object.keys(RATES).map(c => <option key={c} style={{ background:'#1e2e40' }}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-          <Result label={`${wBetrag} ${wVon} =`}
-            value={`${fmt(waehrResult())} ${wNach}`}
-            sub="Richtwert · Kurs kann abweichen"/>
-        </>}
+      <div style={{ padding:'0 20px' }}>
+        {mode==='kredit'  && <KreditRechner/>}
+        {mode==='zins'    && <ZinsRechner/>}
+        {mode==='waehrung'&& <WaehrungsRechner/>}
+        {mode==='sparplan'&& <SparplanRechner/>}
       </div>
     </div>
   )
 }
 
-function Field({ label, value, onChange }: { label:string; value:string; onChange:(v:string)=>void }) {
+function Card({ label, value, sub }: { label:string; value:string; sub?:string }) {
   return (
-    <div>
-      <label className="text-xs text-cement uppercase tracking-wider block mb-1">{label}</label>
-      <input className="ak-input" type="number" inputMode="decimal" value={value} onChange={e => onChange(e.target.value)}/>
+    <div className="app-card" style={{ textAlign:'center',marginTop:4 }}>
+      <p style={{ fontSize:13,color:'var(--tertiary)',marginBottom:6 }}>{label}</p>
+      <p style={{ fontSize:36,fontWeight:800,color:'var(--accent)',letterSpacing:'-0.03em' }}>{value}</p>
+      {sub && <p style={{ fontSize:13,color:'var(--tertiary)',marginTop:4 }}>{sub}</p>}
     </div>
   )
 }
 
-function Result({ label, value, sub, accent='#C8392B' }: { label:string; value:string; sub?:string; accent?:string }) {
+function Field({ label, value, onChange, placeholder, type='number', prefix }: { label:string;value:string;onChange:(v:string)=>void;placeholder:string;type?:string;prefix?:string }) {
   return (
-    <div className="rechner-output rounded-2xl p-5 text-center mt-2" style={{ background:'var(--card2)' }}>
-      <div className="text-xs text-cement uppercase tracking-wider mb-2">{label}</div>
-      <div className="font-display text-4xl tracking-wide" style={{ color:'var(--sand)' }}>{value}</div>
-      {sub && <div className="text-xs mt-2 font-mono" style={{ color: accent }}>{sub}</div>}
+    <div>
+      <p style={{ fontSize:12,fontWeight:600,color:'var(--tertiary)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>{label}</p>
+      <div style={{ position:'relative' }}>
+        {prefix && <span style={{ position:'absolute',left:16,top:'50%',transform:'translateY(-50%)',fontSize:15,color:'var(--tertiary)',pointerEvents:'none' }}>{prefix}</span>}
+        <input className="ak-input" type={type} inputMode="decimal" placeholder={placeholder} value={value} onChange={e=>onChange(e.target.value)}
+          style={{ paddingLeft:prefix?40:16 }}/>
+      </div>
+    </div>
+  )
+}
+
+function KreditRechner() {
+  const [betrag, setBetrag]     = useState('')
+  const [zins,   setZins]       = useState('')
+  const [laufzeit,setLaufzeit]  = useState('')
+
+  const calc = () => {
+    const P=parseFloat(betrag)||0, r=parseFloat(zins)/100/12, n=parseFloat(laufzeit)*12
+    if (!P||!r||!n) return null
+    const rate = P*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1)
+    return { rate, gesamt:rate*n, zinsen:rate*n-P }
+  }
+  const r = calc()
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label="Kreditbetrag" value={betrag} onChange={setBetrag} placeholder="20.000" prefix="€"/>
+      <Field label="Zinssatz p.a." value={zins}   onChange={setZins}   placeholder="4.5"    prefix="%"/>
+      <Field label="Laufzeit (Jahre)" value={laufzeit} onChange={setLaufzeit} placeholder="5"/>
+      {r && (
+        <>
+          <Card label="Monatliche Rate" value={fmt(r.rate)}/>
+          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
+            <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+              <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gesamtkosten</p>
+              <p style={{ fontSize:18,fontWeight:700,color:'var(--primary)' }}>{fmt(r.gesamt)}</p>
+            </div>
+            <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+              <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Zinsen gesamt</p>
+              <p style={{ fontSize:18,fontWeight:700,color:'var(--accent)' }}>{fmt(r.zinsen)}</p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ZinsRechner() {
+  const [kapital,  setKapital]   = useState('')
+  const [zins,     setZins]      = useState('')
+  const [jahre,    setJahre]     = useState('')
+
+  const calc = () => {
+    const K=parseFloat(kapital)||0, p=parseFloat(zins)/100, n=parseFloat(jahre)||0
+    if (!K||!p||!n) return null
+    const endKapital = K*Math.pow(1+p,n)
+    return { endKapital, gewinn:endKapital-K }
+  }
+  const r = calc()
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label="Startkapital" value={kapital} onChange={setKapital} placeholder="10.000" prefix="€"/>
+      <Field label="Zinssatz p.a." value={zins} onChange={setZins} placeholder="5.0" prefix="%"/>
+      <Field label="Laufzeit (Jahre)" value={jahre} onChange={setJahre} placeholder="10"/>
+      {r && (
+        <>
+          <Card label="Endkapital (Zinseszins)" value={fmt(r.endKapital)}/>
+          <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gewinn</p>
+            <p style={{ fontSize:22,fontWeight:700,color:'var(--success)' }}>+{fmt(r.gewinn)}</p>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function WaehrungsRechner() {
+  const RATES: Record<string,number> = { EUR:1, USD:1.08, GBP:0.86, CHF:0.96, JPY:160, SEK:11.2, NOK:11.5, DKK:7.46 }
+  const [amount, setAmount] = useState('')
+  const [from,   setFrom]   = useState('EUR')
+  const [to,     setTo]     = useState('USD')
+
+  const result = parseFloat(amount) ? (parseFloat(amount)/RATES[from])*RATES[to] : null
+  const currencies = Object.keys(RATES)
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label="Betrag" value={amount} onChange={setAmount} placeholder="100"/>
+      <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
+        {[['Von',from,setFrom],['Nach',to,setTo]].map(([label,val,setter]:any)=>(
+          <div key={label}>
+            <p style={{ fontSize:12,fontWeight:600,color:'var(--tertiary)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>{label}</p>
+            <select className="ak-input" value={val} onChange={e=>setter(e.target.value)}>
+              {currencies.map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        ))}
+      </div>
+      {result!==null && <Card label={`${amount} ${from} =`} value={`${result.toFixed(2)} ${to}`} sub="Richtwert · kein Echtzeit-Kurs"/>}
+    </div>
+  )
+}
+
+function SparplanRechner() {
+  const [rate,   setRate]   = useState('')
+  const [zins,   setZins]   = useState('')
+  const [jahre,  setJahre]  = useState('')
+
+  const calc = () => {
+    const r=parseFloat(rate)||0, p=parseFloat(zins)/100/12, n=parseFloat(jahre)*12
+    if (!r||!n) return null
+    const endKapital = p>0 ? r*((Math.pow(1+p,n)-1)/p) : r*n
+    return { endKapital, eingezahlt:r*n, gewinn:endKapital-(r*n) }
+  }
+  const res = calc()
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label="Monatliche Rate" value={rate}  onChange={setRate}  placeholder="200" prefix="€"/>
+      <Field label="Zinssatz p.a."   value={zins}  onChange={setZins}  placeholder="5.0" prefix="%"/>
+      <Field label="Laufzeit (Jahre)"value={jahre} onChange={setJahre} placeholder="20"/>
+      {res && (
+        <>
+          <Card label="Endkapital" value={fmt(res.endKapital)}/>
+          <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
+            <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+              <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Eingezahlt</p>
+              <p style={{ fontSize:18,fontWeight:700,color:'var(--primary)' }}>{fmt(res.eingezahlt)}</p>
+            </div>
+            <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+              <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Zinsen</p>
+              <p style={{ fontSize:18,fontWeight:700,color:'var(--success)' }}>+{fmt(res.gewinn)}</p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

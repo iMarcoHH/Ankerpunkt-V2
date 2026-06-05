@@ -117,17 +117,22 @@ export default function App() {
 
 function Splash() {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center gap-4" style={{ background:'#0D1B2A' }}>
-      <svg width="56" height="56" viewBox="0 0 52 52" fill="none">
-        <circle cx="26" cy="10" r="5" stroke="#C8392B" strokeWidth="2.5" fill="none"/>
-        <circle cx="26" cy="10" r="2" fill="#C8392B"/>
-        <line x1="26" y1="15" x2="26" y2="44" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="12" y1="24" x2="40" y2="24" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M12 24 Q8 32 12 36 Q17 40 26 42 Q35 40 40 36 Q44 32 40 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="12" cy="36" r="3" fill="#C8392B"/>
-        <circle cx="40" cy="36" r="3" fill="#C8392B"/>
-      </svg>
-      <div style={{ fontFamily:"'Bebas Neue',sans-serif", color:'white', fontSize:24, letterSpacing:'0.2em' }}>ANKERPUNKT</div>
+    <div style={{ position:'fixed',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,background:'var(--bg)' }}>
+      <div style={{ width:80,height:80,borderRadius:24,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 12px 32px rgba(229,72,63,.3)' }}>
+        <svg width="44" height="44" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="10" r="5" stroke="white" strokeWidth="2.5"/>
+          <circle cx="26" cy="10" r="2" fill="white"/>
+          <line x1="26" y1="15" x2="26" y2="44" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="12" y1="24" x2="40" y2="24" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M12 24 Q8 32 12 36 Q17 40 26 42 Q35 40 40 36 Q44 32 40 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          <circle cx="12" cy="36" r="3" fill="white"/>
+          <circle cx="40" cy="36" r="3" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <p style={{ fontSize:24,fontWeight:800,color:'var(--primary)',letterSpacing:'-0.03em',textAlign:'center' }}>Ankerpunkt</p>
+        <p style={{ fontSize:14,color:'var(--tertiary)',textAlign:'center',marginTop:4 }}>Deine Finanzen im sicheren Hafen.</p>
+      </div>
     </div>
   )
 }
