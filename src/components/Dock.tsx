@@ -36,26 +36,36 @@ export function Dock() {
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 8,
-      left: 16,
-      right: 16,
-      zIndex: 50,
-    }}>
+    <>
+      {/* Hintergrund-Balken geht bis ganz unten inkl. Home-Indicator */}
       <div style={{
-        background: 'rgba(11,22,36,0.96)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderRadius: 999,
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-        overflow: 'hidden',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 49,
+        background: 'rgba(10,20,33,0.96)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        // Höhe = Tabs + Home-Indicator
+        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+        borderTop: '1px solid rgba(255,255,255,0.1)',
+      }}/>
+      {/* Tabs sitzen oben im Balken, nicht über dem Home-Indicator */}
+      <div style={{
+        position: 'fixed',
+        bottom: 'env(safe-area-inset-bottom, 0px)',
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        height: 60,
+        display: 'flex',
       }}>
         <div
           ref={scrollRef}
           style={{
             display: 'flex',
+            flex: 1,
             overflowX: 'auto',
             scrollbarWidth: 'none',
             WebkitOverflowScrolling: 'touch',
@@ -74,18 +84,17 @@ export function Dock() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 4,
-                  padding: '10px 0',
                   flex: '0 0 25%',
                   minWidth: 64,
                   border: 'none',
-                  background: active ? 'rgba(200,57,43,0.15)' : 'transparent',
+                  background: 'transparent',
                   color: active ? '#C8392B' : '#9AA0A6',
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
-                <tab.Icon width={20} height={20} strokeWidth={active ? 2 : 1.5} />
-                <span style={{ fontSize: 9, fontWeight: active ? 600 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                <tab.Icon width={22} height={22} strokeWidth={active ? 2 : 1.5} />
+                <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
                   {tab.label}
                 </span>
               </button>
@@ -93,7 +102,7 @@ export function Dock() {
           })}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
