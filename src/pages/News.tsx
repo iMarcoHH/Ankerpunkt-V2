@@ -12,8 +12,8 @@ const SOURCE_COLORS: Record<string, { bg: string; text: string }> = {
   'Tagesschau':        { bg: 'rgba(59,130,246,0.15)',  text: '#60A5FA' },
   'Handelsblatt':      { bg: 'rgba(234,179,8,0.15)',   text: '#FBBF24' },
   'Finanzen.net':      { bg: 'rgba(16,185,129,0.15)',  text: '#34D399' },
-  'Manager Magazin':   { bg: 'rgba(168,85,247,0.15)',  text: '#C084FC' },
-  'Börse.de':          { bg: 'rgba(236,72,153,0.15)',  text: '#F472B6' },
+  'Focus Online':      { bg: 'rgba(239,68,68,0.15)',   text: '#F87171' },
+  'Stern':             { bg: 'rgba(168,85,247,0.15)',  text: '#C084FC' },
   'Wallstreet Online': { bg: 'rgba(20,184,166,0.15)',  text: '#2DD4BF' },
   'Zeit Wirtschaft':   { bg: 'rgba(249,115,22,0.15)',  text: '#FB923C' },
 }
@@ -21,8 +21,8 @@ const SOURCE_ACCENT: Record<string, string> = {
   'Tagesschau':        '#3B82F6',
   'Handelsblatt':      '#EAB308',
   'Finanzen.net':      '#10B981',
-  'Manager Magazin':   '#A855F7',
-  'Börse.de':          '#EC4899',
+  'Focus Online':      '#EF4444',
+  'Stern':             '#A855F7',
   'Wallstreet Online': '#14B8A6',
   'Zeit Wirtschaft':   '#F97316',
 }
