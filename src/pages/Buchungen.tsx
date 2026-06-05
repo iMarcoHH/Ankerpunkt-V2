@@ -324,6 +324,8 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         if (data.category) {
           setAiSuggested(data.category)
           setCat(data.category)
+        } else {
+          setAiSuggested('?:' + JSON.stringify(data).slice(0,50))
         }
       } catch {}
       setAiSuggesting(false)
