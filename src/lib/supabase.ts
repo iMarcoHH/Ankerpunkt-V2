@@ -50,13 +50,20 @@ export interface Achievement {
 }
 
 export interface Profile {
-  id:          string
-  username:    string
-  full_name:   string
-  email?:      string        // optional
-  level:       number
-  xp:          number
-  created_at:  string
+  id:               string
+  username?:        string
+  full_name?:       string
+  email?:           string
+  avatar_url?:      string
+  occupation?:      string
+  city?:            string
+  birth_year?:      number
+  salary?:          number
+  monthly_budget?:  number
+  currency?:        string
+  level?:           number
+  xp?:              number
+  created_at:       string
 }
 
 export const ACHIEVEMENT_DEFS = [
