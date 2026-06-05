@@ -6,7 +6,6 @@ import type { RecurringEntry } from '../store'
 import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
-const MONTHS = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
 const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
 export function BuchungenPage() {
@@ -280,8 +279,9 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="space-y-2">
+          {/* kein autoFocus — verhindert dass Tastatur das Sheet hochschiebt */}
           <input className="ak-input" type="number" inputMode="decimal"
-            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)} autoFocus/>
+            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
             value={desc} onChange={e => setDesc(e.target.value)}/>
           <input className="ak-input" type="date"
