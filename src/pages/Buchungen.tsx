@@ -6,7 +6,8 @@ import type { RecurringEntry } from '../store'
 import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
-const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
+const MONTHS = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
+const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
 export function BuchungenPage() {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
@@ -15,7 +16,7 @@ export function BuchungenPage() {
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
 
-  const now = new Date()
+  const now   = new Date()
   const isNow = viewMonth === now.getMonth() && viewYear === now.getFullYear()
 
   const monthTx = useMemo(() => transactions.filter(t => {
@@ -84,7 +85,7 @@ export function BuchungenPage() {
         <button onClick={goToPrevMonth} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.06)' }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        <span className="font-display text-white text-lg tracking-wide">{MONTHS[viewMonth]} {viewYear}</span>
+        <span className="font-display text-white text-lg tracking-wide">{MONTHS_LONG[viewMonth]} {viewYear}</span>
         <button onClick={goToNextMonth} disabled={isNow} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.06)', opacity:isNow?0.3:1 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
@@ -116,7 +117,7 @@ export function BuchungenPage() {
       </div>
 
       {tab === 'recurring' ? (
-        recurring.length === 0 ? <Leer text="Beim + 'Monatlich' wählen um Einträge zu wiederholen."/> : (
+        recurring.length === 0 ? <Leer text="Beim Neu-Eintrag 'Monatlich' wählen."/> : (
           <div className="space-y-1.5">
             {recurring.map((r, i) => (
               <SwipeDelete key={r.id} onDelete={() => delRec(r.id)}>
@@ -145,7 +146,7 @@ export function BuchungenPage() {
           </div>
         )
       ) : shown.length === 0 ? (
-        <Leer text={search ? `Keine Ergebnisse für "${search}"` : `Keine Einträge für ${MONTHS[viewMonth]}.`}/>
+        <Leer text={search ? `Keine Ergebnisse für "${search}"` : `Keine Einträge für ${MONTHS_LONG[viewMonth]}.`}/>
       ) : (
         <div className="space-y-1.5">
           {shown.map((tx, i) => (
@@ -179,7 +180,6 @@ function SwipeDelete({ children, onDelete }: { children: React.ReactNode; onDele
   const startX = useRef(0)
   const [offset, setOffset] = useState(0)
   const [deleting, setDeleting] = useState(false)
-
   return (
     <div className="relative overflow-hidden rounded-2xl">
       <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
@@ -210,7 +210,6 @@ function Leer({ text }: { text: string }) {
   )
 }
 
-// ── Add Sheet — kompakt wie Versicherungen ────────────────────────────────────
 function AddSheet({ onClose }: { onClose: () => void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
   const [type, setType]     = useState<'income'|'expense'>('expense')
@@ -229,7 +228,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
   async function save() {
-    if (!amount || !desc || !cat) { setErr('Alle Felder ausfüllen.'); return }
+    if (!amount || !desc || !cat) { setErr('Bitte alle Felder ausfüllen.'); return }
     setSaving(true); setErr('')
     try {
       const tx = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, date }
@@ -253,7 +252,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         }
       }
       onClose()
-    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Fehler') }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Fehler beim Speichern') }
     setSaving(false)
   }
 
@@ -263,17 +262,16 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         <div className="flex justify-center mb-3">
           <div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/>
         </div>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3">
           <span className="font-display text-white text-xl">NEUER EINTRAG</span>
           <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
             style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
         </div>
 
-        {/* Typ */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-3">
           {(['expense','income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCat('') }}
-              className="flex-1 py-2.5 rounded-xl font-display text-sm tracking-wider"
+              className="flex-1 py-2 rounded-xl font-display text-sm tracking-wider"
               style={{ background:type===t?(t==='expense'?'#C8392B':'#E8A832'):'rgba(255,255,255,0.06)',
                        color:type===t?(t==='expense'?'white':'#0D1B2A'):'#9AA0A6' }}>
               {t==='expense'?'↓ Ausgabe':'↑ Einnahme'}
@@ -281,34 +279,31 @@ function AddSheet({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <div className="space-y-2.5">
-          {/* Betrag — gleiche Größe wie Versicherung */}
+        <div className="space-y-2">
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)} autoFocus/>
+          <input className="ak-input" placeholder="Beschreibung"
+            value={desc} onChange={e => setDesc(e.target.value)}/>
+          <input className="ak-input" type="date"
+            value={date} onChange={e => setDate(e.target.value)}/>
 
-          <input className="ak-input" placeholder="Beschreibung" value={desc} onChange={e => setDesc(e.target.value)}/>
-
-          <input className="ak-input" type="date" value={date} onChange={e => setDate(e.target.value)}/>
-
-          {/* Kategorien */}
           <div>
-            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1.5">Kategorie</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Kategorie</p>
+            <div className="flex flex-wrap gap-1">
               {cats.map(c => (
                 <button key={c} onClick={() => setCat(c)}
                   className={`cat-chip ${cat===c?'selected':''}`}
-                  style={{ fontSize:11, padding:'4px 10px' }}>
+                  style={{ fontSize:10, padding:'3px 9px' }}>
                   {c}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Wiederholung */}
           <div className="flex gap-2">
             {([['once','Einmalig'],['monthly','Monatlich']] as const).map(([v,l]) => (
               <button key={v} onClick={() => setRec(v)}
-                className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
+                className="flex-1 py-1.5 rounded-xl text-xs font-medium"
                 style={{ background:rec===v?'#C8392B':'rgba(255,255,255,0.06)', color:rec===v?'white':'#9AA0A6' }}>
                 {l}
               </button>
@@ -323,13 +318,10 @@ function AddSheet({ onClose }: { onClose: () => void }) {
             </select>
           )}
 
-          {err && (
-            <p className="font-mono text-[10px] px-3 py-2 rounded-lg"
-               style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>
-          )}
+          {err && <p className="text-[10px] px-2 py-1.5 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
 
           <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
-            {saving ? 'Speichern...' : rec==='monthly' ? 'Eintragen & wiederholen' : 'Eintragen'}
+            {saving ? 'Speichern...' : 'Eintragen'}
           </button>
         </div>
       </div>
