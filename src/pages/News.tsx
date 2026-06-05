@@ -144,17 +144,11 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
 
   return (
     <>
-      <div className="pb-24 min-h-screen" style={{ background: '#F4F2EE' }}>
-        <div className="bg-navy px-5 pt-14 pb-5" style={{ borderBottom: '3px solid #C8392B' }}>
-          {onBack && (
-            <button onClick={onBack} className="flex items-center gap-2 mb-3" style={{ color: '#9AA0A6', WebkitTapHighlightColor: 'transparent' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-              <span className="font-mono text-[10px] tracking-widest uppercase">Zurück</span>
-            </button>
-          )}
+      <div className="pb-24 min-h-screen" style={{ background: '#0D1B2A' }}>
+        <div className="px-5 pt-14 pb-5" style={{ borderBottom: '3px solid #C8392B' }}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-mono text-[10px] text-red tracking-widest uppercase mb-1">// Live</div>
+              <div className="font-mono text-[10px] text-red-500 tracking-widest uppercase mb-1">// Live</div>
               <div className="font-display text-white text-4xl tracking-wide">NEWS</div>
             </div>
             <button onClick={load} disabled={fetching} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', WebkitTapHighlightColor: 'transparent' }}>
@@ -167,11 +161,11 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
 
         <div className="px-4 py-4 space-y-3">
           {sources.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {[null, ...sources].map(s => (
                 <button key={s??'alle'} onClick={() => setSource(s)}
                   className="flex-shrink-0 px-3 py-1.5 rounded-full font-mono text-[9px] tracking-widest uppercase transition-all"
-                  style={{ background: source===s ? '#0D1B2A' : 'white', color: source===s ? 'white' : '#9AA0A6', border: source===s ? 'none' : '1px solid rgba(0,0,0,0.08)' }}>
+                  style={{ background: source===s ? '#C8392B' : 'rgba(255,255,255,0.08)', color: source===s ? 'white' : '#9AA0A6' }}>
                   {s ?? 'Alle'}
                 </button>
               ))}
@@ -180,31 +174,33 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
 
           {loading && Array.from({length:6}).map((_,i) => (
             <div key={i} className="ak-card p-4 space-y-2">
-              <div className="flex gap-2"><div className="h-5 w-28 rounded-full" style={{ background: 'rgba(0,0,0,0.08)' }}/><div className="h-5 w-16 rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}/></div>
-              <div className="h-4 w-full rounded" style={{ background: 'rgba(0,0,0,0.08)' }}/>
-              <div className="h-4 w-3/4 rounded" style={{ background: 'rgba(0,0,0,0.05)' }}/>
+              <div className="flex gap-2"><div className="h-5 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}/><div className="h-5 w-16 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }}/></div>
+              <div className="h-4 w-full rounded" style={{ background: 'rgba(255,255,255,0.08)' }}/>
+              <div className="h-4 w-3/4 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}/>
             </div>
           ))}
 
           {error && !loading && (
             <div className="ak-card p-8 text-center">
               <div className="text-4xl mb-3">📡</div>
-              <p className="font-sans text-sm font-semibold text-navy mb-1">Keine Verbindung</p>
-              <p className="font-sans text-xs text-cement mb-4">Internetverbindung prüfen.</p>
-              <button onClick={load} className="ak-btn ak-btn-navy px-6 py-2 text-sm">Erneut versuchen</button>
+              <p className="text-sm font-semibold text-white mb-1">Keine Verbindung</p>
+              <button onClick={load} className="mt-4 px-6 py-2 rounded-xl text-sm text-white font-semibold" style={{ background: '#C8392B' }}>Erneut versuchen</button>
             </div>
           )}
 
           {!loading && !error && filtered.map((item, i) => {
             const colors = SOURCE_COLORS[item.source] ?? { bg: 'rgba(200,57,43,0.1)', text: '#C8392B' }
             return (
-              <button key={i} onClick={() => setSelected(item)} className="ak-card p-4 w-full text-left block" style={{ WebkitTapHighlightColor: 'transparent' }}>
+              <button key={i} onClick={() => setSelected(item)}
+                className="ak-card p-4 w-full text-left block"
+                style={{ WebkitTapHighlightColor: 'transparent' }}>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="text-xs px-2 py-0.5 rounded-full font-mono tracking-wider" style={{ background: colors.bg, color: colors.text }}>{item.source}</span>
                   <span className="font-mono text-[9px] text-cement flex-shrink-0">{formatRelative(item.pubDate)}</span>
                 </div>
-                <div className="font-sans text-sm font-semibold text-navy leading-snug mb-1">{item.title}</div>
-                {item.description && <div className="font-sans text-xs text-cement font-light leading-relaxed line-clamp-2">{item.description}</div>}
+                {/* Titel in Weiß */}
+                <p className="text-sm font-semibold leading-snug mb-1" style={{ color: '#F4F2EE' }}>{item.title}</p>
+                {item.description && <p className="text-xs text-cement font-light leading-relaxed line-clamp-2">{item.description}</p>}
                 <div className="flex items-center gap-1 mt-2">
                   <span className="font-mono text-[9px] text-cement">Weiterlesen</span>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -213,13 +209,9 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
             )
           })}
 
-          {!loading && !error && filtered.length === 0 && news.length > 0 && (
-            <div className="ak-card p-8 text-center"><div className="text-3xl mb-2">🔍</div><p className="font-sans text-sm text-cement">Keine Nachrichten gefunden.</p></div>
-          )}
-
           {!loading && !error && news.length > 0 && (
             <p className="font-mono text-[9px] text-cement text-center tracking-widest uppercase pb-2">
-              {filtered.length} von {news.length} · Alle 10 Min. aktualisiert
+              {filtered.length} Artikel · Alle 10 Min. aktualisiert
             </p>
           )}
         </div>
