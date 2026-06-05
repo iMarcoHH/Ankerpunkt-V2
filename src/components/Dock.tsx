@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useStore } from '../store'
 import {
   LayoutDashboard, ListOrdered, PieChart, Target,
-  Shield, Trophy, Calculator, Newspaper, BookOpen, StickyNote, UserCircle,
+  Shield, Calculator, Newspaper, StickyNote, UserCircle,
 } from 'lucide-react'
 
 export const ALL_TABS = [
@@ -36,29 +36,52 @@ export function Dock() {
   }
 
   return (
-    <div className="fixed z-50" style={{
+    <div style={{
+      position: 'fixed',
       bottom: 0,
       left: 0,
       right: 0,
-      background: 'rgba(11,22,36,0.92)',
+      zIndex: 50,
+      background: 'rgba(10,20,33,0.96)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderTop: '1px solid rgba(255,255,255,0.08)',
-      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      borderTop: '1px solid rgba(255,255,255,0.1)',
     }}>
-      <div ref={scrollRef} className="scrollbar-hide"
-        style={{ display:'flex', overflowX:'auto', scrollbarWidth:'none', WebkitOverflowScrolling:'touch' }}>
+      <div
+        ref={scrollRef}
+        style={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
         {ALL_TABS.map(tab => {
           const active = activeTab === tab.id
           return (
-            <button key={tab.id} data-tab={tab.id} onClick={() => handleTabClick(tab.id)}
-              className="flex flex-col items-center flex-shrink-0"
-              style={{ padding:'10px 0 10px', flex:'0 0 calc(25% - 2px)', minWidth:64,
-                       color:active?'#C8392B':'#9AA0A6', gap:4, border:'none',
-                       background:'transparent', cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-              <tab.Icon className="shrink-0" style={{ width:22, height:22 }} strokeWidth={active?2:1.5}/>
-              <span className="whitespace-nowrap"
-                style={{ fontSize:10, fontWeight:active?600:400, lineHeight:1 }}>
+            <button
+              key={tab.id}
+              data-tab={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+                padding: '10px 0',
+                flex: '0 0 25%',
+                minWidth: 64,
+                border: 'none',
+                background: 'transparent',
+                color: active ? '#C8392B' : '#9AA0A6',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <tab.Icon width={22} height={22} strokeWidth={active ? 2 : 1.5} />
+              <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
                 {tab.label}
               </span>
             </button>
