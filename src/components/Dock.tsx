@@ -38,9 +38,10 @@ export function Dock() {
 
   return (
     <div className="fixed z-50" style={{
-      bottom: 'env(safe-area-inset-bottom, 0px)',
+      bottom: 0,
       left: 16,
       right: 16,
+      paddingBottom: 'env(safe-area-inset-bottom, 8px)',
     }}>
       <motion.div
         style={{
