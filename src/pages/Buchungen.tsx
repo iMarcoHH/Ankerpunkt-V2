@@ -270,7 +270,18 @@ function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => setDesc(e.target.value)}/>
+            value={desc} onChange={e => { setDesc(e.target.value); suggestCategory(e.target.value) }}/>
+          {aiSuggesting && (
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-3 h-3 rounded-full animate-pulse" style={{ background:'rgba(200,57,43,0.5)' }}/>
+              <span className="text-[10px] text-cement">KI erkennt Kategorie...</span>
+            </div>
+          )}
+          {aiSuggested && !aiSuggesting && cat === aiSuggested && (
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px]" style={{ color:'#34D399' }}>✓ KI hat Kategorie erkannt: <strong>{aiSuggested}</strong></span>
+            </div>
+          )}
           <input className="ak-input" type="date"
             value={date} onChange={e => setDate(e.target.value)}/>
           <div>
@@ -308,7 +319,46 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   const [recDay, setRecDay] = useState(new Date().getDate().toString())
   const [saving, setSaving] = useState(false)
   const [err,    setErr]    = useState('')
+  const [aiSuggesting, setAiSuggesting] = useState(false)
+  const [aiSuggested,  setAiSuggested]  = useState<string|null>(null)
+  const descTimer = useRef<ReturnType<typeof setTimeout>|null>(null)
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
+
+  // Auto-Kategorisierung via KI
+  async function suggestCategory(text: string) {
+    if (!text || text.length < 3 || type === 'income') return
+    if (descTimer.current) clearTimeout(descTimer.current)
+    descTimer.current = setTimeout(async () => {
+      setAiSuggesting(true)
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 20,
+            messages: [{
+              role: 'user',
+              content: `Ordne diese Ausgabe einer Kategorie zu. Antworte NUR mit dem Kategorienamen, nichts anderes.
+
+Kategorien: ${CATEGORIES_EXPENSE.join(', ')}
+
+Ausgabe: "${text}"
+
+Kategorie:`
+            }]
+          })
+        })
+        const data = await res.json()
+        const suggested = data.content?.[0]?.text?.trim()
+        if (suggested && CATEGORIES_EXPENSE.includes(suggested)) {
+          setAiSuggested(suggested)
+          if (!cat) setCat(suggested)
+        }
+      } catch {}
+      setAiSuggesting(false)
+    }, 600)
+  }
 
   async function save() {
     if (!amount || !desc || !cat) { setErr('Bitte alle Felder ausfüllen.'); return }

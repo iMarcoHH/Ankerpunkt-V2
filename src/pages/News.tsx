@@ -123,7 +123,6 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(false)
   const [fetching, setFetching] = useState(false)
-  const [search, setSearch]     = useState('')
   const [source, setSource]     = useState<string|null>(null)
   const [selected, setSelected] = useState<NewsItem|null>(null)
   const [browser, setBrowser]   = useState<{url:string;title:string}|null>(null)
@@ -141,10 +140,7 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
   }
 
   const sources  = Array.from(new Set(news.map(n => n.source)))
-  const filtered = news.filter(n =>
-    (!search || n.title.toLowerCase().includes(search.toLowerCase()) || n.description.toLowerCase().includes(search.toLowerCase())) &&
-    (!source || n.source === source)
-  )
+  const filtered = news.filter(n => !source || n.source === source)
 
   return (
     <>
@@ -166,11 +162,6 @@ export function NewsPage({ onBack }: { onBack?: () => void }) {
                 <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
               </svg>
             </button>
-          </div>
-          <div className="relative mt-4">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" strokeWidth="2" className="absolute left-3 top-1/2 -translate-y-1/2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input className="ak-input pl-9" placeholder="Suchen..." value={search} onChange={e => setSearch(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}/>
           </div>
         </div>
 
