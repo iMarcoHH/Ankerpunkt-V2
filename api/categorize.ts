@@ -32,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
 
     const data = await response.json()
+    console.log('Anthropic response:', JSON.stringify(data).slice(0, 200))
     const suggested = data.content?.[0]?.text?.trim()
       .replace(/[.!?,]/g, '')
       .split('\n')[0]
@@ -44,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (match) {
       res.json({ category: match })
     } else {
-      res.json({ category: null, debug: suggested })
+      res.json({ category: null, debug: suggested, raw: JSON.stringify(data).slice(0,100) })
     }
   } catch (e) {
     res.status(500).json({ error: 'AI error' })
