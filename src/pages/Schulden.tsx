@@ -1,14 +1,37 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import type { Debt } from '../store'
 import { supabase } from '../lib/supabase'
-import { Plus, Trash2, TrendingDown, AlertCircle, Check, X } from 'lucide-react'
+import { Plus, Trash2, AlertCircle, Calendar } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
-
 const DEBT_COLORS = ['#C8392B','#E8A832','#3B82F6','#10B981','#8B5CF6','#F97316']
 const DEBT_CATEGORIES = ['Kredit','Raten','Dispo','Freunde/Familie','Studentenkredit','Sonstiges']
+
+// Berechnet voraussichtliches Enddatum basierend auf Restbetrag + Monatsrate
+function calcEndDate(totalAmount: number, paidAmount: number, monthlyRate: number, startMonth: string): string | null {
+  if (!monthlyRate || monthlyRate <= 0) return null
+  const left = totalAmount - paidAmount
+  if (left <= 0) return null
+  const monthsLeft = Math.ceil(left / monthlyRate)
+  if (!startMonth) {
+    const d = new Date()
+    d.setMonth(d.getMonth() + monthsLeft)
+    return d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+  }
+  const [year, month] = startMonth.split('-').map(Number)
+  const d = new Date(year, month - 1)
+  d.setMonth(d.getMonth() + monthsLeft)
+  return d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+}
+
+function calcMonthsLeft(totalAmount: number, paidAmount: number, monthlyRate: number): number | null {
+  if (!monthlyRate || monthlyRate <= 0) return null
+  const left = totalAmount - paidAmount
+  if (left <= 0) return null
+  return Math.ceil(left / monthlyRate)
+}
 
 export function SchuldenPage() {
   const { debts, setDebts, userId } = useStore()
@@ -21,6 +44,21 @@ export function SchuldenPage() {
   const monthlyTotal = debts.reduce((s,d) => s + d.monthly_rate, 0)
   const overallPct   = totalDebt > 0 ? (totalPaid / totalDebt) * 100 : 0
 
+  // Frühestes Enddatum aller Schulden
+  const latestEndDate = useMemo(() => {
+    const dates = debts
+      .filter(d => d.monthly_rate > 0 && d.paid_amount < d.total_amount)
+      .map(d => {
+        const months = calcMonthsLeft(d.total_amount, d.paid_amount, d.monthly_rate) ?? 0
+        const date = new Date()
+        date.setMonth(date.getMonth() + months)
+        return date
+      })
+    if (dates.length === 0) return null
+    return new Date(Math.max(...dates.map(d => d.getTime())))
+      .toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+  }, [debts])
+
   async function del(id: string) {
     if (userId) await supabase.from('debts').delete().eq('id', id)
     setDebts(debts.filter(d => d.id !== id))
@@ -30,7 +68,7 @@ export function SchuldenPage() {
     <div className="p-5 space-y-4 pb-8">
       <div className="pt-14 flex items-end justify-between">
         <div>
-          <h1 className="font-display text-4xl tracking-widest text-white">Schulden</h1>
+          <h1 className="font-display text-4xl tracking-widest" style={{ color:'var(--sand)' }}>Schulden</h1>
           <p className="text-cement text-sm mt-0.5">Tracker & Überblick</p>
         </div>
         <button onClick={() => setAdd(true)}
@@ -43,12 +81,12 @@ export function SchuldenPage() {
       {debts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="text-5xl">🎉</div>
-          <p className="font-display text-xl tracking-wide text-white">Keine Schulden!</p>
-          <p className="text-sm text-cement text-center">Oder trag hier Kredite und<br/>Ratenzahlungen ein um den Überblick zu behalten.</p>
+          <p className="font-display text-xl tracking-wide" style={{ color:'var(--sand)' }}>Keine Schulden!</p>
+          <p className="text-sm text-cement text-center">Oder trag hier Kredite und<br/>Ratenzahlungen ein.</p>
         </div>
       ) : (
         <>
-          {/* Übersicht */}
+          {/* Hero */}
           <motion.div initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }}
             className="relative overflow-hidden rounded-2xl p-5"
             style={{ background:'linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%)' }}>
@@ -61,7 +99,15 @@ export function SchuldenPage() {
               <motion.div className="h-full rounded-full" style={{ background:'#C8392B' }}
                 initial={{ width:0 }} animate={{ width:`${overallPct}%` }} transition={{ duration:1 }}/>
             </div>
-            <p className="text-xs text-cement">{overallPct.toFixed(0)}% abbezahlt</p>
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-cement">{overallPct.toFixed(0)}% abbezahlt</p>
+              {latestEndDate && (
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3 text-cement"/>
+                  <p className="text-xs text-cement">Schuldenfrei: <span className="text-white font-medium">{latestEndDate}</span></p>
+                </div>
+              )}
+            </div>
           </motion.div>
 
           {/* KPI */}
@@ -72,16 +118,19 @@ export function SchuldenPage() {
             </div>
             <div className="ak-card p-4">
               <p className="text-[10px] text-cement uppercase tracking-wider mb-1">Offene Posten</p>
-              <p className="font-display text-xl text-white">{debts.length}</p>
+              <p className="font-display text-xl" style={{ color:'var(--sand)' }}>{debts.length}</p>
             </div>
           </div>
 
-          {/* Schulden Liste */}
+          {/* Liste */}
           <div className="space-y-3">
             {debts.map((debt, i) => {
-              const pct  = debt.total_amount > 0 ? (debt.paid_amount / debt.total_amount) * 100 : 0
-              const left = debt.total_amount - debt.paid_amount
-              const monthsLeft = debt.monthly_rate > 0 ? Math.ceil(left / debt.monthly_rate) : null
+              const pct       = debt.total_amount > 0 ? (debt.paid_amount / debt.total_amount) * 100 : 0
+              const left      = debt.total_amount - debt.paid_amount
+              const monthsLeft = calcMonthsLeft(debt.total_amount, debt.paid_amount, debt.monthly_rate)
+              const endDate   = calcEndDate(debt.total_amount, debt.paid_amount, debt.monthly_rate, debt.due_date ?? '')
+              const done      = left <= 0
+
               return (
                 <motion.div key={debt.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}
                   className="ak-card p-4">
@@ -89,19 +138,23 @@ export function SchuldenPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-display text-sm"
                            style={{ background:`${debt.color}22`, color:debt.color }}>
-                        {debt.category.slice(0,2).toUpperCase()}
+                        {done ? '✓' : debt.category.slice(0,2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-white text-sm">{debt.name}</p>
-                        <p className="text-[10px] text-cement">{debt.category}{debt.interest > 0 ? ` · ${debt.interest}% p.a.` : ''}</p>
+                        <p className="font-semibold text-sm" style={{ color:'var(--sand)' }}>{debt.name}</p>
+                        <p className="text-[10px] text-cement">
+                          {debt.category}{debt.interest > 0 ? ` · ${debt.interest}% p.a.` : ''}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => setShowPay(debt)}
-                        className="text-xs px-2.5 py-1 rounded-lg font-medium"
-                        style={{ background:`${debt.color}22`, color:debt.color }}>
-                        Zahlen
-                      </button>
+                      {!done && (
+                        <button onClick={() => setShowPay(debt)}
+                          className="text-xs px-2.5 py-1 rounded-lg font-medium"
+                          style={{ background:`${debt.color}22`, color:debt.color }}>
+                          Zahlen
+                        </button>
+                      )}
                       <button onClick={() => del(debt.id)} className="text-cement opacity-50">
                         <Trash2 className="w-4 h-4"/>
                       </button>
@@ -110,20 +163,31 @@ export function SchuldenPage() {
 
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="text-xs text-cement">{fmt(debt.paid_amount)} bezahlt</span>
-                    <span className="font-mono text-sm font-semibold" style={{ color:debt.color }}>{fmt(left)} offen</span>
+                    <span className="font-mono text-sm font-semibold" style={{ color: done ? '#34D399' : debt.color }}>
+                      {done ? 'Abbezahlt ✓' : `${fmt(left)} offen`}
+                    </span>
                   </div>
 
                   <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background:'rgba(255,255,255,0.08)' }}>
-                    <motion.div className="h-full rounded-full" style={{ background:debt.color }}
-                      initial={{ width:0 }} animate={{ width:`${pct}%` }} transition={{ duration:0.8, delay:i*0.1 }}/>
+                    <motion.div className="h-full rounded-full" style={{ background: done ? '#34D399' : debt.color }}
+                      initial={{ width:0 }} animate={{ width:`${Math.min(pct,100)}%` }} transition={{ duration:0.8, delay:i*0.1 }}/>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-cement">{pct.toFixed(0)}% abbezahlt</span>
                     <div className="flex items-center gap-3">
-                      {debt.monthly_rate > 0 && <span className="text-[10px] text-cement">{fmt(debt.monthly_rate)}/mo</span>}
-                      {monthsLeft && <span className="text-[10px] text-cement">~{monthsLeft} Monate</span>}
-                      {debt.due_date && <span className="text-[10px]" style={{ color:debt.color }}>bis {new Date(debt.due_date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})}</span>}
+                      {debt.monthly_rate > 0 && !done && (
+                        <span className="text-[10px] text-cement">{fmt(debt.monthly_rate)}/mo</span>
+                      )}
+                      {monthsLeft && !done && (
+                        <span className="text-[10px] text-cement">~{monthsLeft} Monate</span>
+                      )}
+                      {endDate && !done && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-2.5 h-2.5" style={{ color:debt.color }}/>
+                          <span className="text-[10px] font-medium" style={{ color:debt.color }}>{endDate}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -131,20 +195,20 @@ export function SchuldenPage() {
             })}
           </div>
 
-          {/* Tipp */}
           {monthlyTotal > 0 && (
             <div className="rounded-2xl p-4 flex gap-3" style={{ background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)' }}>
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color:'#60A5FA' }}/>
               <p className="text-xs text-cement leading-relaxed">
-                Du zahlst <span className="text-white font-semibold">{fmt(monthlyTotal)}/Monat</span> an Schulden zurück. Priorisiere Schulden mit dem höchsten Zinssatz zuerst.
+                Du zahlst <span style={{ color:'var(--sand)' }} className="font-semibold">{fmt(monthlyTotal)}/Monat</span> zurück.
+                Priorisiere Schulden mit dem höchsten Zinssatz zuerst.
               </p>
             </div>
           )}
         </>
       )}
 
-      {showAdd  && <AddDebtSheet   onClose={() => setAdd(false)}/>}
-      {showPay  && <PaySheet debt={showPay} onClose={() => setShowPay(null)}/>}
+      {showAdd && <AddDebtSheet onClose={() => setAdd(false)}/>}
+      {showPay && <PaySheet debt={showPay} onClose={() => setShowPay(null)}/>}
     </div>
   )
 }
@@ -152,16 +216,36 @@ export function SchuldenPage() {
 // ── Add Sheet ────────────────────────────────────────────────────────────────
 function AddDebtSheet({ onClose }: { onClose: () => void }) {
   const { debts, setDebts, userId } = useStore()
-  const [name,     setName]     = useState('')
-  const [total,    setTotal]    = useState('')
-  const [paid,     setPaid]     = useState('0')
-  const [interest, setInterest] = useState('')
-  const [monthly,  setMonthly]  = useState('')
-  const [dueDate,  setDueDate]  = useState('')
-  const [category, setCategory] = useState(DEBT_CATEGORIES[0])
-  const [color,    setColor]    = useState(DEBT_COLORS[0])
-  const [saving,   setSaving]   = useState(false)
-  const [err,      setErr]      = useState('')
+  const [name,       setName]       = useState('')
+  const [total,      setTotal]      = useState('')
+  const [paid,       setPaid]       = useState('0')
+  const [interest,   setInterest]   = useState('')
+  const [monthly,    setMonthly]    = useState('')
+  const [startMonth, setStartMonth] = useState(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+  })
+  const [category,   setCategory]   = useState(DEBT_CATEGORIES[0])
+  const [color,      setColor]      = useState(DEBT_COLORS[0])
+  const [saving,     setSaving]     = useState(false)
+  const [err,        setErr]        = useState('')
+
+  // Vorschau Enddatum
+  const previewEnd = useMemo(() => {
+    const t = parseFloat(total) || 0
+    const p = parseFloat(paid)  || 0
+    const m = parseFloat(monthly) || 0
+    if (!t || !m) return null
+    return calcEndDate(t, p, m, startMonth)
+  }, [total, paid, monthly, startMonth])
+
+  const previewMonths = useMemo(() => {
+    const t = parseFloat(total) || 0
+    const p = parseFloat(paid)  || 0
+    const m = parseFloat(monthly) || 0
+    if (!t || !m) return null
+    return calcMonthsLeft(t, p, m)
+  }, [total, paid, monthly])
 
   async function save() {
     if (!name || !total) { setErr('Name und Betrag pflicht.'); return }
@@ -173,7 +257,7 @@ function AddDebtSheet({ onClose }: { onClose: () => void }) {
       paid_amount:  parseFloat(paid) || 0,
       interest:     parseFloat(interest) || 0,
       monthly_rate: parseFloat(monthly) || 0,
-      due_date:     dueDate || null,
+      due_date:     startMonth || null,
       category,
       color,
     }
@@ -192,7 +276,7 @@ function AddDebtSheet({ onClose }: { onClose: () => void }) {
       <div className="modal-sheet">
         <div className="flex justify-center mb-3"><div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/></div>
         <div className="flex justify-between items-center mb-4">
-          <span className="font-display text-white text-xl">NEUE SCHULD</span>
+          <span className="font-display text-xl" style={{ color:'var(--sand)' }}>NEUE SCHULD</span>
           <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
         </div>
         <div className="space-y-2">
@@ -205,7 +289,24 @@ function AddDebtSheet({ onClose }: { onClose: () => void }) {
             <input className="ak-input" type="number" inputMode="decimal" placeholder="Zinssatz % p.a." value={interest} onChange={e=>setInterest(e.target.value)}/>
             <input className="ak-input" type="number" inputMode="decimal" placeholder="Monatsrate €" value={monthly} onChange={e=>setMonthly(e.target.value)}/>
           </div>
-          <input className="ak-input" type="date" value={dueDate} onChange={e=>setDueDate(e.target.value)}/>
+
+          {/* Startmonat */}
+          <div>
+            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Startmonat</p>
+            <input className="ak-input" type="month" value={startMonth} onChange={e=>setStartMonth(e.target.value)}/>
+          </div>
+
+          {/* Vorschau Enddatum */}
+          {previewEnd && (
+            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background:'rgba(200,57,43,0.1)', border:'1px solid rgba(200,57,43,0.2)' }}>
+              <Calendar className="w-4 h-4 shrink-0" style={{ color:'#C8392B' }}/>
+              <div>
+                <p className="text-xs font-semibold" style={{ color:'var(--sand)' }}>Voraussichtlich abbezahlt:</p>
+                <p className="text-xs text-cement">{previewEnd} · {previewMonths} Monate</p>
+              </div>
+            </div>
+          )}
+
           <div>
             <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1.5">Kategorie</p>
             <div className="flex flex-wrap gap-1.5">
@@ -245,6 +346,19 @@ function PaySheet({ debt, onClose }: { debt: Debt; onClose: () => void }) {
   const [saving, setSaving] = useState(false)
   const left = debt.total_amount - debt.paid_amount
 
+  // Vorschau neues Enddatum nach Zahlung
+  const newEndDate = useMemo(() => {
+    const pay    = parseFloat(amount) || 0
+    const newPaid = debt.paid_amount + pay
+    return calcEndDate(debt.total_amount, newPaid, debt.monthly_rate, debt.due_date ?? '')
+  }, [amount, debt])
+
+  const newMonthsLeft = useMemo(() => {
+    const pay    = parseFloat(amount) || 0
+    const newPaid = debt.paid_amount + pay
+    return calcMonthsLeft(debt.total_amount, newPaid, debt.monthly_rate)
+  }, [amount, debt])
+
   async function save() {
     const pay = Math.min(parseFloat(amount) || 0, left)
     if (pay <= 0) return
@@ -260,7 +374,7 @@ function PaySheet({ debt, onClose }: { debt: Debt; onClose: () => void }) {
       <div className="modal-sheet">
         <div className="flex justify-center mb-3"><div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/></div>
         <div className="flex justify-between items-center mb-4">
-          <span className="font-display text-white text-xl">ZAHLUNG</span>
+          <span className="font-display text-xl" style={{ color:'var(--sand)' }}>ZAHLUNG</span>
           <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
         </div>
         <div className="ak-card p-3 mb-3 flex items-center gap-3">
@@ -269,7 +383,7 @@ function PaySheet({ debt, onClose }: { debt: Debt; onClose: () => void }) {
             {debt.category.slice(0,2).toUpperCase()}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{debt.name}</p>
+            <p className="text-sm font-semibold" style={{ color:'var(--sand)' }}>{debt.name}</p>
             <p className="text-xs text-cement">Noch offen: {fmt(left)}</p>
           </div>
         </div>
@@ -285,6 +399,18 @@ function PaySheet({ debt, onClose }: { debt: Debt; onClose: () => void }) {
               </button>
             ))}
           </div>
+
+          {/* Vorschau neues Enddatum */}
+          {newEndDate && parseFloat(amount) > 0 && (
+            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background:'rgba(52,211,153,0.1)', border:'1px solid rgba(52,211,153,0.2)' }}>
+              <Calendar className="w-4 h-4 shrink-0" style={{ color:'#34D399' }}/>
+              <div>
+                <p className="text-xs font-semibold" style={{ color:'#34D399' }}>Nach dieser Zahlung:</p>
+                <p className="text-xs text-cement">{newEndDate} · noch {newMonthsLeft} Monate</p>
+              </div>
+            </div>
+          )}
+
           <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
             {saving ? 'Buche...' : 'Zahlung buchen'}
           </button>
