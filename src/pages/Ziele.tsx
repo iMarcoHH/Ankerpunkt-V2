@@ -40,7 +40,7 @@ export function ZielePage() {
     }
     if (userId) {
       const { data: row, error } = await supabase.from('savings_goals').insert(goal).select().single()
-      if (error) { console.error('Ziel Fehler:', error); setSaving(false); return }
+      if (error) { console.error('Ziel Fehler:', error); alert('Fehler: ' + error.message); setSaving(false); return }
       if (row) setGoals([...goals, row])
     } else {
       setGoals([...goals, { ...goal, id: Date.now().toString(), created_at: new Date().toISOString() }])

@@ -18,7 +18,8 @@ export function VersicherungenPage() {
     if (!form.name || !form.amount) return
     const ins = { user_id: userId??'demo', name:form.name, provider:form.provider, amount:parseFloat(form.amount), recurrence:form.period, category:form.category }
     if (userId) {
-      const { data: row } = await supabase.from('insurances').insert(ins).select().single()
+      const { data: row, error } = await supabase.from('insurances').insert(ins).select().single()
+      if (error) { alert('Fehler: ' + error.message); return }
       if (row) setInsurances([...insurances, row])
     } else {
       setInsurances([...insurances, { ...ins, id: Date.now().toString(), created_at: new Date().toISOString() }])
