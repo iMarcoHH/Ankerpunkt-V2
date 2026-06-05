@@ -191,9 +191,11 @@ function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode;
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
-      <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
-        <Trash2 className="w-5 h-5 text-white"/>
-      </div>
+      {offset < -8 && (
+        <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
+          <Trash2 className="w-5 h-5 text-white"/>
+        </div>
+      )}
       <motion.div
         style={{ x: offset, opacity: deleting ? 0 : 1 }}
         animate={{ x: offset }}
