@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
-import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck, Trophy, Download } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, Target, ArrowRightLeft, ShieldCheck, Trophy } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { exportTransactionsCSV } from '../lib/export'
 
 const fmt        = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const fmtTooltip = (v: unknown) => [fmt(v as number), '']
 const MONTH_NAMES = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
+const MONTH_LONG  = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 const tooltipStyle = { backgroundColor:'#162030', borderColor:'#3D5166', borderRadius:12, color:'#E8DFD0', fontSize:12 }
 
 const fadeUp = {
@@ -16,7 +16,7 @@ const fadeUp = {
 }
 
 export function DashboardPage() {
-  const { transactions, insurances, goals, profile, achievements, setActiveTab, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
+  const { transactions, insurances, goals, achievements, setActiveTab, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
 
   const now = new Date()
   const isCurrentMonth = viewMonth === now.getMonth() && viewYear === now.getFullYear()
@@ -41,6 +41,16 @@ export function DashboardPage() {
     return { month:MONTH_NAMES[m], income:inc, expenses:exp }
   }), [transactions, viewMonth, viewYear])
 
+  // Prognose: Hochrechnung auf Monatsende
+  const today        = now.getDate()
+  const daysInMonth  = new Date(viewYear, viewMonth+1, 0).getDate()
+  const daysPassed   = isCurrentMonth ? today : daysInMonth
+  const factor       = daysInMonth / Math.max(daysPassed, 1)
+  const projIncome   = Math.round(totalIncome  * factor)
+  const projExpense  = Math.round(totalExpense * factor)
+  const projBalance  = projIncome - projExpense
+  const showForecast = isCurrentMonth && daysPassed < daysInMonth && (totalIncome > 0 || totalExpense > 0)
+
   return (
     <div className="p-5 space-y-5 pb-8">
 
@@ -51,25 +61,16 @@ export function DashboardPage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div className="text-center">
-          <div className="font-display text-white text-2xl tracking-wide">{MONTH_NAMES[viewMonth]} {viewYear}</div>
+          <div className="font-display text-white text-2xl tracking-wide">{MONTH_LONG[viewMonth]} {viewYear}</div>
           <div className="font-mono text-[10px] text-cement tracking-widest uppercase mt-0.5">
             {isCurrentMonth ? 'Aktueller Monat' : 'Vergangener Monat'}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {/* CSV Export */}
-          <button onClick={() => exportTransactionsCSV(transactions)}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background:'rgba(255,255,255,0.06)', color:'#9AA0A6' }}
-            title="CSV exportieren">
-            <Download className="w-4 h-4"/>
-          </button>
-          <button onClick={goToNextMonth} disabled={isCurrentMonth}
-            className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background:isCurrentMonth?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.06)', color:isCurrentMonth?'rgba(154,160,166,0.3)':'#9AA0A6' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-        </div>
+        <button onClick={goToNextMonth} disabled={isCurrentMonth}
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background:isCurrentMonth?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.06)', color:isCurrentMonth?'rgba(154,160,166,0.3)':'#9AA0A6' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
 
       {/* Hero balance */}
@@ -112,6 +113,37 @@ export function DashboardPage() {
         ))}
       </div>
 
+      {/* Prognose */}
+      {showForecast && (
+        <motion.div className="ak-card p-4" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.25 }}
+          style={{ border:'1px solid rgba(232,168,50,0.2)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full" style={{ background:'#E8A832' }}/>
+            <p className="font-mono text-[10px] text-cement tracking-widest uppercase">Prognose Monatsende</p>
+            <p className="font-mono text-[10px] tracking-widest ml-auto" style={{ color:'rgba(232,168,50,0.6)' }}>
+              Tag {daysPassed}/{daysInMonth}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-xl p-3 text-center" style={{ background:'rgba(232,168,50,0.08)' }}>
+              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Einnahmen</p>
+              <p className="font-display text-sm" style={{ color:'#E8A832' }}>{fmt(projIncome)}</p>
+            </div>
+            <div className="rounded-xl p-3 text-center" style={{ background:'rgba(200,57,43,0.08)' }}>
+              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Ausgaben</p>
+              <p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(projExpense)}</p>
+            </div>
+            <div className="rounded-xl p-3 text-center" style={{ background: projBalance>=0?'rgba(232,168,50,0.08)':'rgba(200,57,43,0.08)' }}>
+              <p className="text-[9px] text-cement tracking-wider uppercase mb-1">Netto</p>
+              <p className="font-display text-sm" style={{ color:projBalance>=0?'#E8A832':'#C8392B' }}>{fmt(projBalance)}</p>
+            </div>
+          </div>
+          <p className="text-[10px] text-cement mt-2 text-center">
+            Hochrechnung basierend auf {daysPassed} von {daysInMonth} Tagen
+          </p>
+        </motion.div>
+      )}
+
       {/* Chart */}
       <motion.div className="ak-card p-5" initial={{ opacity:0,y:16 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.3 }}>
         <p className="font-display text-xl tracking-wide text-white mb-1">Cashflow</p>
@@ -139,7 +171,7 @@ export function DashboardPage() {
       <motion.div className="ak-card p-5" initial={{ opacity:0,y:16 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.35 }}>
         <div className="flex items-center justify-between mb-4">
           <p className="font-display text-xl tracking-wide text-white">Aktuell</p>
-          <button onClick={() => setActiveTab('buchungen')} className="text-xs text-cement hover:text-white transition-colors">Alle →</button>
+          <button onClick={() => setActiveTab('buchungen')} className="text-xs text-cement">Alle →</button>
         </div>
         {recentTx.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 gap-3">
@@ -168,15 +200,14 @@ export function DashboardPage() {
         )}
       </motion.div>
 
-      {/* Quick nav + profile info */}
+      {/* Quick nav */}
       <motion.div className="grid grid-cols-3 gap-3" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.5 }}>
         {[
           { label:'Versicherungen', tab:'versicherungen', Icon:ShieldCheck, color:'#3D5166' },
-          { label:`${goals.length} Ziele`,           tab:'ziele',       Icon:Target,  color:'#E8A832' },
-          { label:`${achievements.length} Erfolge`,  tab:'gamification',Icon:Trophy,  color:'#C8392B' },
+          { label:`${goals.length} Ziele`,          tab:'ziele',       Icon:Target,  color:'#E8A832' },
+          { label:`${achievements.length} Erfolge`, tab:'gamification',Icon:Trophy,  color:'#C8392B' },
         ].map(({ label, tab, Icon, color }) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            className="ak-card p-4 flex flex-col items-center gap-2">
+          <button key={tab} onClick={() => setActiveTab(tab)} className="ak-card p-4 flex flex-col items-center gap-2">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:color+'22' }}>
               <Icon className="w-5 h-5" style={{ color }}/>
             </div>
@@ -185,34 +216,6 @@ export function DashboardPage() {
         ))}
       </motion.div>
 
-      {/* CSV Export hint */}
-      {transactions.length > 0 && (
-        <motion.button
-          className="w-full ak-card p-3 flex items-center justify-center gap-2 text-cement hover:text-white transition-colors"
-          onClick={() => exportTransactionsCSV(transactions)}
-          initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.6 }}>
-          <Download className="w-4 h-4"/>
-          <span className="font-mono text-xs tracking-wider uppercase">Alle {transactions.length} Buchungen als CSV exportieren</span>
-        </motion.button>
-      )}
-
-      {/* Level/XP */}
-      {profile && (
-        <motion.div className="ak-card p-4 flex items-center gap-4" initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.65 }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background:'rgba(232,168,50,0.15)' }}>
-            <Trophy className="w-5 h-5" style={{ color:'#E8A832' }}/>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-cement">Level {profile.level}</span>
-              <span className="font-mono text-xs text-cement">{profile.xp} / {profile.level * 100} XP</span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
-              <div className="h-full rounded-full" style={{ width:`${Math.min(100,(profile.xp/(profile.level*100))*100)}%`, background:'#E8A832' }}/>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   )
 }
