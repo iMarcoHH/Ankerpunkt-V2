@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useStore } from '../store'
 import {
   LayoutDashboard, ListOrdered, PieChart, Target,
-  Shield, Calculator, Newspaper, StickyNote, UserCircle, Receipt,
+  Shield, Calculator, Newspaper, StickyNote, UserCircle, Receipt, TrendingDown,
 } from 'lucide-react'
 
 export const ALL_TABS = [
@@ -11,6 +11,7 @@ export const ALL_TABS = [
   { id: 'analysen',       label: 'Analysen',    Icon: PieChart        },
   { id: 'ziele',          label: 'Ziele',       Icon: Target          },
   { id: 'versicherungen', label: 'Versicher.',  Icon: Shield          },
+  { id: 'schulden',       label: 'Schulden',    Icon: TrendingDown    },
   { id: 'rechner',        label: 'Rechner',     Icon: Calculator      },
   { id: 'news',           label: 'News',        Icon: Newspaper       },
   { id: 'steuern',        label: 'Steuern',     Icon: Receipt         },

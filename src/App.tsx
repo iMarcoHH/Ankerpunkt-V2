@@ -12,6 +12,7 @@ import { RechnerPage }        from './pages/Rechner'
 import { NewsPage }           from './pages/News'
 import { NotizenPage }        from './pages/Notizen'
 import { SteuerPage }        from './pages/Steuern'
+import { SchuldenPage }      from './pages/Schulden'
 import { ProfilPage }         from './pages/Profil'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
@@ -23,7 +24,7 @@ try {
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
-          setProfile, setUserId, setRecurring, setBudgets, userId, transactions, recurring, theme } = useStore()
+          setProfile, setUserId, setRecurring, setBudgets, setDebts, userId, transactions, recurring, theme } = useStore()
   const { checkStreak } = useGamification()
   const [loading, setLoading] = useState(true)
 
@@ -76,6 +77,7 @@ export default function App() {
         supabase.from('profiles').select('*').eq('id',uid).maybeSingle(),
         supabase.from('recurring_entries').select('*').eq('user_id',uid),
         supabase.from('category_budgets').select('*').eq('user_id',uid),
+        supabase.from('debts').select('*').eq('user_id',uid),
       ])
       if (txs.status==='fulfilled'     && txs.value.data)     setTransactions(txs.value.data)
       if (ins.status==='fulfilled'     && ins.value.data)     setInsurances(ins.value.data)
@@ -84,6 +86,8 @@ export default function App() {
       if (profile.status==='fulfilled' && profile.value.data) setProfile(profile.value.data)
       if (rec.status==='fulfilled'     && rec.value.data)     setRecurring(rec.value.data)
       if (bud.status==='fulfilled'     && bud.value.data)     setBudgets(bud.value.data)
+      const dbt = await supabase.from('debts').select('*').eq('user_id',uid)
+      if (dbt.data) setDebts(dbt.data)
     } catch (e) { console.error(e) }
     setLoading(false)
     checkStreak()
@@ -104,6 +108,7 @@ export default function App() {
       {activeTab === 'news'           && <NewsPage />}
       {activeTab === 'notizen'        && <NotizenPage />}
       {activeTab === 'steuern'       && <SteuerPage />}
+        {activeTab === 'schulden'      && <SchuldenPage />}
       {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
     </SwipeContainer>

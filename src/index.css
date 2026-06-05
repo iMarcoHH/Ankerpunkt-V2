@@ -19,15 +19,29 @@
 [data-theme="light"] {
   --navy:     #F0F4F8;
   --red:      #C8392B;
-  --steel:    #4A6580;
+  --steel:    #2D4A6B;
   --sand:     #1a2a3a;
-  --cement:   #5A6A7A;
-  --signal:   #D4920A;
+  --cement:   #5A7080;
+  --signal:   #C47F00;
   --offwhite: #FFFFFF;
   --card:     #FFFFFF;
-  --card2:    #EEF2F7;
-  --border:   rgba(0,0,0,0.1);
+  --card2:    #E8EFF5;
+  --border:   rgba(45,74,107,0.15);
 }
+
+[data-theme="light"] body,
+[data-theme="light"] html {
+  background: #F0F4F8;
+  color: #1a2a3a;
+}
+
+[data-theme="light"] .text-white { color: #1a2a3a !important; }
+[data-theme="light"] .text-cement { color: #5A7080 !important; }
+[data-theme="light"] .ak-card { background: #FFFFFF; border-color: rgba(45,74,107,0.12); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+[data-theme="light"] .ak-input { background: #EEF3F8; border-color: rgba(45,74,107,0.2); color: #1a2a3a; }
+[data-theme="light"] .ak-input::placeholder { color: #8AA0B0; }
+[data-theme="light"] .modal-sheet { background: #FFFFFF; }
+[data-theme="light"] .font-display { color: #1a2a3a; }
 
 *, *::before, *::after { box-sizing: border-box; }
 

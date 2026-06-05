@@ -2,6 +2,20 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Transaction, Insurance, SavingsGoal, Achievement, Profile } from '../lib/supabase'
 
+export interface Debt {
+  id:           string
+  user_id:      string
+  name:         string
+  total_amount: number
+  paid_amount:  number
+  interest:     number
+  monthly_rate: number
+  due_date?:    string | null
+  category:     string
+  color:        string
+  created_at:   string
+}
+
 export interface CategoryBudget {
   id:         string
   user_id:    string
@@ -34,6 +48,9 @@ interface AppState {
   achievements: Achievement[]
   budgets:    CategoryBudget[]
   setBudgets: (b: CategoryBudget[]) => void
+
+  debts:      Debt[]
+  setDebts:   (d: Debt[]) => void
 
   theme:    'dark' | 'light'
   setTheme: (t: 'dark'|'light') => void
@@ -76,6 +93,9 @@ export const useStore = create<AppState>()(
       achievements: [],
       budgets:    [],
       setBudgets: (b) => set({ budgets: b }),
+
+      debts:      [],
+      setDebts:   (d) => set({ debts: d }),
 
       theme:    'dark',
       setTheme: (t) => {
