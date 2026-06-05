@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const FEEDS = [
-  { url: 'https://www.tagesschau.de/xml/rss2_wirtschaft/', source: 'Tagesschau Wirtschaft' },
+  { url: 'https://www.tagesschau.de/xml/rss2_wirtschaft/', source: 'Tagesschau' },
   { url: 'https://www.handelsblatt.com/contentexport/feed/schlagzeilen', source: 'Handelsblatt' },
   { url: 'https://www.finanzen.net/rss/news', source: 'Finanzen.net' },
+  { url: 'https://www.manager-magazin.de/contentexport/feed/schlagzeilen', source: 'Manager Magazin' },
+  { url: 'https://www.boerse.de/rss/nachrichten', source: 'Börse.de' },
+  { url: 'https://www.wallstreet-online.de/rss/nachrichten-alle.xml', source: 'Wallstreet Online' },
+  { url: 'https://www.zeit.de/wirtschaft/index.xml', source: 'Zeit Wirtschaft' },
 ]
 
 interface NewsItem {
