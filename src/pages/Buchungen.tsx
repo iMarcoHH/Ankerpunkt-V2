@@ -329,7 +329,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         const suggested = data.content?.[0]?.text?.trim()
         if (suggested && CATEGORIES_EXPENSE.includes(suggested)) {
           setAiSuggested(suggested)
-          setCat(prev => prev ? prev : suggested)
+          setCat(suggested)
         }
       } catch {}
       setAiSuggesting(false)
