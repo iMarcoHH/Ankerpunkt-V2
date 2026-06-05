@@ -304,33 +304,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   const [recDay, setRecDay] = useState(new Date().getDate().toString())
   const [saving, setSaving] = useState(false)
   const [err,    setErr]    = useState('')
-  const [aiSuggesting, setAiSuggesting] = useState(false)
-  const [aiSuggested,  setAiSuggested]  = useState<string|null>(null)
-  const descTimer = useRef<ReturnType<typeof setTimeout>|null>(null)
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
-
-  async function suggestCategory(text: string) {
-    if (!text || text.length < 3 || type === 'income') { setAiSuggested(null); return }
-    if (descTimer.current) clearTimeout(descTimer.current)
-    descTimer.current = setTimeout(async () => {
-      setAiSuggesting(true)
-      try {
-        const res = await fetch('/api/categorize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description: text })
-        })
-        const data = await res.json()
-        if (data.category) {
-          setAiSuggested(data.category)
-          setCat(data.category)
-        } else {
-          setAiSuggested('?:' + JSON.stringify(data).slice(0,150))
-        }
-      } catch {}
-      setAiSuggesting(false)
-    }, 600)
-  }
 
   async function save() {
     if (!amount || !desc || !cat) { setErr('Bitte alle Felder ausfüllen.'); return }
@@ -386,19 +360,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => { setDesc(e.target.value); suggestCategory(e.target.value) }}/>
-          {/* KI Feedback */}
-          {aiSuggesting && (
-            <div className="flex items-center gap-2 px-1">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:'#C8392B' }}/>
-              <span className="text-[10px] text-cement">KI erkennt Kategorie...</span>
-            </div>
-          )}
-          {aiSuggested && !aiSuggesting && (
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="text-[10px]" style={{ color:'#34D399' }}>✓ KI: <strong>{aiSuggested}</strong></span>
-            </div>
-          )}
+            value={desc} onChange={e => setDesc(e.target.value)}/>
           <input className="ak-input" type="date"
             value={date} onChange={e => setDate(e.target.value)}/>
           <div>
