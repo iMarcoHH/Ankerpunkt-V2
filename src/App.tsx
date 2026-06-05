@@ -7,7 +7,7 @@ import { BuchungenPage }      from './pages/Buchungen'
 import { AnalysenPage }       from './pages/Analysen'
 import { ZielePage }          from './pages/Ziele'
 import { VersicherungenPage } from './pages/Versicherungen'
-import { GamificationPage }   from './pages/Gamification'
+import { MehrPage }          from './pages/Mehr'
 import { RechnerPage }        from './pages/Rechner'
 import { NewsPage }           from './pages/News'
 import { NotizenPage }        from './pages/Notizen'
@@ -103,7 +103,7 @@ export default function App() {
       {activeTab === 'analysen'       && <AnalysenPage />}
       {activeTab === 'ziele'          && <ZielePage />}
       {activeTab === 'versicherungen' && <VersicherungenPage />}
-      {activeTab === 'gamification'   && <GamificationPage />}
+      {activeTab === 'mehr'          && <MehrPage />}
       {activeTab === 'rechner'        && <RechnerPage />}
       {activeTab === 'news'           && <NewsPage />}
       {activeTab === 'notizen'        && <NotizenPage />}

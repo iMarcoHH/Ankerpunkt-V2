@@ -1,78 +1,88 @@
 import { useRef } from 'react'
 import { useStore } from '../store'
-import {
-  LayoutDashboard, ListOrdered, PieChart, Target,
-  Shield, Calculator, Newspaper, StickyNote, UserCircle, Receipt, TrendingDown,
-} from 'lucide-react'
+import { LayoutDashboard, ListOrdered, PieChart, TrendingDown, MoreHorizontal } from 'lucide-react'
+
+const PRIMARY_TABS = [
+  { id: 'dashboard',  label: 'Übersicht',  Icon: LayoutDashboard },
+  { id: 'analysen',   label: 'Analysen',   Icon: PieChart        },
+  { id: 'schulden',   label: 'Schulden',   Icon: TrendingDown    },
+  { id: 'buchungen',  label: 'Buchungen',  Icon: ListOrdered     },
+  { id: 'mehr',       label: 'Mehr',       Icon: MoreHorizontal  },
+]
 
 export const ALL_TABS = [
-  { id: 'dashboard',      label: 'Dashboard',  Icon: LayoutDashboard },
-  { id: 'buchungen',      label: 'Buchungen',   Icon: ListOrdered     },
+  { id: 'dashboard',      label: 'Übersicht',   Icon: LayoutDashboard },
   { id: 'analysen',       label: 'Analysen',    Icon: PieChart        },
-  { id: 'ziele',          label: 'Ziele',       Icon: Target          },
-  { id: 'versicherungen', label: 'Versicher.',  Icon: Shield          },
   { id: 'schulden',       label: 'Schulden',    Icon: TrendingDown    },
-  { id: 'rechner',        label: 'Rechner',     Icon: Calculator      },
-  { id: 'news',           label: 'News',        Icon: Newspaper       },
-  { id: 'steuern',        label: 'Steuern',     Icon: Receipt         },
-  { id: 'notizen',        label: 'Notizen',     Icon: StickyNote      },
-  { id: 'profil',         label: 'Profil',      Icon: UserCircle      },
+  { id: 'buchungen',      label: 'Buchungen',   Icon: ListOrdered     },
+  { id: 'ziele',          label: 'Ziele',       Icon: LayoutDashboard },
+  { id: 'versicherungen', label: 'Versicher.',  Icon: LayoutDashboard },
+  { id: 'rechner',        label: 'Rechner',     Icon: LayoutDashboard },
+  { id: 'news',           label: 'News',        Icon: LayoutDashboard },
+  { id: 'steuern',        label: 'Steuern',     Icon: LayoutDashboard },
+  { id: 'notizen',        label: 'Notizen',     Icon: LayoutDashboard },
+  { id: 'profil',         label: 'Profil',      Icon: LayoutDashboard },
+  { id: 'gamification',   label: 'Erfolge',     Icon: LayoutDashboard },
 ]
 
 export const ALL_TAB_IDS = ALL_TABS.map(t => t.id)
 
 export function Dock() {
   const { activeTab, setActiveTab } = useStore()
-  const scrollRef = useRef<HTMLDivElement>(null)
-
-  function handleTabClick(id: string) {
-    setActiveTab(id)
-    setTimeout(() => {
-      const container = scrollRef.current
-      if (!container) return
-      const btn = container.querySelector(`[data-tab="${id}"]`) as HTMLElement
-      if (!btn) return
-      const center = btn.offsetLeft + btn.offsetWidth / 2 - container.offsetWidth / 2
-      container.scrollTo({ left: center, behavior: 'smooth' })
-    }, 50)
-  }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 8,
-      left: 16,
-      right: 16,
-      zIndex: 50,
-    }}>
-      <div id="dock-pill" style={{
-        background: 'rgba(11,22,36,0.96)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderRadius: 999,
-        border: '1px solid rgba(255,255,255,0.1)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-        overflow: 'hidden',
-      }}>
-        <div ref={scrollRef} style={{ display:'flex', overflowX:'auto', scrollbarWidth:'none', WebkitOverflowScrolling:'touch' }}>
-          {ALL_TABS.map(tab => {
-            const active = activeTab === tab.id
-            return (
-              <button key={tab.id} data-tab={tab.id} onClick={() => handleTabClick(tab.id)}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                  gap:4, padding:'10px 0', flex:'0 0 25%', minWidth:64, border:'none',
-                  background: active ? 'rgba(200,57,43,0.15)' : 'transparent',
-                  color: active ? '#C8392B' : '#9AA0A6',
-                  cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-                <tab.Icon width={20} height={20} strokeWidth={active ? 2 : 1.5} />
-                <span style={{ fontSize:9, fontWeight:active?600:400, lineHeight:1, whiteSpace:'nowrap' }}>
-                  {tab.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+    <div className="bottom-nav" style={{ padding: '0 8px' }}>
+      {PRIMARY_TABS.map(tab => {
+        const active = activeTab === tab.id ||
+          (tab.id === 'mehr' && !PRIMARY_TABS.slice(0,4).some(t => t.id === activeTab))
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+              position: 'relative',
+              padding: '8px 0',
+            }}
+          >
+            {active && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 52,
+                height: 52,
+                borderRadius: 16,
+                background: 'rgba(229,72,63,0.1)',
+              }}/>
+            )}
+            <tab.Icon
+              width={22} height={22}
+              strokeWidth={active ? 2 : 1.5}
+              style={{ color: active ? 'var(--accent)' : 'var(--tertiary)', position: 'relative' }}
+            />
+            <span style={{
+              fontSize: 10,
+              fontWeight: active ? 600 : 400,
+              color: active ? 'var(--accent)' : 'var(--tertiary)',
+              lineHeight: 1,
+              position: 'relative',
+            }}>
+              {tab.label}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
