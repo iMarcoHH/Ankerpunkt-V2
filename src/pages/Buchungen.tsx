@@ -1,18 +1,20 @@
 import { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
-import { supabase, CATEGORIES_EXPENSE, CATEGORIES_INCOME } from '../lib/supabase'
 import type { RecurringEntry } from '../store'
-import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X } from 'lucide-react'
+import { supabase, CATEGORIES_EXPENSE, CATEGORIES_INCOME } from '../lib/supabase'
+import type { Transaction } from '../lib/supabase'
+import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X, Pencil } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
 const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 
 export function BuchungenPage() {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
-  const [tab, setTab]       = useState<'all'|'income'|'expense'|'recurring'>('all')
-  const [showAdd, setAdd]   = useState(false)
-  const [search, setSearch] = useState('')
+  const [tab, setTab]         = useState<'all'|'income'|'expense'|'recurring'>('all')
+  const [showAdd, setAdd]     = useState(false)
+  const [editTx, setEditTx]   = useState<Transaction|null>(null)
+  const [search, setSearch]   = useState('')
   const [showSearch, setShowSearch] = useState(false)
 
   const now   = new Date()
@@ -74,7 +76,7 @@ export function BuchungenPage() {
           <motion.div initial={{ opacity:0,y:-8,height:0 }} animate={{ opacity:1,y:0,height:'auto' }} exit={{ opacity:0,y:-8,height:0 }}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement"/>
-              <input className="ak-input pl-9" placeholder="Suchen..." value={search} onChange={e => setSearch(e.target.value)} autoFocus/>
+              <input className="ak-input pl-9" placeholder="Suchen..." value={search} onChange={e => setSearch(e.target.value)}/>
             </div>
           </motion.div>
         )}
@@ -151,7 +153,8 @@ export function BuchungenPage() {
           {shown.map((tx, i) => (
             <SwipeDelete key={tx.id} onDelete={() => del(tx.id)}>
               <motion.div initial={{ opacity:0,y:4 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.03 }}
-                className="ak-card p-3 flex items-center gap-3">
+                className="ak-card p-3 flex items-center gap-3"
+                onClick={() => setEditTx(tx)}>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-display text-xs font-bold"
                      style={{ background:tx.type==='income'?'rgba(232,168,50,0.15)':'rgba(200,57,43,0.15)',
                               color:tx.type==='income'?'#E8A832':'#C8392B' }}>
@@ -161,16 +164,20 @@ export function BuchungenPage() {
                   <p className="text-sm font-medium text-white truncate">{tx.description}</p>
                   <p className="text-[10px] text-cement">{tx.category} · {new Date(tx.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</p>
                 </div>
-                <span className="font-mono text-sm font-semibold shrink-0" style={{ color:tx.type==='income'?'#E8A832':'#E8DFD0' }}>
-                  {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-mono text-sm font-semibold" style={{ color:tx.type==='income'?'#E8A832':'#E8DFD0' }}>
+                    {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
+                  </span>
+                  <Pencil className="w-3 h-3 text-cement opacity-40"/>
+                </div>
               </motion.div>
             </SwipeDelete>
           ))}
         </div>
       )}
 
-      {showAdd && <AddSheet onClose={() => setAdd(false)}/>}
+      {showAdd && <AddSheet  onClose={() => setAdd(false)}/>}
+      {editTx  && <EditSheet tx={editTx} onClose={() => setEditTx(null)}/>}
     </div>
   )
 }
@@ -209,21 +216,81 @@ function Leer({ text }: { text: string }) {
   )
 }
 
+function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
+  const { transactions, setTransactions, userId } = useStore()
+  const [amount, setAmount] = useState(String(tx.amount))
+  const [desc,   setDesc]   = useState(tx.description)
+  const [cat,    setCat]    = useState(tx.category)
+  const [date,   setDate]   = useState(tx.date)
+  const [saving, setSaving] = useState(false)
+  const [err,    setErr]    = useState('')
+  const cats = tx.type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
+
+  async function save() {
+    if (!amount || !desc || !cat) { setErr('Alle Felder ausfüllen.'); return }
+    setSaving(true)
+    const update = { amount: parseFloat(amount), description: desc, category: cat, date }
+    if (userId) {
+      const { error: e } = await supabase.from('transactions').update(update).eq('id', tx.id)
+      if (e) { setErr(e.message); setSaving(false); return }
+    }
+    setTransactions(transactions.map(t => t.id === tx.id ? { ...t, ...update } : t))
+    onClose()
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className="modal-sheet">
+        <div className="flex justify-center mb-3">
+          <div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/>
+        </div>
+        <div className="flex justify-between items-center mb-3">
+          <span className="font-display text-white text-xl">BEARBEITEN</span>
+          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
+            style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
+        </div>
+        <div className="space-y-2">
+          <input className="ak-input" type="number" inputMode="decimal"
+            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
+          <input className="ak-input" placeholder="Beschreibung"
+            value={desc} onChange={e => setDesc(e.target.value)}/>
+          <input className="ak-input" type="date"
+            value={date} onChange={e => setDate(e.target.value)}/>
+          <div>
+            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Kategorie</p>
+            <div className="flex flex-wrap gap-1">
+              {cats.map(c => (
+                <button key={c} onClick={() => setCat(c)}
+                  className={`cat-chip ${cat===c?'selected':''}`}
+                  style={{ fontSize:10, padding:'3px 9px' }}>{c}
+                </button>
+              ))}
+            </div>
+          </div>
+          {err && <p className="text-[10px] px-2 py-1.5 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
+          <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
+            {saving ? 'Speichern...' : 'Speichern'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AddSheet({ onClose }: { onClose: () => void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
   const [type, setType]     = useState<'income'|'expense'>('expense')
   const [amount, setAmount] = useState('')
-  const [desc, setDesc]     = useState('')
-  const [cat, setCat]       = useState('')
-  const [date, setDate]     = useState(
+  const [desc,   setDesc]   = useState('')
+  const [cat,    setCat]    = useState('')
+  const [date,   setDate]   = useState(
     new Date(viewYear, viewMonth, Math.min(new Date().getDate(), new Date(viewYear,viewMonth+1,0).getDate()))
       .toISOString().split('T')[0]
   )
-  const [rec, setRec]       = useState<'once'|'monthly'>('once')
+  const [rec,    setRec]    = useState<'once'|'monthly'>('once')
   const [recDay, setRecDay] = useState(new Date().getDate().toString())
   const [saving, setSaving] = useState(false)
-  const [err, setErr]       = useState('')
-
+  const [err,    setErr]    = useState('')
   const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
   async function save() {
@@ -251,7 +318,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         }
       }
       onClose()
-    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Fehler beim Speichern') }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Fehler') }
     setSaving(false)
   }
 
@@ -266,7 +333,6 @@ function AddSheet({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
             style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
         </div>
-
         <div className="flex gap-2 mb-3">
           {(['expense','income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCat('') }}
@@ -277,29 +343,24 @@ function AddSheet({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
-
         <div className="space-y-2">
-          {/* kein autoFocus — verhindert dass Tastatur das Sheet hochschiebt */}
           <input className="ak-input" type="number" inputMode="decimal"
             placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
           <input className="ak-input" placeholder="Beschreibung"
             value={desc} onChange={e => setDesc(e.target.value)}/>
           <input className="ak-input" type="date"
             value={date} onChange={e => setDate(e.target.value)}/>
-
           <div>
             <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Kategorie</p>
             <div className="flex flex-wrap gap-1">
               {cats.map(c => (
                 <button key={c} onClick={() => setCat(c)}
                   className={`cat-chip ${cat===c?'selected':''}`}
-                  style={{ fontSize:10, padding:'3px 9px' }}>
-                  {c}
+                  style={{ fontSize:10, padding:'3px 9px' }}>{c}
                 </button>
               ))}
             </div>
           </div>
-
           <div className="flex gap-2">
             {([['once','Einmalig'],['monthly','Monatlich']] as const).map(([v,l]) => (
               <button key={v} onClick={() => setRec(v)}
@@ -309,7 +370,6 @@ function AddSheet({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
-
           {rec === 'monthly' && (
             <select className="ak-input" value={recDay} onChange={e => setRecDay(e.target.value)}>
               {Array.from({length:28},(_,i)=>i+1).map(d => (
@@ -317,9 +377,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
               ))}
             </select>
           )}
-
           {err && <p className="text-[10px] px-2 py-1.5 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
-
           <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
             {saving ? 'Speichern...' : 'Eintragen'}
           </button>
