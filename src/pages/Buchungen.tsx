@@ -348,7 +348,7 @@ function AddSheet({ onClose }: { onClose: () => void }) {
         </div>
         <div className="flex gap-2 mb-3">
           {(['expense','income'] as const).map(t => (
-            <button key={t} onClick={() => { setType(t); setCat(''); setAiSuggested(null) }}
+            <button key={t} onClick={() => { setType(t); setCat('') }}
               className="flex-1 py-2 rounded-xl font-display text-sm tracking-wider"
               style={{ background:type===t?(t==='expense'?'#C8392B':'#E8A832'):'rgba(255,255,255,0.06)',
                        color:type===t?(t==='expense'?'white':'#0D1B2A'):'#9AA0A6' }}>
