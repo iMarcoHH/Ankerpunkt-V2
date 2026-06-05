@@ -315,21 +315,15 @@ function AddSheet({ onClose }: { onClose: () => void }) {
     descTimer.current = setTimeout(async () => {
       setAiSuggesting(true)
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/api/categorize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 20,
-            messages: [{ role: 'user', content:
-              `Ordne diese Ausgabe einer Kategorie zu. Antworte NUR mit dem Kategorienamen.\nKategorien: ${CATEGORIES_EXPENSE.join(', ')}\nAusgabe: "${text}"\nKategorie:` }]
-          })
+          body: JSON.stringify({ description: text })
         })
         const data = await res.json()
-        const suggested = data.content?.[0]?.text?.trim()
-        if (suggested && CATEGORIES_EXPENSE.includes(suggested)) {
-          setAiSuggested(suggested)
-          setCat(suggested)
+        if (data.category) {
+          setAiSuggested(data.category)
+          setCat(data.category)
         }
       } catch {}
       setAiSuggesting(false)
