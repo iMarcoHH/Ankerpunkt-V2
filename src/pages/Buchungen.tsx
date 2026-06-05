@@ -4,19 +4,25 @@ import { useStore } from '../store'
 import type { RecurringEntry } from '../store'
 import { supabase, CATEGORIES_EXPENSE, CATEGORIES_INCOME } from '../lib/supabase'
 import type { Transaction } from '../lib/supabase'
-import { useGamification } from '../lib/gamification'
-import { TrendingUp, TrendingDown, Trash2, RefreshCw, Plus, Search, X, Pencil } from 'lucide-react'
+import { Plus, Search, X, SlidersHorizontal, Trash2, RefreshCw, Pencil } from 'lucide-react'
 
-const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v)
-const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
+const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
+const MONTH_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
+
+const CAT_ICONS: Record<string,string> = {
+  Wohnen:'🏠', Lebensmittel:'🛒', Transport:'🚌', Abos:'📱',
+  Gesundheit:'💊', Freizeit:'🎉', Kleidung:'👗', Bildung:'📚', Sonstiges:'💳',
+  Gehalt:'💼', Zinsen:'📈', Sonstiges_Ein:'💰',
+}
 
 export function BuchungenPage() {
-  const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
-  const [tab, setTab]       = useState<'all'|'income'|'expense'|'recurring'>('all')
-  const [showAdd, setAdd]   = useState(false)
-  const [editTx, setEditTx] = useState<Transaction|null>(null)
-  const [search, setSearch] = useState('')
+  const { transactions, setTransactions, recurring, setRecurring,
+          userId, viewMonth, viewYear, goToPrevMonth, goToNextMonth } = useStore()
+  const [search, setSearch]   = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [tab, setTab]         = useState<'all'|'income'|'expense'|'recurring'>('all')
+  const [showAdd, setAdd]     = useState(false)
+  const [editTx, setEditTx]   = useState<Transaction|null>(null)
 
   const now   = new Date()
   const isNow = viewMonth === now.getMonth() && viewYear === now.getFullYear()
@@ -36,8 +42,8 @@ export function BuchungenPage() {
     return list
   }, [monthTx, tab, search])
 
-  const incTotal = monthTx.filter(t => t.type==='income') .reduce((s,t)=>s+t.amount,0)
-  const expTotal = monthTx.filter(t => t.type==='expense').reduce((s,t)=>s+t.amount,0)
+  const income  = monthTx.filter(t=>t.type==='income') .reduce((s,t)=>s+t.amount,0)
+  const expense = monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)
 
   async function del(id: string) {
     if (userId) await supabase.from('transactions').delete().eq('id', id)
@@ -47,173 +53,172 @@ export function BuchungenPage() {
     if (userId) await supabase.from('recurring_entries').delete().eq('id', id)
     setRecurring(recurring.filter(r => r.id !== id))
   }
-  async function toggleRec(id: string) {
-    const r = recurring.find(r=>r.id===id); if (!r) return
-    const up = {...r, active:!r.active}
-    if (userId) await supabase.from('recurring_entries').update({active:up.active}).eq('id',id)
-    setRecurring(recurring.map(r=>r.id===id?up:r))
-  }
 
   return (
-    <div className="p-4 space-y-3 pb-8">
-      <div className="flex items-center justify-between pt-14">
-        <h1 className="font-display text-3xl tracking-widest text-white">Buchungen</h1>
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setShowSearch(v=>!v); setSearch('') }}
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: showSearch ? 'rgba(200,57,43,0.2)' : 'rgba(255,255,255,0.06)', color: showSearch ? '#C8392B' : '#9AA0A6' }}>
-            {showSearch ? <X className="w-3.5 h-3.5"/> : <Search className="w-3.5 h-3.5"/>}
-          </button>
-          <button onClick={() => setAdd(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-display tracking-wide text-sm text-white"
-            style={{ background:'#C8392B' }}>
-            <Plus className="w-3.5 h-3.5"/> Neu
-          </button>
-        </div>
-      </div>
+    <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
 
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div initial={{ opacity:0,y:-8,height:0 }} animate={{ opacity:1,y:0,height:'auto' }} exit={{ opacity:0,y:-8,height:0 }}>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement"/>
-              <input className="ak-input pl-9" placeholder="Suchen..." value={search} onChange={e => setSearch(e.target.value)}/>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex items-center justify-between ak-card p-3">
-        <button onClick={goToPrevMonth} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.06)' }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <span className="font-display text-white text-lg tracking-wide">{MONTHS_LONG[viewMonth]} {viewYear}</span>
-        <button onClick={goToNextMonth} disabled={isNow} className="w-7 h-7 rounded-full flex items-center justify-center text-cement" style={{ background:'rgba(255,255,255,0.06)', opacity:isNow?0.3:1 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+      {/* Header */}
+      <div style={{ padding:'56px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+        <h1 className="page-title">Buchungen</h1>
+        <button onClick={() => setAdd(true)}
+          style={{ width:40, height:40, borderRadius:12, background:'var(--accent)', border:'none',
+                   display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginTop:4 }}>
+          <Plus width={20} height={20} style={{ color:'white' }}/>
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="ak-card p-3 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:'rgba(232,168,50,0.15)' }}>
-            <TrendingUp className="w-3.5 h-3.5" style={{ color:'#E8A832' }}/>
-          </div>
-          <div><p className="text-[10px] text-cement">Einnahmen</p><p className="font-display text-sm" style={{ color:'#E8A832' }}>{fmt(incTotal)}</p></div>
-        </div>
-        <div className="ak-card p-3 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:'rgba(200,57,43,0.15)' }}>
-            <TrendingDown className="w-3.5 h-3.5" style={{ color:'#C8392B' }}/>
-          </div>
-          <div><p className="text-[10px] text-cement">Ausgaben</p><p className="font-display text-sm" style={{ color:'#C8392B' }}>{fmt(expTotal)}</p></div>
+      {/* Search */}
+      <div style={{ padding:'0 20px 16px' }}>
+        <div style={{ position:'relative' }}>
+          <Search width={16} height={16} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'var(--tertiary)' }}/>
+          <input
+            className="ak-input"
+            style={{ paddingLeft:40, height:44 }}
+            placeholder="Suchen..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer' }}>
+              <X width={14} height={14} style={{ color:'var(--tertiary)' }}/>
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex gap-1 p-0.5 rounded-xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(61,81,102,0.35)' }}>
-        {([['all','Alle'],['income','Einnahmen'],['expense','Ausgaben'],['recurring','Wiederk.']] as const).map(([v,l]) => (
+      {/* Monat Nav */}
+      <div style={{ padding:'0 20px 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <button onClick={goToPrevMonth}
+          style={{ width:32, height:32, borderRadius:10, background:'var(--surface)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span style={{ fontSize:15, fontWeight:600, color:'var(--primary)' }}>{MONTH_LONG[viewMonth]} {viewYear}</span>
+        <button onClick={goToNextMonth} disabled={isNow}
+          style={{ width:32, height:32, borderRadius:10, background:'var(--surface)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', opacity:isNow?0.3:1 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+        <div className="app-card" style={{ padding:16 }}>
+          <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Einnahmen</p>
+          <p style={{ fontSize:20, fontWeight:800, color:'var(--success)', letterSpacing:'-0.02em' }}>{fmt(income)}</p>
+        </div>
+        <div className="app-card" style={{ padding:16 }}>
+          <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Ausgaben</p>
+          <p style={{ fontSize:20, fontWeight:800, color:'var(--accent)', letterSpacing:'-0.02em' }}>{fmt(expense)}</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ padding:'0 20px 16px', display:'flex', gap:8 }}>
+        {([['all','Alle'],['income','Einnahmen'],['expense','Ausgaben'],['recurring','Wiederkehrend']] as const).map(([v,l]) => (
           <button key={v} onClick={() => setTab(v)}
-            className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all"
-            style={{ background:tab===v?'rgba(255,255,255,0.1)':'transparent', color:tab===v?'white':'#9AA0A6' }}>
+            style={{ padding:'7px 14px', borderRadius:20, fontSize:13, fontWeight:500, cursor:'pointer', border:'none', whiteSpace:'nowrap',
+                     background: tab===v ? 'var(--accent)' : 'var(--surface)',
+                     color: tab===v ? 'white' : 'var(--secondary)',
+                     boxShadow: tab===v ? '0 4px 12px rgba(229,72,63,.25)' : 'var(--shadow-sm)' }}>
             {l}
           </button>
         ))}
       </div>
 
-      {tab === 'recurring' ? (
-        recurring.length === 0 ? <Leer text="Beim Neu-Eintrag 'Monatlich' wählen."/> : (
-          <div className="space-y-1.5">
-            {recurring.map((r, i) => (
-              <SwipeDelete key={r.id} onDelete={() => delRec(r.id)} onTap={() => {}}>
-                <motion.div initial={{ opacity:0,y:4 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.03 }}
-                  className="ak-card p-3 flex items-center gap-3" style={{ opacity:r.active?1:0.5 }}>
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                       style={{ background:r.type==='income'?'rgba(232,168,50,0.15)':'rgba(200,57,43,0.15)' }}>
-                    <RefreshCw className="w-3.5 h-3.5" style={{ color:r.type==='income'?'#E8A832':'#C8392B' }}/>
+      {/* Liste */}
+      <div style={{ padding:'0 20px' }}>
+        {tab === 'recurring' ? (
+          recurring.length === 0 ? (
+            <Empty text="Beim Neu-Eintrag 'Monatlich' wählen."/>
+          ) : (
+            <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
+              {recurring.map((r, i) => (
+                <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 20px',
+                                         borderBottom: i<recurring.length-1?'1px solid var(--border)':'none',
+                                         opacity: r.active?1:0.45 }}>
+                  <div style={{ width:44, height:44, borderRadius:14, background: r.type==='income'?'rgba(34,197,94,0.1)':'rgba(229,72,63,0.1)',
+                                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18 }}>
+                    <RefreshCw width={18} height={18} style={{ color: r.type==='income'?'var(--success)':'var(--accent)' }}/>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{r.description}</p>
-                    <p className="text-[10px] text-cement">{r.category} · {r.day_of_month}. des Monats</p>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.description}</p>
+                    <p style={{ fontSize:13, color:'var(--tertiary)' }}>{r.category} · {r.day_of_month}. des Monats</p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="font-mono text-sm" style={{ color:r.type==='income'?'#E8A832':'#E8DFD0' }}>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
+                    <span style={{ fontSize:15, fontWeight:700, color: r.type==='income'?'var(--success)':'var(--accent)' }}>
                       {r.type==='income'?'+':'-'}{fmt(r.amount)}
                     </span>
-                    <button onClick={() => toggleRec(r.id)} className="w-6 h-6 rounded-full flex items-center justify-center text-[10px]"
-                      style={{ background:r.active?'#C8392B':'rgba(255,255,255,0.08)', color:'white' }}>
-                      {r.active?'✓':'○'}
+                    <button onClick={() => delRec(r.id)} style={{ background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                      <Trash2 width={14} height={14} style={{ color:'var(--tertiary)' }}/>
                     </button>
                   </div>
-                </motion.div>
-              </SwipeDelete>
+                </div>
+              ))}
+            </div>
+          )
+        ) : shown.length === 0 ? (
+          <Empty text={search ? `Keine Ergebnisse für "${search}"` : `Keine Einträge für ${MONTH_LONG[viewMonth]}.`}/>
+        ) : (
+          <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
+            {shown.map((tx, i) => (
+              <SwipeTx key={tx.id} onDelete={() => del(tx.id)} onTap={() => setEditTx(tx)}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 20px',
+                               borderBottom: i<shown.length-1?'1px solid var(--border)':'none', background:'var(--surface)' }}>
+                  <div style={{ width:44, height:44, borderRadius:14,
+                                background: tx.type==='income'?'rgba(34,197,94,0.1)':'rgba(229,72,63,0.1)',
+                                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20 }}>
+                    {CAT_ICONS[tx.category] ?? (tx.type==='income'?'💰':'💳')}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.description}</p>
+                    <p style={{ fontSize:13, color:'var(--tertiary)' }}>
+                      {tx.category} · {new Date(tx.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}
+                    </p>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                    <span style={{ fontSize:15, fontWeight:700, color: tx.type==='income'?'var(--success)':'var(--accent)' }}>
+                      {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
+                    </span>
+                    <Pencil width={12} height={12} style={{ color:'var(--tertiary)' }}/>
+                  </div>
+                </div>
+              </SwipeTx>
             ))}
           </div>
-        )
-      ) : shown.length === 0 ? (
-        <Leer text={search ? `Keine Ergebnisse für "${search}"` : `Keine Einträge für ${MONTHS_LONG[viewMonth]}.`}/>
-      ) : (
-        <div className="space-y-1.5">
-          {shown.map((tx, i) => (
-            <SwipeDelete key={tx.id} onDelete={() => del(tx.id)} onTap={() => setEditTx(tx)}>
-              <motion.div initial={{ opacity:0,y:4 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.03 }}
-                className="ak-card p-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 font-display text-xs font-bold"
-                     style={{ background:tx.type==='income'?'rgba(232,168,50,0.15)':'rgba(200,57,43,0.15)',
-                              color:tx.type==='income'?'#E8A832':'#C8392B' }}>
-                  {tx.category?.slice(0,2).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{tx.description}</p>
-                  <p className="text-[10px] text-cement">{tx.category} · {new Date(tx.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono text-sm font-semibold" style={{ color:tx.type==='income'?'#E8A832':'#E8DFD0' }}>
-                    {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
-                  </span>
-                  <Pencil className="w-3 h-3 text-cement opacity-40"/>
-                </div>
-              </motion.div>
-            </SwipeDelete>
-          ))}
-        </div>
-      )}
+        )}
+      </div>
 
-      {showAdd && <AddSheet  onClose={() => setAdd(false)}/>}
-      {editTx  && <EditSheet tx={editTx} onClose={() => setEditTx(null)}/>}
+      {showAdd  && <AddSheet  onClose={() => setAdd(false)}/>}
+      {editTx   && <EditSheet tx={editTx} onClose={() => setEditTx(null)}/>}
     </div>
   )
 }
 
-function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode; onDelete: () => void; onTap: () => void }) {
+function SwipeTx({ children, onDelete, onTap }: { children: React.ReactNode; onDelete:()=>void; onTap:()=>void }) {
   const startX = useRef(0)
   const startY = useRef(0)
   const [offset, setOffset] = useState(0)
   const [deleting, setDeleting] = useState(false)
   const moved = useRef(false)
-
   return (
-    <div className="relative overflow-hidden rounded-2xl">
+    <div style={{ position:'relative', overflow:'hidden' }}>
       {offset < -8 && (
-        <div className="absolute inset-0 flex items-center justify-end pr-4 rounded-2xl" style={{ background:'#C8392B' }}>
-          <Trash2 className="w-5 h-5 text-white"/>
+        <div style={{ position:'absolute', inset:0, background:'var(--danger)', display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:20 }}>
+          <Trash2 width={20} height={20} style={{ color:'white' }}/>
         </div>
       )}
       <motion.div
-        style={{ x: offset, opacity: deleting ? 0 : 1 }}
-        animate={{ x: offset }}
+        style={{ x:offset, opacity:deleting?0:1 }}
+        animate={{ x:offset }}
         transition={{ type:'spring', stiffness:400, damping:35 }}
-        onTouchStart={e => {
-          startX.current = e.touches[0].clientX
-          startY.current = e.touches[0].clientY
-          moved.current = false
-        }}
+        onTouchStart={e => { startX.current=e.touches[0].clientX; startY.current=e.touches[0].clientY; moved.current=false }}
         onTouchMove={e => {
-          const dx = e.touches[0].clientX - startX.current
-          const dy = e.touches[0].clientY - startY.current
-          if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved.current = true
-          if (dx < 0 && Math.abs(dx) > Math.abs(dy)) setOffset(Math.max(dx, -120))
+          const dx=e.touches[0].clientX-startX.current, dy=e.touches[0].clientY-startY.current
+          if (Math.abs(dx)>6||Math.abs(dy)>6) moved.current=true
+          if (dx<0&&Math.abs(dx)>Math.abs(dy)) setOffset(Math.max(dx,-100))
         }}
         onTouchEnd={() => {
-          if (offset < -80) { setDeleting(true); setTimeout(() => onDelete(), 250) }
-          else { setOffset(0); if (!moved.current) onTap() }
+          if (offset<-70) { setDeleting(true); setTimeout(()=>onDelete(),250) }
+          else { setOffset(0); if(!moved.current) onTap() }
         }}>
         {children}
       </motion.div>
@@ -221,16 +226,16 @@ function SwipeDelete({ children, onDelete, onTap }: { children: React.ReactNode;
   )
 }
 
-function Leer({ text }: { text: string }) {
+function Empty({ text }: { text:string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 rounded-2xl gap-3"
-         style={{ border:'2px dashed rgba(61,81,102,0.35)' }}>
-      <p className="text-sm text-cement text-center px-4">{text}</p>
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 20px', gap:8 }}>
+      <p style={{ fontSize:40 }}>📭</p>
+      <p style={{ fontSize:15, color:'var(--tertiary)', textAlign:'center' }}>{text}</p>
     </div>
   )
 }
 
-function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
+function EditSheet({ tx, onClose }: { tx:Transaction; onClose:()=>void }) {
   const { transactions, setTransactions, userId } = useStore()
   const [amount, setAmount] = useState(String(tx.amount))
   const [desc,   setDesc]   = useState(tx.description)
@@ -238,63 +243,51 @@ function EditSheet({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
   const [date,   setDate]   = useState(tx.date)
   const [saving, setSaving] = useState(false)
   const [err,    setErr]    = useState('')
-  const cats = tx.type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
+  const cats = tx.type==='expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
   async function save() {
-    if (!amount || !desc || !cat) { setErr('Alle Felder ausfüllen.'); return }
+    if (!amount||!desc||!cat) { setErr('Alle Felder ausfüllen.'); return }
     setSaving(true)
-    const update = { amount: parseFloat(amount), description: desc, category: cat, date }
+    const update = { amount:parseFloat(amount), description:desc, category:cat, date }
     if (userId) {
-      const { error: e } = await supabase.from('transactions').update(update).eq('id', tx.id)
+      const { error:e } = await supabase.from('transactions').update(update).eq('id',tx.id)
       if (e) { setErr(e.message); setSaving(false); return }
     }
-    setTransactions(transactions.map(t => t.id === tx.id ? { ...t, ...update } : t))
+    setTransactions(transactions.map(t => t.id===tx.id ? {...t,...update} : t))
     onClose()
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+    <div className="modal-overlay" onClick={e => e.target===e.currentTarget&&onClose()}>
       <div className="modal-sheet">
-        <div className="flex justify-center mb-3">
-          <div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/>
+        <div style={{ width:36, height:4, borderRadius:2, background:'var(--border)', margin:'0 auto 20px' }}/>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+          <span style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>Bearbeiten</span>
+          <button onClick={onClose} style={{ width:30, height:30, borderRadius:10, background:'var(--bg)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <X width={16} height={16} style={{ color:'var(--secondary)' }}/>
+          </button>
         </div>
-        <div className="flex justify-between items-center mb-3">
-          <span className="font-display text-white text-xl">BEARBEITEN</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
-            style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
-        </div>
-        <div className="space-y-2">
-          <input className="ak-input" type="number" inputMode="decimal"
-            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
-          <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => setDesc(e.target.value)}/>
-          <input className="ak-input" type="date"
-            value={date} onChange={e => setDate(e.target.value)}/>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <input className="ak-input" type="number" inputMode="decimal" placeholder="Betrag in €" value={amount} onChange={e=>setAmount(e.target.value)}/>
+          <input className="ak-input" placeholder="Beschreibung" value={desc} onChange={e=>setDesc(e.target.value)}/>
+          <input className="ak-input" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
           <div>
-            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Kategorie</p>
-            <div className="flex flex-wrap gap-1">
-              {cats.map(c => (
-                <button key={c} onClick={() => setCat(c)}
-                  className={`cat-chip ${cat===c?'selected':''}`}
-                  style={{ fontSize:10, padding:'3px 9px' }}>{c}
-                </button>
-              ))}
+            <p style={{ fontSize:12, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 }}>Kategorie</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {cats.map(c => <button key={c} onClick={()=>setCat(c)} className={`cat-chip ${cat===c?'selected':''}`}>{c}</button>)}
             </div>
           </div>
-          {err && <p className="text-[10px] px-2 py-1.5 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
-          <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
-            {saving ? 'Speichern...' : 'Speichern'}
-          </button>
+          {err && <p style={{ fontSize:13, color:'var(--danger)', background:'rgba(239,68,68,0.08)', padding:'10px 14px', borderRadius:12 }}>{err}</p>}
+          <button onClick={save} disabled={saving} className="btn-primary">{saving?'Speichern...':'Speichern'}</button>
         </div>
       </div>
     </div>
   )
 }
 
-function AddSheet({ onClose }: { onClose: () => void }) {
+function AddSheet({ onClose }: { onClose:()=>void }) {
   const { transactions, setTransactions, recurring, setRecurring, userId, viewMonth, viewYear } = useStore()
-  const { checkAfterTransaction } = useGamification()
-  const [type, setType]     = useState<'income'|'expense'>('expense')
+  const [type,   setType]   = useState<'income'|'expense'>('expense')
   const [amount, setAmount] = useState('')
   const [desc,   setDesc]   = useState('')
   const [cat,    setCat]    = useState('')
@@ -306,99 +299,93 @@ function AddSheet({ onClose }: { onClose: () => void }) {
   const [recDay, setRecDay] = useState(new Date().getDate().toString())
   const [saving, setSaving] = useState(false)
   const [err,    setErr]    = useState('')
-  const cats = type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
+  const cats = type==='expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
 
   async function save() {
-    if (!amount || !desc || !cat) { setErr('Bitte alle Felder ausfüllen.'); return }
+    if (!amount||!desc||!cat) { setErr('Bitte alle Felder ausfüllen.'); return }
     setSaving(true); setErr('')
     try {
       const tx = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, date }
       if (userId) {
-      const { data: row, error: e } = await supabase.from('transactions').insert(tx).select().single()
-      if (e) throw e
-      const newTxs = [row, ...transactions]
-        setTransactions(newTxs)
-        const balance = newTxs.reduce((s,t) => t.type==='income'?s+t.amount:s-t.amount, 0)
-        await checkAfterTransaction(newTxs.length, balance)
+        const { data:row, error:e } = await supabase.from('transactions').insert(tx).select().single()
+        if (e) throw e
+        setTransactions([row, ...transactions])
       } else {
-        setTransactions([{ ...tx, id:Date.now().toString(), created_at:new Date().toISOString() }, ...transactions])
+        setTransactions([{...tx, id:Date.now().toString(), created_at:new Date().toISOString()}, ...transactions])
       }
-      if (rec === 'monthly') {
-        const entry: Omit<RecurringEntry,'id'|'created_at'> = {
-          user_id:userId??'demo', type, amount:parseFloat(amount),
-          description:desc, category:cat, day_of_month:parseInt(recDay), active:true,
-        }
+      if (rec==='monthly') {
+        const entry: Omit<RecurringEntry,'id'|'created_at'> = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, day_of_month:parseInt(recDay), active:true }
         if (userId) {
-          const { data: row } = await supabase.from('recurring_entries').insert(entry).select().single()
+          const { data:row } = await supabase.from('recurring_entries').insert(entry).select().single()
           if (row) setRecurring([...recurring, row])
         } else {
-          setRecurring([...recurring, { ...entry, id:Date.now()+'r', created_at:new Date().toISOString() }])
+          setRecurring([...recurring, {...entry, id:Date.now()+'r', created_at:new Date().toISOString()}])
         }
       }
       onClose()
-    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Fehler') }
+    } catch(e:unknown) { setErr(e instanceof Error?e.message:'Fehler') }
     setSaving(false)
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
+    <div className="modal-overlay" onClick={e => e.target===e.currentTarget&&onClose()}>
       <div className="modal-sheet">
-        <div className="flex justify-center mb-3">
-          <div className="w-9 h-1 rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}/>
+        <div style={{ width:36, height:4, borderRadius:2, background:'var(--border)', margin:'0 auto 20px' }}/>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+          <span style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>Neuer Eintrag</span>
+          <button onClick={onClose} style={{ width:30, height:30, borderRadius:10, background:'var(--bg)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <X width={16} height={16} style={{ color:'var(--secondary)' }}/>
+          </button>
         </div>
-        <div className="flex justify-between items-center mb-3">
-          <span className="font-display text-white text-xl">NEUER EINTRAG</span>
-          <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-cement"
-            style={{ background:'rgba(255,255,255,0.08)' }}>×</button>
-        </div>
-        <div className="flex gap-2 mb-3">
+
+        {/* Type Toggle */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16,
+                      background:'var(--bg)', borderRadius:16, padding:4 }}>
           {(['expense','income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCat('') }}
-              className="flex-1 py-2 rounded-xl font-display text-sm tracking-wider"
-              style={{ background:type===t?(t==='expense'?'#C8392B':'#E8A832'):'rgba(255,255,255,0.06)',
-                       color:type===t?(t==='expense'?'white':'#0D1B2A'):'#9AA0A6' }}>
+              style={{ padding:'10px', borderRadius:12, border:'none', cursor:'pointer', fontWeight:600, fontSize:14,
+                       background: type===t ? 'var(--surface)' : 'transparent',
+                       color: type===t ? (t==='expense'?'var(--accent)':'var(--success)') : 'var(--tertiary)',
+                       boxShadow: type===t ? 'var(--shadow-sm)' : 'none' }}>
               {t==='expense'?'↓ Ausgabe':'↑ Einnahme'}
             </button>
           ))}
         </div>
-        <div className="space-y-2">
-          <input className="ak-input" type="number" inputMode="decimal"
-            placeholder="Betrag in €" value={amount} onChange={e => setAmount(e.target.value)}/>
-          <input className="ak-input" placeholder="Beschreibung"
-            value={desc} onChange={e => setDesc(e.target.value)}/>
-          <input className="ak-input" type="date"
-            value={date} onChange={e => setDate(e.target.value)}/>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <input className="ak-input" type="number" inputMode="decimal" placeholder="Betrag in €" value={amount} onChange={e=>setAmount(e.target.value)}/>
+          <input className="ak-input" placeholder="Beschreibung" value={desc} onChange={e=>setDesc(e.target.value)}/>
+          <input className="ak-input" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
           <div>
-            <p className="font-mono text-[9px] text-cement tracking-widest uppercase mb-1">Kategorie</p>
-            <div className="flex flex-wrap gap-1">
-              {cats.map(c => (
-                <button key={c} onClick={() => setCat(c)}
-                  className={`cat-chip ${cat===c?'selected':''}`}
-                  style={{ fontSize:10, padding:'3px 9px' }}>{c}
-                </button>
-              ))}
+            <p style={{ fontSize:12, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 }}>Kategorie</p>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {cats.map(c => <button key={c} onClick={()=>setCat(c)} className={`cat-chip ${cat===c?'selected':''}`}>{c}</button>)}
             </div>
           </div>
-          <div className="flex gap-2">
+
+          {/* Wiederkehrend */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, background:'var(--bg)', borderRadius:16, padding:4 }}>
             {([['once','Einmalig'],['monthly','Monatlich']] as const).map(([v,l]) => (
               <button key={v} onClick={() => setRec(v)}
-                className="flex-1 py-1.5 rounded-xl text-xs font-medium"
-                style={{ background:rec===v?'#C8392B':'rgba(255,255,255,0.06)', color:rec===v?'white':'#9AA0A6' }}>
+                style={{ padding:'10px', borderRadius:12, border:'none', cursor:'pointer', fontWeight:600, fontSize:13,
+                         background: rec===v ? 'var(--surface)' : 'transparent',
+                         color: rec===v ? 'var(--primary)' : 'var(--tertiary)',
+                         boxShadow: rec===v ? 'var(--shadow-sm)' : 'none' }}>
                 {l}
               </button>
             ))}
           </div>
-          {rec === 'monthly' && (
-            <select className="ak-input" value={recDay} onChange={e => setRecDay(e.target.value)}>
+
+          {rec==='monthly' && (
+            <select className="ak-input" value={recDay} onChange={e=>setRecDay(e.target.value)}>
               {Array.from({length:28},(_,i)=>i+1).map(d => (
                 <option key={d} value={d}>{d}. des Monats</option>
               ))}
             </select>
           )}
-          {err && <p className="text-[10px] px-2 py-1.5 rounded-lg" style={{ background:'rgba(200,57,43,0.15)', color:'#f87171' }}>{err}</p>}
-          <button onClick={save} disabled={saving} className="w-full ak-btn ak-btn-primary">
-            {saving ? 'Speichern...' : 'Eintragen'}
-          </button>
+
+          {err && <p style={{ fontSize:13, color:'var(--danger)', background:'rgba(239,68,68,0.08)', padding:'10px 14px', borderRadius:12 }}>{err}</p>}
+          <button onClick={save} disabled={saving} className="btn-primary">{saving?'Speichern...':'Eintragen'}</button>
         </div>
       </div>
     </div>
