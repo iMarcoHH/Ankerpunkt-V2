@@ -34,8 +34,8 @@ export function ZielePage() {
     const goal = {
       user_id:  userId ?? 'demo',
       name,
-      target:   parseFloat(target),
-      current:  0,
+      target_amount: parseFloat(target),
+      current_amount: 0,
       deadline: deadline || null,
     }
     if (userId) {
@@ -52,12 +52,12 @@ export function ZielePage() {
   async function handleDeposit(id: string) {
     const amount = Number(deposits[id]); if (!amount || amount <= 0) return
     const g = goals.find(g => g.id === id); if (!g) return
-    const wasComplete = g.current >= g.target
-    const newCurrent  = Math.min(g.target, g.current + amount)
-    if (userId) await supabase.from('savings_goals').update({ current: newCurrent }).eq('id', id)
-    setGoals(goals.map(g => g.id === id ? { ...g, current: newCurrent } : g))
+    const wasComplete = g.current_amount >= g.target_amount
+    const newCurrent  = Math.min(g.target_amount, g.current_amount + amount)
+    if (userId) await supabase.from('savings_goals').update({ current_amount: newCurrent }).eq('id', id)
+    setGoals(goals.map(g => g.id === id ? { ...g, current_amount: newCurrent } : g))
     setDep(d => ({ ...d, [id]: '' }))
-    if (!wasComplete && newCurrent >= g.target) {
+    if (!wasComplete && newCurrent >= g.target_amount) {
       setDone(id); fireConfetti(); setTimeout(() => setDone(null), 4000)
     }
   }
@@ -94,8 +94,8 @@ export function ZielePage() {
       ) : (
         <div className="space-y-4">
           {goals.map((goal, i) => {
-            const pct       = goal.target > 0 ? Math.min(100, (goal.current / goal.target) * 100) : 0
-            const completed = goal.current >= goal.target
+            const pct       = goal.target_amount > 0 ? Math.min(100, (goal.current_amount / goal.target_amount) * 100) : 0
+            const completed = goal.current_amount >= goal.target_amount
             return (
               <motion.div key={goal.id} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.07 }}
                 className="ak-card p-5 group relative overflow-hidden"
@@ -144,10 +144,10 @@ export function ZielePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-end">
                     <span className="text-2xl font-display tracking-wide"
-                          style={{ color: completed ? '#E8A832' : '#E8DFD0' }}>
-                      {fmt(goal.current)}
+                    style={{ color: completed ? '#E8A832' : '#E8DFD0' }}>
+                    {fmt(goal.current_amount)}
                     </span>
-                    <span className="text-xs text-cement font-mono">von {fmt(goal.target)}</span>
+                    <span className="text-xs text-cement font-mono">von {fmt(goal.target_amount)}</span>
                   </div>
                   <div className="relative h-3 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
                     <motion.div className="absolute inset-y-0 left-0 rounded-full"
@@ -157,7 +157,7 @@ export function ZielePage() {
                   </div>
                   <div className="flex justify-between text-xs text-cement">
                     <span>{pct.toFixed(0)}% erreicht</span>
-                    <span>{fmt(goal.target - goal.current)} fehlen noch</span>
+                    <span>{fmt(goal.target_amount - goal.current_amount)} fehlen noch</span>
                   </div>
                 </div>
 

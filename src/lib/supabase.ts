@@ -23,22 +23,23 @@ export interface Insurance {
   id:          string
   user_id:     string
   name:        string
-  provider:    string
+  provider?:   string
   amount:      number
-  period:      InsurancePeriod
-  category:    string
+  recurrence:  'monthly' | 'yearly'
+  category?:   string
   created_at:  string
 }
 
 export interface SavingsGoal {
-  id:          string
-  user_id:     string
-  name:        string
-  target:      number
-  current:     number
-  deadline:    string | null
-  color?:      string        // optional — existiert nicht in allen DBs
-  created_at:  string
+  id:             string
+  user_id:        string
+  name:           string
+  target_amount:  number
+  current_amount: number
+  deadline?:      string | null
+  color?:         string
+  icon?:          string
+  created_at:     string
 }
 
 export interface Achievement {

@@ -11,12 +11,12 @@ export function VersicherungenPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name:'', provider:'', amount:'', period:'yearly' as 'monthly'|'yearly', category:'Haftpflicht' })
 
-  const totalMonthly = insurances.reduce((s,i) => s + (i.period==='monthly' ? i.amount : i.amount/12), 0)
+  const totalMonthly = insurances.reduce((s,i) => s + (i.recurrence==='monthly' ? i.amount : i.amount/12), 0)
   const totalYearly  = totalMonthly * 12
 
   async function handleAdd() {
     if (!form.name || !form.amount) return
-    const ins = { user_id: userId??'demo', name:form.name, provider:form.provider, amount:parseFloat(form.amount), period:form.period, category:form.category }
+    const ins = { user_id: userId??'demo', name:form.name, provider:form.provider, amount:parseFloat(form.amount), recurrence:form.period, category:form.category }
     if (userId) {
       const { data: row } = await supabase.from('insurances').insert(ins).select().single()
       if (row) setInsurances([...insurances, row])
@@ -88,7 +88,7 @@ export function VersicherungenPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-white truncate">{ins.name}</p>
-                <p className="text-xs text-cement">{ins.provider} · {ins.period === 'yearly' ? 'jährlich' : 'monatlich'}</p>
+                <p className="text-xs text-cement">{ins.provider} · {ins.recurrence === 'yearly' ? 'jährlich' : 'monatlich'}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right">
