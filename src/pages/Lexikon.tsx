@@ -130,32 +130,32 @@ export function LexikonPage() {
     <div className="p-5 space-y-5 pb-8">
       <div className="pt-14">
         <h1 className="font-display text-4xl tracking-widest text-white">Lexikon</h1>
-        <p className="text-white/80 text-sm mt-1">Finanzwissen verständlich erklärt</p>
+        <p style={{ color:'#D7DCE2' }} className="text-sm mt-1">Finanzwissen verständlich erklärt</p>
       </div>
 
-      <div className="ak-card p-6">
-        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Finanzwissen</p>
+      <div className="ak-card p-6 text-white">
+        <p style={{ color:'#AEB8C4' }} className="text-xs uppercase tracking-wide mb-2">Finanzwissen</p>
         <h2 className="text-white font-semibold text-xl mb-2">Finanzbegriffe einfach erklärt</h2>
-        <p className="text-white/80 text-sm leading-relaxed">
+        <p style={{ color:'#D7DCE2' }} className="text-sm leading-relaxed">
           Schnell verstehen statt googeln. Die wichtigsten Begriffe rund um Geld, ETFs, Versicherungen und Einkommen.
         </p>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60"/>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white"/>
         <input className="ak-input pl-10 text-white" placeholder="Begriff suchen..."
           value={search} onChange={e => setSearch(e.target.value)}/>
       </div>
 
       <div>
-        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Kategorien</p>
+        <p className="text-white text-xs uppercase tracking-wide mb-2">Kategorien</p>
         <div className="flex flex-wrap gap-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className="ak-card px-3 py-2 text-sm text-white"
+              className="ak-card text-white px-3 py-2 text-sm"
               style={{
                 border: activeCategory === cat ? '1px solid rgba(200,57,43,0.6)' : undefined,
                 color: activeCategory === cat ? '#fff' : undefined
@@ -168,13 +168,13 @@ export function LexikonPage() {
       </div>
 
       <div>
-        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Beliebte Begriffe</p>
+        <p className="text-white text-xs uppercase tracking-wide mb-2">Beliebte Begriffe</p>
         <div className="flex flex-wrap gap-2">
           {popularTerms.map(term => (
             <button
               key={term}
               onClick={() => setSearch(term)}
-              className="ak-card px-3 py-2 text-sm text-white"
+              className="ak-card text-white px-3 py-2 text-sm"
             >
               {term}
             </button>
@@ -183,13 +183,13 @@ export function LexikonPage() {
       </div>
 
       <div>
-        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">⭐ Wichtigste Begriffe</p>
+        <p className="text-white text-xs uppercase tracking-wide mb-2">⭐ Wichtigste Begriffe</p>
         <div className="grid grid-cols-2 gap-2">
           {['ETF','Inflation','Rendite','Zinseszins'].map(term => (
             <button
               key={term}
               onClick={() => setSearch(term)}
-              className="ak-card p-3 text-left text-white text-sm font-medium"
+              className="ak-card text-white p-3 text-left text-sm font-medium"
             >
               {term}
             </button>
@@ -201,7 +201,7 @@ export function LexikonPage() {
       <div className="space-y-2">
         {filtered.map((entry, i) => (
           <details key={entry.term}
-            className="ak-card overflow-hidden group"
+            className="ak-card text-white overflow-hidden group"
             style={{ animationDelay: `${i*0.03}s` }}>
             <summary className="flex items-center justify-between p-4 cursor-pointer list-none"
               style={{ WebkitTapHighlightColor: 'transparent' }}>
@@ -211,7 +211,7 @@ export function LexikonPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-white">{entry.term}</p>
-                  <p className="text-xs text-white/60 mt-0.5">{entry.category}</p>
+                  <p style={{ color:'#AEB8C4' }} className="text-xs mt-0.5">{entry.category}</p>
                 </div>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" strokeWidth="2" strokeLinecap="round"
@@ -221,21 +221,21 @@ export function LexikonPage() {
             </summary>
             <div className="px-4 pb-4 pt-0">
               <div className="h-px mb-3" style={{ background:'rgba(61,81,102,0.4)' }}/>
-              <p className="text-sm text-white/90 leading-relaxed">{entry.def}</p>
-              <div className="mt-4 ak-card p-4" style={{ border:'1px solid rgba(255,255,255,0.08)' }}>
-                <p className="text-xs uppercase tracking-wide text-white/70 mb-2">Praxisbeispiel</p>
-                <p className="text-sm text-white/80 leading-relaxed">
+              <p style={{ color:'#FFFFFF' }} className="text-sm leading-relaxed">{entry.def}</p>
+              <div className="mt-4 ak-card text-white p-4" style={{ border:'1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-xs uppercase tracking-wide text-white mb-2">Praxisbeispiel</p>
+                <p style={{ color:'#D7DCE2' }} className="text-sm leading-relaxed">
                   {entry.example}
                 </p>
               </div>
               <div className="mt-3">
-                <p className="text-xs uppercase tracking-wide text-white/70 mb-2">Verwandte Begriffe</p>
+                <p className="text-xs uppercase tracking-wide text-white mb-2">Verwandte Begriffe</p>
                 <div className="flex flex-wrap gap-2">
                   {entry.related.map(term => (
                     <button
                       key={term}
                       onClick={() => setSearch(term)}
-                      className="ak-card px-3 py-1.5 text-xs text-white"
+                      className="ak-card text-white px-3 py-1.5 text-xs"
                     >
                       {term}
                     </button>
@@ -246,7 +246,7 @@ export function LexikonPage() {
           </details>
         ))}
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-white/70">
+          <div className="text-center py-12 text-white">
             <BookOpen className="w-14 h-14 mx-auto mb-3 opacity-30"/>
             <p className="text-sm">Kein Begriff gefunden.</p>
           </div>
