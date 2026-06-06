@@ -16,7 +16,7 @@ const CAT_ICONS: Record<string, string> = {
 }
 
 export function DashboardPage() {
-  const { transactions, insurances, goals, debts, setActiveTab,
+  const { transactions, insurances, recurring, goals, debts, setActiveTab,
           viewMonth, viewYear, goToPrevMonth, goToNextMonth, profile } = useStore()
   const avatarUrl = (profile as any)?.avatar_url ?? null
 
@@ -33,21 +33,19 @@ export function DashboardPage() {
   const balance  = income - expense
   const savings  = income > 0 ? Math.round((balance/income)*100) : 0
   // Fixkosten: nur monatliche Versicherungen + monatlich wiederkehrende Ausgaben.
+  // Wiederkehrende Ausgaben kommen aus recurring_entries und nicht aus monthTx.
   // Jährliche Versicherungen werden bewusst NICHT auf Monate umgelegt.
   const fixedCosts = useMemo(() => {
     const monthlyInsurance = insurances
       .filter(i => i.recurrence === 'monthly')
       .reduce((s, i) => s + i.amount, 0)
 
-    const recurringExpenses = monthTx
-      .filter((t: any) =>
-        t.type === 'expense' &&
-        (t.recurring === true || t.isRecurring === true || t.frequency === 'monthly' || t.recurrence === 'monthly')
-      )
-      .reduce((s, t) => s + t.amount, 0)
+    const recurringExpenses = (recurring || [])
+      .filter((r: any) => r.type === 'expense')
+      .reduce((s: number, r: any) => s + r.amount, 0)
 
     return monthlyInsurance + recurringExpenses
-  }, [insurances, monthTx])
+  }, [insurances, recurring])
   const debtLeft   = debts.reduce((s,d) => s + (d.total_amount - d.paid_amount), 0)
   const firstName  = (profile as any)?.full_name?.split(' ')[0] ?? ''
 
