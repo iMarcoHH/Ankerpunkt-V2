@@ -40,8 +40,8 @@ export function AuthPage() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      padding: '8px 24px 80px',
+      justifyContent: 'flex-start',
+      padding: '32px 24px 80px',
     }}>
 
       {/* Logo + Headline */}
