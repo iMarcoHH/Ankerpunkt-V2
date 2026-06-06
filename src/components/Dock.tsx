@@ -21,8 +21,8 @@ export function Dock() {
         position: 'fixed',
         left: 12,
         right: 12,
-        bottom: 7,
-        zIndex: 50,
+        bottom: 12,
+        zIndex: 40,
         background: 'rgba(255,255,255,0.96)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -34,7 +34,7 @@ export function Dock() {
       }}>
         <div style={{
           display: 'flex',
-          height: 42,
+          height: 36,
         }}>
           {PRIMARY_TABS.map(tab => {
             const active = tab.id === 'mehr'
