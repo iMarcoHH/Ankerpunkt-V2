@@ -50,61 +50,23 @@ export function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          marginBottom: 64,
+          marginBottom: 48,
           textAlign: 'center',
           width: '100%',
           maxWidth: 400,
         }}
       >
-        <div
+        <img
+          src="/header.png"
+          alt="Ankerpunkt"
           style={{
-            width: 84,
-            height: 84,
-            borderRadius: 28,
-            background: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 28px',
-            boxShadow: '0 12px 40px rgba(15,34,56,.15)',
+            width: '100%',
+            maxWidth: 420,
+            height: 'auto',
+            display: 'block',
+            margin: '0 auto',
           }}
-        >
-          <img
-            src="/favicon.png"
-            alt="Ankerpunkt"
-            style={{
-              width: 48,
-              height: 48,
-              objectFit: 'contain',
-            }}
-          />
-        </div>
-
-        <h1
-          style={{
-            fontSize: 44,
-            fontWeight: 800,
-            color: '#0F2238',
-            letterSpacing: '-0.06em',
-            marginBottom: 12,
-            lineHeight: 1,
-          }}
-        >
-          ANKERPUNKT
-        </h1>
-
-        <p
-          style={{
-            fontSize: 18,
-            color: '#64748B',
-            fontWeight: 500,
-            lineHeight: 1.5,
-            margin: 0,
-          }}
-        >
-          Deine Finanzen.<br />
-          Ein Ort für alles.
-        </p>
+        />
 
         <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto', padding: '32px' }}>
         <div style={{
