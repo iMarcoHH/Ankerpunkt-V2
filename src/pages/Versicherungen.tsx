@@ -135,9 +135,9 @@ export function VersicherungenPage() {
                 <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20,overflow:'hidden' }}>
                   {ins.provider ? (
                     <img
-                      src={`https://logo.clearbit.com/${ins.provider.toLowerCase().replace(/\s+/g,'')}.de`}
+                      src={`https://www.google.com/s2/favicons?domain=${ins.provider.toLowerCase().replace(/\s+/g,'')}.de&sz=64`}
                       alt={ins.provider}
-                      style={{ width:'100%',height:'100%',objectFit:'contain',padding:6 }}
+                      style={{ width:28, height:28, borderRadius:4, objectFit:'contain' }}
                       onError={e => { const t=e.target as HTMLImageElement; t.style.display='none'; t.parentElement!.textContent=CAT_ICONS[ins.category??'']??'🛡️' }}
                     />
                   ) : CAT_ICONS[ins.category??''] ?? '🛡️'}
@@ -258,7 +258,7 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
                     style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'12px 16px',
                              background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}>
                     <img src={p.logo_url} alt={p.name}
-                      style={{ width:28, height:28, borderRadius:6, objectFit:'contain', background:'white', padding:2, border:'1px solid var(--border)', flexShrink:0 }}
+                      style={{ width:28, height:28, borderRadius:4, objectFit:'contain', flexShrink:0 }}
                       onError={e => { (e.target as HTMLImageElement).style.display='none' }}
                     />
                     <span style={{ fontSize:14, fontWeight:500, color:'var(--primary)' }}>{p.name}</span>
