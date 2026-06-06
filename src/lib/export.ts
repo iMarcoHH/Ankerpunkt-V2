@@ -1,23 +1,33 @@
-// CSV Export utility
-export function exportTransactionsCSV(transactions: Array<{
-  date: string; type: string; description: string; category: string; amount: number
-}>) {
-  const header = 'Datum;Typ;Beschreibung;Kategorie;Betrag (€)'
-  const rows = transactions.map(t =>
-    [
+import type { Transaction } from './supabase'
+
+export function exportToCSV(transactions: Transaction[], filename = 'ankerpunkt-export.csv') {
+  const headers = ['Datum','Typ','Beschreibung','Kategorie','Betrag (€)']
+  const rows = transactions
+    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .map(t => [
       new Date(t.date).toLocaleDateString('de-DE'),
       t.type === 'income' ? 'Einnahme' : 'Ausgabe',
       `"${t.description.replace(/"/g,'""')}"`,
       t.category,
-      t.amount.toFixed(2).replace('.',','),
-    ].join(';')
-  )
-  const csv  = [header, ...rows].join('\n')
+      t.type === 'income' ? t.amount : -t.amount,
+    ].join(';'))
+
+  const csv = [headers.join(';'), ...rows].join('\n')
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
-  a.download = `ankerpunkt-export-${new Date().toISOString().slice(0,10)}.csv`
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function exportToJSON(data: object, filename = 'ankerpunkt-export.json') {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
 }

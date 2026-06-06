@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
-import { ChevronLeft, ChevronRight, ChevronRight as Arrow } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronRight as Arrow, AlertTriangle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 const fmt = (v: number) =>
@@ -16,7 +16,7 @@ const CAT_ICONS: Record<string, string> = {
 }
 
 export function DashboardPage() {
-  const { transactions, insurances, recurring, goals, debts, setActiveTab,
+  const { transactions, insurances, recurring, goals, debts, budgets, setActiveTab,
           viewMonth, viewYear, goToPrevMonth, goToNextMonth, profile } = useStore()
   const avatarUrl = (profile as any)?.avatar_url ?? null
 
@@ -58,6 +58,18 @@ export function DashboardPage() {
     monthTx.filter(t => t.type==='expense').forEach(t => { map[t.description] = (map[t.description]??0)+t.amount })
     return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,4)
   }, [monthTx])
+
+  // Budget-Warnungen
+  const budgetWarnings = useMemo(() => {
+    if (!isCurrentMonth) return []
+    return budgets.filter(b => {
+      const spent = monthTx.filter(t=>t.type==='expense'&&t.category===b.category).reduce((s,t)=>s+t.amount,0)
+      return spent > b.amount * 0.8
+    }).map(b => {
+      const spent = monthTx.filter(t=>t.type==='expense'&&t.category===b.category).reduce((s,t)=>s+t.amount,0)
+      return { category:b.category, spent, budget:b.amount, pct:Math.round(spent/b.amount*100) }
+    })
+  }, [budgets, monthTx, isCurrentMonth])
 
   // Finanzen Zeilen
   const finRows = [
@@ -123,6 +135,25 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Budget-Warnungen */}
+      {budgetWarnings.length > 0 && (
+        <div style={{ padding:'0 20px 16px' }}>
+          {budgetWarnings.map(w => (
+            <div key={w.category}
+              style={{ display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:14,marginBottom:8,
+                       background:w.pct>=100?'rgba(229,72,63,0.08)':'rgba(245,158,11,0.08)',
+                       border:`1px solid ${w.pct>=100?'rgba(229,72,63,0.2)':'rgba(245,158,11,0.2)'}` }}>
+              <AlertTriangle width={14} height={14} style={{ color:w.pct>=100?'var(--accent)':'var(--warning)',flexShrink:0 }}/>
+              <p style={{ fontSize:13,color:'var(--primary)',flex:1 }}>
+                <span style={{ fontWeight:600 }}>{w.category}</span> — {w.pct}% des Budgets
+                {w.pct>=100?' überschritten':' fast erreicht'}
+              </p>
+              <button onClick={()=>setActiveTab('mehr')} style={{ fontSize:12,color:'var(--accent)',background:'none',border:'none',cursor:'pointer',fontWeight:600 }}>Details</button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Auf einen Blick */}
       <div style={{ padding:'0 20px 20px' }}>
