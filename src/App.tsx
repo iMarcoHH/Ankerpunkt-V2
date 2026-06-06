@@ -50,52 +50,8 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Wiederkehrende Buchungen nur erzeugen, wenn die bestehenden
-  // Transaktionen bereits geladen wurden. Sonst entstehen Duplikate
-  // beim App-Start, weil die Prüfung gegen eine leere Liste läuft.
-  useEffect(() => {
-    if (!userId || recurring.length === 0 || transactions.length === 0) return
-
-    const today = new Date()
-
-    recurring
-      .filter(r => r.active)
-      .forEach(async r => {
-        const already = transactions.some(t =>
-          t.description === r.description &&
-          t.amount === r.amount &&
-          t.type === r.type &&
-          new Date(t.date).getMonth() === today.getMonth() &&
-          new Date(t.date).getFullYear() === today.getFullYear()
-        )
-
-        if (already) return
-        if (today.getDate() < r.day_of_month) return
-
-        const date = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          r.day_of_month
-        ).toISOString().split('T')[0]
-
-        const { data: row } = await supabase
-          .from('transactions')
-          .insert({
-            user_id: userId,
-            type: r.type,
-            amount: r.amount,
-            description: r.description,
-            category: r.category,
-            date,
-          })
-          .select()
-          .single()
-
-        if (row) {
-          setTransactions([row as Transaction, ...transactions])
-        }
-      })
-  }, [userId, recurring, transactions])
+  // Automatische Erzeugung wiederkehrender Buchungen vorübergehend deaktiviert.
+  // Diese Logik hat Duplikate erzeugt und muss später sauber neu implementiert.
 
   async function loadData(uid: string) {
     setLoading(true)
