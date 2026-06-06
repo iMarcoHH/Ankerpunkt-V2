@@ -19,7 +19,13 @@ function calcMonthsLeft(total: number, paid: number, rate: number) {
 function calcEndDate(total: number, paid: number, rate: number, start: string) {
   const months = calcMonthsLeft(total,paid,rate)
   if (!months) return null
-  const base = start ? new Date(start+'-01') : new Date()
+  let base: Date
+  if (start && /^\d{4}-\d{2}$/.test(start)) {
+    const [y,m] = start.split('-').map(Number)
+    base = new Date(y, m-1, 1)
+  } else {
+    base = new Date()
+  }
   base.setMonth(base.getMonth()+months)
   return base.toLocaleDateString('de-DE',{month:'long',year:'numeric'})
 }

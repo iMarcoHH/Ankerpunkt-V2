@@ -73,18 +73,21 @@ function NoteSheet({ note, onClose, onSave, onDelete, userId }: {
 
   async function save() {
     setSaving(true)
-    if (note) {
-      if (userId) await supabase.from('notes').update({title,content,color}).eq('id',note.id)
-      onSave({...note,title,content,color})
-    } else {
-      const entry = { user_id:userId??'demo', title, content, color }
-      if (userId) {
-        const { data:row } = await supabase.from('notes').insert(entry).select().single()
-        if (row) onSave(row as Note)
+    try {
+      if (note) {
+        if (userId) await supabase.from('notes').update({title,content,color}).eq('id',note.id)
+        onSave({...note,title,content,color})
       } else {
-        onSave({...entry, id:Date.now().toString(), created_at:new Date().toISOString()} as Note)
+        const entry = { user_id:userId??'demo', title, content, color }
+        if (userId) {
+          const { data:row } = await supabase.from('notes').insert(entry).select().single()
+          if (row) onSave(row as Note)
+          else onSave({...entry, id:Date.now().toString(), created_at:new Date().toISOString()} as Note)
+        } else {
+          onSave({...entry, id:Date.now().toString(), created_at:new Date().toISOString()} as Note)
+        }
       }
-    }
+    } catch(e) { console.error(e) }
     setSaving(false)
   }
 

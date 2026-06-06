@@ -4,9 +4,9 @@ import { LayoutDashboard, ListOrdered, PieChart, TrendingDown, MoreHorizontal } 
 
 const PRIMARY_TABS = [
   { id: 'dashboard',  label: 'Übersicht',  Icon: LayoutDashboard },
-  { id: 'analysen',   label: 'Analysen',   Icon: PieChart        },
-  { id: 'schulden',   label: 'Schulden',   Icon: TrendingDown    },
   { id: 'buchungen',  label: 'Buchungen',  Icon: ListOrdered     },
+  { id: 'schulden',   label: 'Schulden',   Icon: TrendingDown    },
+  { id: 'analysen',   label: 'Analysen',   Icon: PieChart        },
   { id: 'mehr',       label: 'Mehr',       Icon: MoreHorizontal  },
 ]
 
