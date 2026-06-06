@@ -18,6 +18,7 @@ const CAT_ICONS: Record<string, string> = {
 export function DashboardPage() {
   const { transactions, insurances, goals, debts, setActiveTab,
           viewMonth, viewYear, goToPrevMonth, goToNextMonth, profile } = useStore()
+  const avatarUrl = (profile as any)?.avatar_url ?? null
 
   const now            = new Date()
   const isCurrentMonth = viewMonth === now.getMonth() && viewYear === now.getFullYear()
@@ -63,9 +64,17 @@ export function DashboardPage() {
           </p>
           <h1 className="page-title">Deine Finanzen</h1>
         </div>
-        <div style={{ width:44, height:44, borderRadius:14, background:'var(--accent)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, boxShadow:'var(--shadow-sm)', marginTop:4 }}>
-          {(firstName?.[0] || 'A').toUpperCase()}
-        </div>
+        <button onClick={() => setActiveTab('profil')}
+          style={{ width:44, height:44, borderRadius:14, overflow:'hidden', flexShrink:0, marginTop:4,
+                   background:'var(--accent)', border:'none', cursor:'pointer', boxShadow:'var(--shadow-sm)' }}>
+          {avatarUrl
+            ? <img src={avatarUrl} alt="Avatar"
+                style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+            : <span style={{ color:'white', fontSize:14, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', width:'100%', height:'100%' }}>
+                {(firstName?.[0] || 'A').toUpperCase()}
+              </span>
+          }
+        </button>
       </div>
 
       {/* Hero Card */}

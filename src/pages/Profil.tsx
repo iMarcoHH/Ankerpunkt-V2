@@ -44,7 +44,8 @@ export function ProfilPage() {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = `${data.publicUrl}?t=${Date.now()}`
       await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId)
-      setProfile({ ...profile, avatar_url: url } as any)
+      // Neues Objekt erzwingen damit React re-rendert
+      setProfile({ ...(profile ?? {}), avatar_url: url } as any)
     } catch(e) { console.error(e) }
     setUploading(false)
   }
