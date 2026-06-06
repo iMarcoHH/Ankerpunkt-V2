@@ -11,12 +11,26 @@ export function GamificationPage() {
   const xpPct     = Math.min(100, Math.round(xp / xpToNext * 100))
   const unlockedKeys = new Set(achievements.map(a => a.key))
   const streak    = 0 // TODO: streak tracking
+  const totalAchievements = ACHIEVEMENT_DEFS.length
+  const completionPct = Math.round((achievements.length / totalAchievements) * 100)
+  const bronzeCount = Math.min(achievements.length, 4)
+  const silverCount = Math.max(0, Math.min(achievements.length - 4, 3))
+  const goldCount = Math.max(0, Math.min(achievements.length - 7, 2))
+  const diamondCount = Math.max(0, achievements.length - 9)
 
   return (
     <div className="p-5 space-y-5 pb-8">
       <div className="pt-14">
         <h1 className="font-display text-4xl tracking-widest text-white">Erfolge & Level</h1>
         <p className="text-cement text-sm mt-1">Disziplin zahlt sich aus.</p>
+      </div>
+
+      <div className="ak-card p-5 mt-4">
+        <p className="text-cement text-xs uppercase tracking-wide mb-2">Fortschritt</p>
+        <p className="text-white text-xl font-semibold">Deine Finanzreise</p>
+        <p className="text-cement text-sm mt-1">
+          Sammle XP, schalte Abzeichen frei und baue langfristige Finanzgewohnheiten auf.
+        </p>
       </div>
 
       {/* Level card */}
@@ -69,9 +83,64 @@ export function GamificationPage() {
         </motion.div>
       </div>
 
+      <motion.div
+        initial={{ opacity:0,y:12 }}
+        animate={{ opacity:1,y:0 }}
+        transition={{ delay:0.18 }}
+        className="ak-card p-5"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-cement text-xs uppercase tracking-wide">Abzeichen-Fortschritt</p>
+            <p className="text-white text-2xl font-semibold">{completionPct}%</p>
+          </div>
+          <Trophy className="w-8 h-8" style={{ color:'#E8A832' }} />
+        </div>
+
+        <div className="h-3 rounded-full overflow-hidden" style={{ background:'rgba(61,81,102,0.4)' }}>
+          <div
+            className="h-full rounded-full"
+            style={{
+              width:`${completionPct}%`,
+              background:'linear-gradient(90deg,#E8A832,#f0b84a)'
+            }}
+          />
+        </div>
+
+        <p className="text-cement text-xs mt-2">
+          {achievements.length} von {totalAchievements} Abzeichen freigeschaltet
+        </p>
+      </motion.div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="ak-card p-4">
+          <p className="text-xl mb-1">🥉</p>
+          <p className="text-white font-semibold">Bronze</p>
+          <p className="text-cement text-sm">{bronzeCount}/4</p>
+        </div>
+
+        <div className="ak-card p-4">
+          <p className="text-xl mb-1">🥈</p>
+          <p className="text-white font-semibold">Silber</p>
+          <p className="text-cement text-sm">{silverCount}/3</p>
+        </div>
+
+        <div className="ak-card p-4">
+          <p className="text-xl mb-1">🥇</p>
+          <p className="text-white font-semibold">Gold</p>
+          <p className="text-cement text-sm">{goldCount}/2</p>
+        </div>
+
+        <div className="ak-card p-4">
+          <p className="text-xl mb-1">💎</p>
+          <p className="text-white font-semibold">Platin</p>
+          <p className="text-cement text-sm">{diamondCount}/1</p>
+        </div>
+      </div>
+
       {/* Badges grid */}
       <div>
-        <h2 className="font-display text-2xl tracking-widest text-white mb-3">Abzeichen</h2>
+        <h2 className="font-display text-2xl tracking-widest text-white mb-3">Erfolge & Abzeichen</h2>
         <div className="grid grid-cols-2 gap-3">
           {ACHIEVEMENT_DEFS.map((def, i) => {
             const unlocked = unlockedKeys.has(def.key)
@@ -86,6 +155,11 @@ export function GamificationPage() {
                 <div>
                   <p className="font-semibold text-xs text-white leading-snug">{def.label}</p>
                   <p className="text-[10px] text-cement mt-1 leading-snug">{def.desc}</p>
+                  {!unlocked && (
+                    <p className="text-[10px] mt-2" style={{ color:'#E8A832' }}>
+                      Belohnung: +{def.xp} XP
+                    </p>
+                  )}
                 </div>
                 {unlocked && (
                   <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background:'rgba(232,168,50,0.15)', color:'#E8A832' }}>
@@ -96,6 +170,14 @@ export function GamificationPage() {
             )
           })}
         </div>
+      </div>
+
+      <div className="ak-card p-5">
+        <p className="text-cement text-xs uppercase tracking-wide mb-2">Nächstes Ziel</p>
+        <p className="text-white font-semibold mb-1">Level {level + 1} erreichen</p>
+        <p className="text-cement text-sm">
+          Dir fehlen noch {Math.max(0, xpToNext - xp)} XP bis zum nächsten Level.
+        </p>
       </div>
     </div>
   )
