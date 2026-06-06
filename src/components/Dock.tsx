@@ -29,12 +29,12 @@ export function Dock() {
         border: '1px solid rgba(15,23,42,0.06)',
         borderRadius: 999,
         boxShadow: '0 12px 32px rgba(15,23,42,0.10)',
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         overflow: 'hidden',
       }}>
         <div style={{
           display: 'flex',
-          height: 56,
+          height: 50,
         }}>
           {PRIMARY_TABS.map(tab => {
             const active = tab.id === 'mehr'
@@ -59,14 +59,14 @@ export function Dock() {
                   background: 'transparent',
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
-                  padding: '6px 0 2px',
+                  padding: '2px 0 0',
                 }}
               >
                 {/* Icon Container */}
                 <div style={{
-                  width: 44,
-                  height: 28,
-                  borderRadius: 14,
+                  width: 40,
+                  height: 24,
+                  borderRadius: 12,
                   background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
