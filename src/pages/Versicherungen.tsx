@@ -128,7 +128,7 @@ export function VersicherungenPage() {
           <div className="app-card" style={{ padding:0,overflow:'hidden' }}>
             {insurances.map((ins, i) => (
               <motion.div key={ins.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.05 }}
-                style={{ display:'flex',alignItems:'center',gap:14,padding:'16px 20px', borderBottom:i<insurances.length-1?'1px solid var(--border)':'none' }}>
+                style={{ display:'flex',alignItems:'flex-start',gap:14,padding:'18px 20px', borderBottom:i<insurances.length-1?'1px solid var(--border)':'none' }}>
                 <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20 }}>
                   {CAT_ICONS[ins.category??''] ?? '🛡️'}
                 </div>
@@ -138,12 +138,10 @@ export function VersicherungenPage() {
                       fontSize:16,
                       fontWeight:700,
                       color:'var(--primary)',
-                      marginBottom:2,
-                      overflow:'hidden',
-                      textOverflow:'ellipsis',
-                      whiteSpace:'nowrap'
+                      marginBottom:6,
+                      lineHeight:1.35,
+                      wordBreak:'break-word'
                     }}
-                    title={ins.name}
                   >
                     {ins.name}
                   </p>
@@ -151,7 +149,7 @@ export function VersicherungenPage() {
                     {ins.provider || 'Kein Anbieter'} · {ins.recurrence==='yearly'?'jährlich':'monatlich'}
                   </p>
                 </div>
-                <div style={{ textAlign:'right',flexShrink:0,minWidth:110 }}>
+                <div style={{ textAlign:'right',flexShrink:0,minWidth:95, paddingTop:2 }}>
                   <p style={{ fontSize:17,fontWeight:800,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
                   <p style={{ fontSize:11,color:'var(--tertiary)' }}>{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</p>
                 </div>
