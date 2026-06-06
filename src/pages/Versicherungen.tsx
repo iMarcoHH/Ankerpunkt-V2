@@ -17,6 +17,10 @@ export function VersicherungenPage() {
   const monthlyTotal = insurances.reduce((s,i) => s+(i.recurrence==='monthly'?i.amount:i.amount/12), 0)
   const yearlyTotal  = monthlyTotal * 12
 
+  const coreCategories = ['Haftpflicht','Kranken','Hausrat','Berufsunfähigkeit']
+  const existingCategories = insurances.map(i => i.category)
+  const missingCategories = coreCategories.filter(c => !existingCategories.includes(c))
+
   async function del(id: string) {
     if (userId) await supabase.from('insurances').delete().eq('id', id)
     setInsurances(insurances.filter(i => i.id !== id))
@@ -27,20 +31,70 @@ export function VersicherungenPage() {
       <div style={{ padding:'56px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
         <h1 className="page-title">Versicherungen</h1>
         <button onClick={() => setAdd(true)}
-          style={{ width:40,height:40,borderRadius:12,background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',marginTop:4 }}>
+          style={{ width:48,height:48,borderRadius:16,background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',marginTop:4 }}>
           <Plus width={20} height={20} style={{ color:'white' }}/>
         </button>
       </div>
 
       {/* Summary */}
-      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-        <div className="app-card" style={{ padding:16 }}>
-          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:500,marginBottom:6 }}>Pro Monat</p>
-          <p style={{ fontSize:22,fontWeight:800,color:'var(--primary)',letterSpacing:'-0.02em' }}>{fmt(monthlyTotal)}</p>
+      <div style={{ padding:'0 20px 20px' }}>
+        <div className="app-card" style={{ padding:20, marginBottom:12 }}>
+          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:600,marginBottom:8 }}>Versicherungskosten</p>
+          <p style={{ fontSize:32,fontWeight:800,color:'var(--primary)',letterSpacing:'-0.04em' }}>
+            {fmt(monthlyTotal)}
+          </p>
+          <p style={{ fontSize:14,color:'var(--secondary)',marginTop:4 }}>
+            {fmt(yearlyTotal)} pro Jahr
+          </p>
         </div>
-        <div className="app-card" style={{ padding:16 }}>
-          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:500,marginBottom:6 }}>Pro Jahr</p>
-          <p style={{ fontSize:22,fontWeight:800,color:'var(--primary)',letterSpacing:'-0.02em' }}>{fmt(yearlyTotal)}</p>
+
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div className="app-card" style={{ padding:16 }}>
+            <p style={{ fontSize:12,color:'var(--tertiary)',marginBottom:6 }}>Verträge</p>
+            <p style={{ fontSize:22,fontWeight:800,color:'var(--primary)' }}>{insurances.length}</p>
+          </div>
+
+          <div className="app-card" style={{ padding:16 }}>
+            <p style={{ fontSize:12,color:'var(--tertiary)',marginBottom:6 }}>Jährliche Policen</p>
+            <p style={{ fontSize:22,fontWeight:800,color:'var(--primary)' }}>
+              {insurances.filter(i => i.recurrence === 'yearly').length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding:'0 20px 20px' }}>
+        <div className="app-card" style={{ padding:18 }}>
+          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:600,marginBottom:12 }}>
+            Versicherungs-Check
+          </p>
+
+          <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+            {coreCategories.map(cat => {
+              const exists = existingCategories.includes(cat)
+              return (
+                <div key={cat} style={{ display:'flex',alignItems:'center',justifyContent:'space-between' }}>
+                  <span style={{ fontSize:14,color:'var(--primary)' }}>{cat}</span>
+                  <span style={{ fontSize:13,fontWeight:600,color: exists ? 'var(--success)' : 'var(--accent)' }}>
+                    {exists ? '✓ Vorhanden' : '⚠ Fehlt'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {missingCategories.length > 0 && (
+            <div style={{
+              marginTop:14,
+              padding:'12px 14px',
+              borderRadius:12,
+              background:'rgba(229,72,63,0.08)'
+            }}>
+              <p style={{ fontSize:13,color:'var(--accent)',fontWeight:600 }}>
+                Möglicherweise fehlend: {missingCategories.join(', ')}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -48,7 +102,7 @@ export function VersicherungenPage() {
       <div style={{ padding:'0 20px' }}>
         {insurances.length === 0 ? (
           <div style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 0',gap:12 }}>
-            <Shield width={48} height={48} style={{ color:'var(--tertiary)',opacity:0.3 }}/>
+            <Shield width={60} height={60} style={{ color:'var(--tertiary)',opacity:0.3 }}/>
             <p style={{ fontSize:15,color:'var(--tertiary)',textAlign:'center' }}>Noch keine Versicherungen eingetragen.</p>
           </div>
         ) : (
@@ -56,17 +110,17 @@ export function VersicherungenPage() {
             {insurances.map((ins, i) => (
               <motion.div key={ins.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.05 }}
                 style={{ display:'flex',alignItems:'center',gap:14,padding:'16px 20px', borderBottom:i<insurances.length-1?'1px solid var(--border)':'none' }}>
-                <div style={{ width:44,height:44,borderRadius:14,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20 }}>
+                <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20 }}>
                   {CAT_ICONS[ins.category??''] ?? '🛡️'}
                 </div>
                 <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ fontSize:15,fontWeight:600,color:'var(--primary)',marginBottom:2 }}>{ins.name}</p>
+                  <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)',marginBottom:2 }}>{ins.name}</p>
                   <p style={{ fontSize:13,color:'var(--tertiary)' }}>
-                    {ins.provider} · {ins.recurrence==='yearly'?'jährlich':'monatlich'}
+                    {ins.provider || 'Kein Anbieter'} · {ins.recurrence==='yearly'?'jährlich':'monatlich'}
                   </p>
                 </div>
                 <div style={{ textAlign:'right',flexShrink:0 }}>
-                  <p style={{ fontSize:15,fontWeight:700,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
+                  <p style={{ fontSize:17,fontWeight:800,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
                   <p style={{ fontSize:11,color:'var(--tertiary)' }}>{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</p>
                 </div>
                 <button onClick={() => del(ins.id)} style={{ background:'none',border:'none',cursor:'pointer',padding:4,marginLeft:4 }}>
