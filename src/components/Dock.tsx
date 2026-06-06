@@ -34,7 +34,7 @@ export function Dock() {
       }}>
         <div style={{
           display: 'flex',
-          height: 30,
+          height: 42,
         }}>
           {PRIMARY_TABS.map(tab => {
             const active = tab.id === 'mehr'
@@ -64,7 +64,7 @@ export function Dock() {
               >
                 {/* Icon Container */}
                 <div style={{
-                  width: 40,
+                  width: 30,
                   height: 24,
                   borderRadius: 12,
                   background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
