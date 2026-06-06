@@ -31,22 +31,7 @@ export function Dock() {
   const { activeTab, setActiveTab } = useStore()
 
   return (
-    <div
-      className="bottom-nav"
-      style={{
-        padding: '6px 12px',
-        width: 'calc(100% - 24px)',
-        maxWidth: 520,
-        margin: '0 auto 12px auto',
-        background: '#FFFFFF',
-        border: '1px solid rgba(15,23,42,0.06)',
-        borderRadius: 999,
-        boxShadow: '0 12px 32px rgba(15,23,42,0.10)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxSizing: 'border-box',
-      }}
-    >
+    <div className="bottom-nav" style={{ padding: '0 8px' }}>
       {PRIMARY_TABS.map(tab => {
         const active = activeTab === tab.id ||
           (tab.id === 'mehr' && !PRIMARY_TABS.slice(0,4).some(t => t.id === activeTab))
