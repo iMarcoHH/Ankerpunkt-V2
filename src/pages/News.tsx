@@ -43,10 +43,28 @@ export function NewsPage() {
   }
 
   const sources  = Array.from(new Set(news.map(n=>n.source)))
+  console.log('News Sources:', sources)
   const getCategory = (item: NewsItem) => {
     if (['Finanzen.net'].includes(item.source)) return 'finance'
-    if (['Handelsblatt','Tagesschau','Zeit Wirtschaft','Focus Online','Stern'].includes(item.source)) return 'relevant'
-    if (['Wallstreet Online'].includes(item.source)) return 'markets'
+
+    if ([
+      'Wallstreet Online',
+      'Reuters Markets',
+      'MarketWatch',
+      'Bloomberg Markets',
+      'CNBC Markets'
+    ].includes(item.source)) return 'markets'
+
+    if ([
+      'Handelsblatt',
+      'Tagesschau',
+      'Zeit Wirtschaft',
+      'Focus Online',
+      'Stern',
+      'Finanztip',
+      'Finanzfluss'
+    ].includes(item.source)) return 'relevant'
+
     return 'economy'
   }
   const filtered = news.filter(n => {
