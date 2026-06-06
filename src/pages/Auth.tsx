@@ -50,7 +50,7 @@ export function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          marginBottom: 8,
+          marginBottom: 0,
           textAlign: 'center',
           width: '100%',
           maxWidth: 400,
@@ -65,11 +65,11 @@ export function AuthPage() {
             height: 'auto',
             display: 'block',
             margin: '0 auto',
-            marginBottom: '-8px',
           }}
         />
+      </motion.div>
 
-        <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto', padding: '32px' }}>
+      <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto', padding: '32px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -170,7 +170,6 @@ export function AuthPage() {
           </button>
         </div>
       </div>
-      </motion.div>
 
       {/* Footer */}
       <motion.p
