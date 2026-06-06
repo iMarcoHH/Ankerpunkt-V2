@@ -3,7 +3,7 @@ import { useState } from 'react'
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const fmtPct = (v: number) => v.toFixed(2) + '%'
 
-type Mode = 'kredit'|'zins'|'waehrung'|'sparplan'
+type Mode = 'kredit'|'zins'|'waehrung'|'sparplan'|'inflation'|'etf'
 
 export function RechnerPage() {
   const [mode, setMode] = useState<Mode>('kredit')
@@ -21,7 +21,9 @@ export function RechnerPage() {
             ['kredit','💳','Kredit'],
             ['zins','📈','Zinseszins'],
             ['sparplan','💰','Sparplan'],
-            ['waehrung','🌍','Währung']
+            ['waehrung','🌍','Währung'],
+            ['inflation','📉','Inflation'],
+            ['etf','📊','ETF']
           ].map(([v,icon,label]) => (
             <button
               key={v}
@@ -62,6 +64,8 @@ export function RechnerPage() {
         {mode==='zins'    && <ZinsRechner/>}
         {mode==='waehrung'&& <WaehrungsRechner/>}
         {mode==='sparplan'&& <SparplanRechner/>}
+        {mode==='inflation'&& <InflationsRechner/>}
+        {mode==='etf'&& <ETFRechner/>}
       </div>
     </div>
   )
@@ -221,6 +225,68 @@ function SparplanRechner() {
               <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Zinsen</p>
               <p style={{ fontSize:18,fontWeight:700,color:'var(--success)' }}>+{fmt(res.gewinn)}</p>
             </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function InflationsRechner() {
+  const [betrag,setBetrag] = useState('')
+  const [inflation,setInflation] = useState('2')
+  const [jahre,setJahre] = useState('10')
+
+  const start = parseFloat(betrag)||0
+  const rate = (parseFloat(inflation)||0)/100
+  const years = parseFloat(jahre)||0
+
+  const kaufkraft = start ? start / Math.pow(1+rate, years) : 0
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label='Heutiger Betrag' value={betrag} onChange={setBetrag} placeholder='10000' prefix='€'/>
+      <Field label='Inflation p.a.' value={inflation} onChange={setInflation} placeholder='2' prefix='%'/>
+      <Field label='Jahre' value={jahre} onChange={setJahre} placeholder='10'/>
+      {start>0 && (
+        <>
+          <Card label='Kaufkraft in der Zukunft' value={fmt(kaufkraft)}/>
+          <div className='app-card' style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Wertverlust</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--accent)' }}>
+              {fmt(start-kaufkraft)}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ETFRechner() {
+  const [startkapital,setStartkapital] = useState('10000')
+  const [rendite,setRendite] = useState('7')
+  const [jahre,setJahre] = useState('20')
+
+  const start = parseFloat(startkapital)||0
+  const r = (parseFloat(rendite)||0)/100
+  const y = parseFloat(jahre)||0
+
+  const endwert = start * Math.pow(1+r,y)
+
+  return (
+    <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+      <Field label='Startkapital' value={startkapital} onChange={setStartkapital} placeholder='10000' prefix='€'/>
+      <Field label='Rendite p.a.' value={rendite} onChange={setRendite} placeholder='7' prefix='%'/>
+      <Field label='Jahre' value={jahre} onChange={setJahre} placeholder='20'/>
+      {start>0 && (
+        <>
+          <Card label='ETF Endwert' value={fmt(endwert)}/>
+          <div className='app-card' style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gewinn</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--success)' }}>
+              +{fmt(endwert-start)}
+            </p>
           </div>
         </>
       )}
