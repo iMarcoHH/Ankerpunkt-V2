@@ -46,60 +46,61 @@ export function AuthPage() {
 
       {/* Logo + Headline */}
       <motion.div
-        initial={{ opacity:0, y:-20 }}
-        animate={{ opacity:1, y:0 }}
-        transition={{ duration:0.5 }}
-        style={{ marginBottom:40, textAlign:'center' }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        style={{
+          marginBottom: 40,
+          textAlign: 'center',
+        }}
       >
-        {/* App Icon */}
-<div
-  style={{
-    width: 96,
-    height: 96,
-    borderRadius: 28,
-    background: '#FFFFFF',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 auto 20px',
-    boxShadow: '0 12px 40px rgba(15,34,56,.15)',
-  }}
->
-  <img
-    src="/favicon.png"
-    alt="Ankerpunkt"
-    style={{
-      width: 56,
-      height: 56,
-      objectFit: 'contain',
-    }}
-  />
-</div>
-        }}>
-          Ankerpunkt
-        <h1
-  style={{
-    fontSize: 38,
-    fontWeight: 800,
-    color: '#0F2238',
-    letterSpacing: '-0.05em',
-    marginBottom: 10,
-  }}
->
-  ANKERPUNKT
-</h1>
+        <div
+          style={{
+            width: 96,
+            height: 96,
+            borderRadius: 28,
+            background: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            boxShadow: '0 12px 40px rgba(15,34,56,.15)',
+          }}
+        >
+          <img
+            src="/favicon.png"
+            alt="Ankerpunkt"
+            style={{
+              width: 56,
+              height: 56,
+              objectFit: 'contain',
+            }}
+          />
+        </div>
 
-<p
-  style={{
-    fontSize: 16,
-    color: 'var(--secondary)',
-    fontWeight: 500,
-  }}
->
-  Deine Finanzen im sicheren Hafen.
-</p>
-      >
-        {/* Mode Toggle */}
+        <h1
+          style={{
+            fontSize: 38,
+            fontWeight: 800,
+            color: '#0F2238',
+            letterSpacing: '-0.05em',
+            marginBottom: 10,
+          }}
+        >
+          ANKERPUNKT
+        </h1>
+
+        <p
+          style={{
+            fontSize: 16,
+            color: 'var(--secondary)',
+            fontWeight: 500,
+          }}
+        >
+          Deine Finanzen im sicheren Hafen.
+        </p>
+
+        <div className="app-card" style={{ width: '100%', maxWidth: 400 }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
