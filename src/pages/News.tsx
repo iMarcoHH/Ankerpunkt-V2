@@ -26,6 +26,7 @@ export function NewsPage() {
   const [fetching, setFetching]= useState(false)
   const [error,    setError]   = useState(false)
   const [source,   setSource]  = useState<string|null>(null)
+  const [category, setCategory] = useState<string>('relevant')
   const [selected, setSelected]= useState<NewsItem|null>(null)
   const [browser,  setBrowser] = useState<{url:string;title:string}|null>(null)
 
@@ -42,7 +43,17 @@ export function NewsPage() {
   }
 
   const sources  = Array.from(new Set(news.map(n=>n.source)))
-  const filtered = news.filter(n=>!source||n.source===source)
+  const getCategory = (item: NewsItem) => {
+    if (['Finanzen.net'].includes(item.source)) return 'finance'
+    if (['Handelsblatt','Tagesschau','Zeit Wirtschaft','Focus Online','Stern'].includes(item.source)) return 'relevant'
+    if (['Wallstreet Online'].includes(item.source)) return 'markets'
+    return 'economy'
+  }
+  const filtered = news.filter(n => {
+    const sourceMatch = !source || n.source === source
+    const categoryMatch = category === 'all' || getCategory(n) === category
+    return sourceMatch && categoryMatch
+  })
 
   if (browser) {
     return (
@@ -76,6 +87,36 @@ export function NewsPage() {
         </button>
       </div>
 
+      {/* Kategorien */}
+      <div style={{ padding:'0 20px 12px', display:'flex', gap:8, overflowX:'auto' }}>
+        {[
+          ['relevant','🏦 Für dich'],
+          ['finance','💰 Finanzen'],
+          ['markets','📈 Märkte'],
+          ['economy','🏢 Wirtschaft'],
+          ['all','🌍 Alle']
+        ].map(([key,label]) => (
+          <button
+            key={key}
+            onClick={() => setCategory(key)}
+            style={{
+              padding:'8px 14px',
+              borderRadius:16,
+              border:'none',
+              whiteSpace:'nowrap',
+              cursor:'pointer',
+              fontSize:12,
+              fontWeight:600,
+              background: category === key ? 'var(--accent)' : 'var(--surface)',
+              color: category === key ? 'white' : 'var(--secondary)',
+              boxShadow: category === key ? '0 4px 12px rgba(229,72,63,.25)' : 'var(--shadow-sm)'
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Source Filter */}
       {sources.length > 0 && (
         <div style={{ padding:'0 20px 16px', display:'flex', gap:8, overflowX:'auto' }}>
@@ -93,6 +134,17 @@ export function NewsPage() {
 
       {/* Content */}
       <div style={{ padding:'0 20px', display:'flex', flexDirection:'column', gap:10 }}>
+        {!loading && !error && category === 'relevant' && filtered.length > 0 && (
+          <div className="app-card" style={{ borderLeft:'4px solid var(--accent)' }}>
+            <p style={{ fontSize:12, fontWeight:700, color:'var(--accent)', marginBottom:6 }}>
+              🔥 Wichtig heute
+            </p>
+            <p style={{ fontSize:16, fontWeight:700, color:'var(--primary)' }}>
+              {filtered[0].title}
+            </p>
+          </div>
+        )}
+
         {loading && Array.from({length:5}).map((_,i)=>(
           <div key={i} className="app-card" style={{ padding:20 }}>
             <div style={{ display:'flex',gap:8,marginBottom:10 }}>
@@ -124,9 +176,9 @@ export function NewsPage() {
                 </span>
                 <span style={{ fontSize:11,color:'var(--tertiary)' }}>{timeAgo(item.pubDate)}</span>
               </div>
-              <p style={{ fontSize:15,fontWeight:600,color:'var(--primary)',lineHeight:1.4,marginBottom:6 }}>{item.title}</p>
+              <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)',lineHeight:1.4,marginBottom:6 }}>{item.title}</p>
               {item.description && (
-                <p style={{ fontSize:13,color:'var(--secondary)',lineHeight:1.5,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden' }}>
+                <p style={{ fontSize:13,color:'var(--secondary)',lineHeight:1.5,display:'-webkit-box',WebkitLineClamp:4,WebkitBoxOrient:'vertical',overflow:'hidden' }}>
                   {item.description}
                 </p>
               )}
@@ -159,15 +211,39 @@ export function NewsPage() {
               <p style={{ fontSize:18,fontWeight:700,color:'var(--primary)',lineHeight:1.4 }}>{selected.title}</p>
             </div>
             {selected.description && (
-              <div className="app-card" style={{ marginBottom:16 }}>
+              <div className="app-card" style={{ marginBottom:0 }}>
                 <p style={{ fontSize:15,color:'var(--secondary)',lineHeight:1.7 }}>{selected.description}</p>
                 <p style={{ fontSize:12,color:'var(--tertiary)',marginTop:10,fontStyle:'italic' }}>Zusammenfassung — vollständigen Artikel beim Anbieter lesen.</p>
               </div>
             )}
-            <button onClick={()=>{ setBrowser({url:selected.link,title:selected.title}); setSelected(null) }}
-              className="btn-primary">
-              Vollständigen Artikel lesen
-            </button>
+            {selected.description && (
+              <div style={{
+                marginTop:16,
+                padding:'12px 14px',
+                borderRadius:14,
+                background:'var(--bg)',
+                display:'flex',
+                justifyContent:'space-between',
+                alignItems:'center'
+              }}>
+                <span style={{ fontSize:12, color:'var(--secondary)' }}>
+                  Quelle: {selected.source}
+                </span>
+                <a
+                  href={selected.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize:12,
+                    fontWeight:600,
+                    color:'var(--accent)',
+                    textDecoration:'none'
+                  }}
+                >
+                  Original öffnen
+                </a>
+              </div>
+            )}
           </div>
         </div>
       )}
