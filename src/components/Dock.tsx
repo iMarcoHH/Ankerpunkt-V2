@@ -34,7 +34,7 @@ export function Dock() {
       }}>
         <div style={{
           display: 'flex',
-          height: 50,
+          height: 42,
         }}>
           {PRIMARY_TABS.map(tab => {
             const active = tab.id === 'mehr'
@@ -54,7 +54,7 @@ export function Dock() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 3,
+                  gap: 1,
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
@@ -64,9 +64,9 @@ export function Dock() {
               >
                 {/* Icon Container */}
                 <div style={{
-                  width: 40,
-                  height: 24,
-                  borderRadius: 12,
+                  width: 36,
+                  height: 20,
+                  borderRadius: 10,
                   background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
@@ -74,8 +74,8 @@ export function Dock() {
                   transition: 'background 0.2s',
                 }}>
                   <tab.Icon
-                    width={22}
-                    height={22}
+                    width={20}
+                    height={20}
                     strokeWidth={active ? 2.2 : 1.5}
                     style={{
                       color: active ? 'var(--accent)' : '#8A8A8E',
@@ -86,7 +86,7 @@ export function Dock() {
 
                 {/* Label */}
                 <span style={{
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: active ? 600 : 400,
                   color: active ? 'var(--accent)' : '#8A8A8E',
                   letterSpacing: '-0.01em',
