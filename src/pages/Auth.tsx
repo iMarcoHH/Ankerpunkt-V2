@@ -41,7 +41,7 @@ export function AuthPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '0 24px',
+      padding: '48px 24px 140px',
     }}>
 
       {/* Logo + Headline */}
@@ -50,14 +50,16 @@ export function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          marginBottom: 40,
+          marginBottom: 64,
           textAlign: 'center',
+          width: '100%',
+          maxWidth: 400,
         }}
       >
         <div
           style={{
-            width: 112,
-            height: 112,
+            width: 84,
+            height: 84,
             borderRadius: 28,
             background: '#FFFFFF',
             display: 'flex',
@@ -71,8 +73,8 @@ export function AuthPage() {
             src="/favicon.png"
             alt="Ankerpunkt"
             style={{
-              width: 68,
-              height: 68,
+              width: 48,
+              height: 48,
               objectFit: 'contain',
             }}
           />
@@ -80,11 +82,12 @@ export function AuthPage() {
 
         <h1
           style={{
-            fontSize: 34,
+            fontSize: 44,
             fontWeight: 800,
             color: '#0F2238',
-            letterSpacing: '-0.05em',
-            marginBottom: 10,
+            letterSpacing: '-0.06em',
+            marginBottom: 12,
+            lineHeight: 1,
           }}
         >
           ANKERPUNKT
@@ -92,15 +95,18 @@ export function AuthPage() {
 
         <p
           style={{
-            fontSize: 16,
-            color: 'var(--secondary)',
+            fontSize: 18,
+            color: '#64748B',
             fontWeight: 500,
+            lineHeight: 1.5,
+            margin: 0,
           }}
         >
-          Deine Finanzen im sicheren Hafen.
+          Deine Finanzen.<br />
+          Ein Ort für alles.
         </p>
 
-        <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto' }}>
+        <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto', padding: '32px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -208,7 +214,13 @@ export function AuthPage() {
         initial={{ opacity:0 }}
         animate={{ opacity:1 }}
         transition={{ delay:0.4 }}
-        style={{ fontSize:12, color:'var(--tertiary)', marginTop:24, textAlign:'center', lineHeight:1.7 }}
+        style={{
+          fontSize: 11,
+          color: '#94A3B8',
+          marginTop: 28,
+          textAlign: 'center',
+          lineHeight: 1.8,
+        }}
       >
         Deine Daten sind sicher gespeichert.<br/>
         Keine Weitergabe an Dritte.
