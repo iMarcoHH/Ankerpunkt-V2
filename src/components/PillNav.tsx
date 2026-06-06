@@ -110,7 +110,7 @@ export function PillNav() {
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             padding: '8px',
-            gap: 0,
+            gap: 2,
             borderRadius: 32,
             boxShadow: '0 12px 40px rgba(15,23,42,0.12)',
           }}
@@ -162,7 +162,7 @@ export function PillNav() {
               onClick={() => setGridOpen(v => !v)}
               className="relative flex flex-col items-center justify-center rounded-3xl"
               style={{
-                width: 72,
+                width: 84,
                 height: 64,
                 color: '#E5483F',
               }}
@@ -174,7 +174,7 @@ export function PillNav() {
                 style={{ background: 'rgba(229,72,63,0.10)' }}
                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
-              <currentTab.Icon className="w-5 h-5 relative z-10" />
+              <currentTab.Icon className="w-[22px] h-[22px] relative z-10" />
               <span className="text-[11px] font-medium relative z-10 mt-1">{currentTab.label}</span>
             </motion.button>
           ) : (
@@ -182,7 +182,7 @@ export function PillNav() {
               onClick={() => setGridOpen(v => !v)}
               className="relative flex flex-col items-center justify-center rounded-3xl"
               style={{
-                width: 72,
+                width: 84,
                 height: 64,
                 color: gridOpen ? '#E5483F' : '#7C8799',
               }}
@@ -196,8 +196,8 @@ export function PillNav() {
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
               )}
-              <Grid className="w-5 h-5 relative z-10" />
-              <span className="text-[11px] font-medium relative z-10 mt-1">Mehr</span>
+              <Grid className="w-[22px] h-[22px] relative z-10" />
+              <span className="text-[10px] font-medium relative z-10 mt-1">Mehr</span>
             </motion.button>
           )}
         </motion.div>
