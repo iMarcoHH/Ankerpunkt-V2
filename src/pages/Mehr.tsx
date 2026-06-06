@@ -38,6 +38,7 @@ export function MehrPage() {
     setScoreLoading(true)
     supabase.rpc('get_financial_health_score', { p_user_id: userId })
       .then(({ data }) => { if (data) setScore(data) })
+      .catch(() => {})
       .finally(() => setScoreLoading(false))
   }, [userId])
 

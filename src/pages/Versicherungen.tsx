@@ -194,7 +194,7 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
   useState(() => {
     supabase.from('insurance_providers').select('*').order('name').then(({ data }) => {
       if (data) setProviders(data)
-    })
+    }).catch(() => {})
   })
 
   const filteredProviders = providers.filter(p =>
