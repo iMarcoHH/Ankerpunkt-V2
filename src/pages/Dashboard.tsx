@@ -102,50 +102,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Monatsfortschritt */}
-      <div style={{ padding:'0 20px 20px' }}>
-        <div className="app-card">
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-            <h2 className="section-title" style={{ marginBottom:0 }}>Monatsfortschritt</h2>
-            <span style={{ fontSize:13, fontWeight:700, color:'var(--accent)' }}>
-              {Math.max(0, savings)}%
-            </span>
-          </div>
-
-          <div style={{ width:'100%', height:10, background:'var(--bg)', borderRadius:999, overflow:'hidden', marginBottom:18 }}>
-            <div
-              style={{
-                width:`${Math.min(100, Math.max(0, savings))}%`,
-                height:'100%',
-                background:'var(--accent)',
-                borderRadius:999,
-              }}
-            />
-          </div>
-
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ display:'flex', justifyContent:'space-between' }}>
-              <span style={{ color:'var(--secondary)', fontSize:14 }}>Einnahmen</span>
-              <strong>{fmt(income)}</strong>
-            </div>
-
-            <div style={{ display:'flex', justifyContent:'space-between' }}>
-              <span style={{ color:'var(--secondary)', fontSize:14 }}>Ausgaben</span>
-              <strong>{fmt(expense)}</strong>
-            </div>
-
-            <div style={{ height:1, background:'var(--border)' }} />
-
-            <div style={{ display:'flex', justifyContent:'space-between' }}>
-              <span style={{ color:'var(--primary)', fontSize:14, fontWeight:600 }}>Verfügbar</span>
-              <strong style={{ color: balance >= 0 ? 'var(--success)' : 'var(--accent)' }}>
-                {fmt(balance)}
-              </strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Auf einen Blick */}
       <div style={{ padding:'0 20px 20px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
