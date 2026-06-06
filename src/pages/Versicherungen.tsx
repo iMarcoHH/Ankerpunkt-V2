@@ -17,6 +17,12 @@ export function VersicherungenPage() {
   const monthlyTotal = insurances.reduce((s,i) => s+(i.recurrence==='monthly'?i.amount:i.amount/12), 0)
   const yearlyTotal  = monthlyTotal * 12
 
+  const mostExpensive = insurances.reduce((max, current) => {
+    const currentMonthly = current.recurrence === 'monthly' ? current.amount : current.amount / 12
+    const maxMonthly = max ? (max.recurrence === 'monthly' ? max.amount : max.amount / 12) : 0
+    return currentMonthly > maxMonthly ? current : max
+  }, insurances[0])
+
   const coreCategories = ['Haftpflicht','Kranken','Hausrat','Berufsunfähigkeit']
   const existingCategories = insurances.map(i => i.category)
   const missingCategories = coreCategories.filter(c => !existingCategories.includes(c))
@@ -48,7 +54,20 @@ export function VersicherungenPage() {
           </p>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+        {mostExpensive && (
+          <div className="app-card" style={{ padding:16 }}>
+            <p style={{ fontSize:12,color:'var(--tertiary)',marginBottom:6 }}>
+              💸 Teuerste Versicherung
+            </p>
+            <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)' }}>
+              {mostExpensive.name}
+            </p>
+            <p style={{ fontSize:13,color:'var(--secondary)',marginTop:2 }}>
+              {mostExpensive.provider || 'Kein Anbieter'}
+            </p>
+          </div>
+        )}
           <div className="app-card" style={{ padding:16 }}>
             <p style={{ fontSize:12,color:'var(--tertiary)',marginBottom:6 }}>Verträge</p>
             <p style={{ fontSize:22,fontWeight:800,color:'var(--primary)' }}>{insurances.length}</p>
@@ -113,13 +132,13 @@ export function VersicherungenPage() {
                 <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20 }}>
                   {CAT_ICONS[ins.category??''] ?? '🛡️'}
                 </div>
-                <div style={{ flex:1,minWidth:0 }}>
+                <div style={{ flex:1,minWidth:0,paddingRight:12 }}>
                   <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)',marginBottom:2 }}>{ins.name}</p>
                   <p style={{ fontSize:13,color:'var(--tertiary)' }}>
                     {ins.provider || 'Kein Anbieter'} · {ins.recurrence==='yearly'?'jährlich':'monatlich'}
                   </p>
                 </div>
-                <div style={{ textAlign:'right',flexShrink:0 }}>
+                <div style={{ textAlign:'right',flexShrink:0,minWidth:90 }}>
                   <p style={{ fontSize:17,fontWeight:800,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
                   <p style={{ fontSize:11,color:'var(--tertiary)' }}>{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</p>
                 </div>
