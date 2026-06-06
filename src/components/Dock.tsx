@@ -64,8 +64,8 @@ export function Dock() {
               >
                 {/* Icon Container */}
                 <div style={{
-                  width: 20,
-                  height: 24,
+                  width: 30,
+                  height: 15,
                   borderRadius: 12,
                   background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
                   display: 'flex',
