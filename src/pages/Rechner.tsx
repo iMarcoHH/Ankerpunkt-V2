@@ -14,17 +14,47 @@ export function RechnerPage() {
         <h1 className="page-title">Rechner</h1>
       </div>
 
-      {/* Mode Tabs */}
-      <div style={{ padding:'0 20px 20px', display:'flex', gap:8, overflowX:'auto' }}>
-        {([['kredit','Kredit'],['zins','Zinsen'],['waehrung','Währung'],['sparplan','Sparplan']] as const).map(([v,l])=>(
-          <button key={v} onClick={()=>setMode(v)}
-            style={{ padding:'7px 16px',borderRadius:20,fontSize:13,fontWeight:500,cursor:'pointer',border:'none',whiteSpace:'nowrap',flexShrink:0,
-                     background:mode===v?'var(--accent)':'var(--surface)',
-                     color:mode===v?'white':'var(--secondary)',
-                     boxShadow:mode===v?'0 4px 12px rgba(229,72,63,.25)':'var(--shadow-sm)' }}>
-            {l}
-          </button>
-        ))}
+      {/* Rechner Auswahl */}
+      <div style={{ padding:'0 20px 20px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+          {[
+            ['kredit','💳','Kredit'],
+            ['zins','📈','Zinseszins'],
+            ['sparplan','💰','Sparplan'],
+            ['waehrung','🌍','Währung']
+          ].map(([v,icon,label]) => (
+            <button
+              key={v}
+              onClick={() => setMode(v as Mode)}
+              className="app-card"
+              style={{
+                padding:16,
+                border:'none',
+                cursor:'pointer',
+                textAlign:'left',
+                background: mode===v ? 'rgba(229,72,63,0.08)' : undefined,
+                outline: mode===v ? '2px solid rgba(229,72,63,0.15)' : 'none'
+              }}
+            >
+              <div style={{ fontSize:24, marginBottom:8 }}>{icon}</div>
+              <p style={{ fontSize:14, fontWeight:700, color:'var(--primary)' }}>{label}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding:'0 20px 20px' }}>
+        <div className="app-card" style={{ padding:18 }}>
+          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:600,marginBottom:6 }}>
+            Finanzrechner
+          </p>
+          <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)',marginBottom:4 }}>
+            Schnell berechnen statt schätzen
+          </p>
+          <p style={{ fontSize:13,color:'var(--secondary)' }}>
+            Praktische Finanzrechner für Kredit, Vermögensaufbau und Währungen.
+          </p>
+        </div>
       </div>
 
       <div style={{ padding:'0 20px' }}>
@@ -39,9 +69,9 @@ export function RechnerPage() {
 
 function Card({ label, value, sub }: { label:string; value:string; sub?:string }) {
   return (
-    <div className="app-card" style={{ textAlign:'center',marginTop:4 }}>
+    <div className="app-card" style={{ textAlign:'center',marginTop:8 }}>
       <p style={{ fontSize:13,color:'var(--tertiary)',marginBottom:6 }}>{label}</p>
-      <p style={{ fontSize:36,fontWeight:800,color:'var(--accent)',letterSpacing:'-0.03em' }}>{value}</p>
+      <p style={{ fontSize:42,fontWeight:800,color:'var(--accent)',letterSpacing:'-0.03em' }}>{value}</p>
       {sub && <p style={{ fontSize:13,color:'var(--tertiary)',marginTop:4 }}>{sub}</p>}
     </div>
   )
@@ -80,7 +110,7 @@ function KreditRechner() {
       <Field label="Laufzeit (Jahre)" value={laufzeit} onChange={setLaufzeit} placeholder="5"/>
       {r && (
         <>
-          <Card label="Monatliche Rate" value={fmt(r.rate)}/>
+          <Card label="Monatliche Kreditrate" value={fmt(r.rate)}/>
           <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
             <div className="app-card" style={{ textAlign:'center',padding:16 }}>
               <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gesamtkosten</p>
@@ -117,7 +147,7 @@ function ZinsRechner() {
       <Field label="Laufzeit (Jahre)" value={jahre} onChange={setJahre} placeholder="10"/>
       {r && (
         <>
-          <Card label="Endkapital (Zinseszins)" value={fmt(r.endKapital)}/>
+          <Card label="Endkapital" value={fmt(r.endKapital)}/>
           <div className="app-card" style={{ textAlign:'center',padding:16 }}>
             <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gewinn</p>
             <p style={{ fontSize:22,fontWeight:700,color:'var(--success)' }}>+{fmt(r.gewinn)}</p>
@@ -129,7 +159,7 @@ function ZinsRechner() {
 }
 
 function WaehrungsRechner() {
-  const RATES: Record<string,number> = { EUR:1, USD:1.08, GBP:0.86, CHF:0.96, JPY:160, SEK:11.2, NOK:11.5, DKK:7.46 }
+  const RATES: Record<string,number> = { EUR:1, USD:1.08, GBP:0.86, CHF:0.96, JPY:160, SEK:11.2, NOK:11.5, DKK:7.46, CAD:1.47, AUD:1.66 }
   const [amount, setAmount] = useState('')
   const [from,   setFrom]   = useState('EUR')
   const [to,     setTo]     = useState('USD')
@@ -176,6 +206,12 @@ function SparplanRechner() {
       {res && (
         <>
           <Card label="Endkapital" value={fmt(res.endKapital)}/>
+          <div className="app-card" style={{ textAlign:'center',padding:14 }}>
+            <p style={{ fontSize:12,color:'var(--tertiary)',marginBottom:4 }}>Rendite</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--success)' }}>
+              {fmtPct((res.gewinn / res.eingezahlt) * 100)}
+            </p>
+          </div>
           <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
             <div className="app-card" style={{ textAlign:'center',padding:16 }}>
               <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Eingezahlt</p>
