@@ -5,159 +5,103 @@ import { Trophy, Flame, Star, Lock } from 'lucide-react'
 
 export function GamificationPage() {
   const { achievements, profile } = useStore()
-  const xp        = profile?.xp    ?? 0
-  const level     = profile?.level ?? 1
-  const xpToNext  = level * 100
-  const xpPct     = Math.min(100, Math.round(xp / xpToNext * 100))
-  const unlockedKeys = new Set(achievements.map(a => a.key))
-  const streak    = 0 // TODO: streak tracking
+  const xp           = (profile as any)?.xp    ?? 0
+  const level        = (profile as any)?.level ?? 1
+  const xpToNext     = level * 100
+  const xpPct        = Math.min(100, Math.round(xp / xpToNext * 100))
+  const unlockedKeys = new Set(achievements.map((a: any) => a.key))
+  const streak       = parseInt(localStorage.getItem(`streak_count_${(profile as any)?.id}`) ?? '0')
   const totalAchievements = ACHIEVEMENT_DEFS.length
-  const completionPct = Math.round((achievements.length / totalAchievements) * 100)
-  const bronzeCount = Math.min(achievements.length, 4)
-  const silverCount = Math.max(0, Math.min(achievements.length - 4, 3))
-  const goldCount = Math.max(0, Math.min(achievements.length - 7, 2))
-  const diamondCount = Math.max(0, achievements.length - 9)
+  const completionPct     = Math.round((achievements.length / totalAchievements) * 100)
 
   return (
-    <div className="p-5 space-y-5 pb-8">
-      <div className="pt-14">
-        <h1 className="font-display text-4xl tracking-widest text-white">Erfolge & Level</h1>
-        <p className="text-white/75 text-sm mt-1">Baue langfristige Finanzgewohnheiten auf und sammle XP.</p>
+    <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
+      <div style={{ padding:'56px 20px 16px' }}>
+        <h1 className="page-title">Erfolge & Level</h1>
+        <p style={{ fontSize:15, color:'var(--secondary)', marginTop:4 }}>Sammle XP und schalte Abzeichen frei.</p>
       </div>
 
-      <motion.div
-        initial={{ opacity:0,y:12 }}
-        animate={{ opacity:1,y:0 }}
-        className="relative overflow-hidden rounded-3xl p-6"
-        style={{
-          background:'linear-gradient(135deg,#1A2434 0%,#223247 55%,#2B3D52 100%)',
-          border:'1px solid rgba(232,168,50,0.15)'
-        }}
-      >
-        <div
-          className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-30"
-          style={{ background:'#E8A832', filter:'blur(60px)' }}
-        />
-
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <p className="text-white/60 text-xs uppercase tracking-[0.2em] mb-2">Dein Fortschritt</p>
-            <h2 className="text-white text-5xl font-bold">Level {level}</h2>
-            <p className="text-white text-base mt-1 font-medium">{xp} XP gesammelt</p>
+      {/* Level Card */}
+      <div style={{ padding:'0 20px 16px' }}>
+        <div className="accent-card">
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, position:'relative', zIndex:1 }}>
+            <div>
+              <p style={{ fontSize:13, color:'rgba(255,255,255,0.7)', marginBottom:4 }}>Dein Fortschritt</p>
+              <p style={{ fontSize:42, fontWeight:800, color:'white', letterSpacing:'-0.04em', lineHeight:1 }}>Level {level}</p>
+              <p style={{ fontSize:14, color:'rgba(255,255,255,0.8)', marginTop:4 }}>{xp} XP gesammelt</p>
+            </div>
+            <div style={{ width:56, height:56, borderRadius:18, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Trophy width={28} height={28} style={{ color:'white' }}/>
+            </div>
           </div>
-
-          <div
-            className="w-16 h-16 rounded-3xl flex items-center justify-center"
-            style={{ background:'rgba(232,168,50,0.18)' }}
-          >
-            <Trophy className="w-8 h-8" style={{ color:'#E8A832' }} />
+          <div style={{ position:'relative', zIndex:1 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+              <span style={{ fontSize:12, color:'rgba(255,255,255,0.7)' }}>Level {level}</span>
+              <span style={{ fontSize:12, color:'rgba(255,255,255,0.9)', fontWeight:600 }}>{xpToNext} XP</span>
+            </div>
+            <div style={{ height:8, borderRadius:4, background:'rgba(255,255,255,0.2)', overflow:'hidden' }}>
+              <motion.div style={{ height:'100%', borderRadius:4, background:'white' }}
+                initial={{ width:0 }} animate={{ width:`${xpPct}%` }} transition={{ duration:1 }}/>
+            </div>
+            <p style={{ fontSize:12, color:'rgba(255,255,255,0.7)', marginTop:6 }}>
+              Noch <span style={{ color:'white', fontWeight:700 }}>{Math.max(0, xpToNext - xp)} XP</span> bis Level {level + 1}
+            </p>
           </div>
         </div>
-
-        <div className="mb-2 flex justify-between text-sm">
-          <span className="text-white/80">Level {level}</span>
-          <span style={{ color:'#E8A832' }}>{xpToNext} XP</span>
-        </div>
-
-        <div className="h-4 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background:'linear-gradient(90deg,#E8A832,#F5C15A)' }}
-            initial={{ width:0 }}
-            animate={{ width:`${xpPct}%` }}
-            transition={{ duration:1 }}
-          />
-        </div>
-
-        <p className="text-white/70 text-sm mt-3">
-          Noch <span style={{ color:'#E8A832', fontWeight:700 }}>{Math.max(0, xpToNext - xp)} XP</span> bis Level {level + 1}
-        </p>
-      </motion.div>
-
-      {/* Streak + count */}
-      <div className="grid grid-cols-2 gap-3">
-        <motion.div initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.1 }}
-          className="ak-card p-5 flex flex-col items-center justify-center gap-2">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background:'rgba(200,57,43,0.15)' }}>
-            <Flame className="w-5 h-5 text-red"/>
-          </div>
-          <p className="text-4xl font-display tracking-wide text-white">{streak}</p>
-          <p className="text-xs text-white/60 uppercase tracking-wider">Tage Streak</p>
-        </motion.div>
-        <motion.div initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.15 }}
-          className="ak-card p-5 flex flex-col items-center justify-center gap-2">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background:'rgba(232,168,50,0.15)' }}>
-            <Star className="w-5 h-5" style={{ color:'#E8A832' }}/>
-          </div>
-          <p className="text-4xl font-display tracking-wide text-white">{achievements.length}</p>
-          <p className="text-xs text-white/60 uppercase tracking-wider">Abzeichen</p>
-        </motion.div>
       </div>
 
-      <div className="ak-card p-5">
-        <p className="text-white text-lg font-semibold mb-2">🎯 Nächstes Level</p>
-        <p className="text-white/80 text-sm">
-          Noch {Math.max(0, xpToNext - xp)} XP bis Level {level + 1}.
-        </p>
+      {/* Stats */}
+      <div style={{ padding:'0 20px 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+        <div className="app-card" style={{ padding:20, textAlign:'center' }}>
+          <div style={{ width:44, height:44, borderRadius:14, background:'rgba(229,72,63,0.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 10px' }}>
+            <Flame width={22} height={22} style={{ color:'var(--accent)' }}/>
+          </div>
+          <p style={{ fontSize:28, fontWeight:800, color:'var(--primary)', letterSpacing:'-0.03em' }}>{streak}</p>
+          <p style={{ fontSize:12, color:'var(--tertiary)', marginTop:2 }}>Tage Streak</p>
+        </div>
+        <div className="app-card" style={{ padding:20, textAlign:'center' }}>
+          <div style={{ width:44, height:44, borderRadius:14, background:'rgba(245,158,11,0.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 10px' }}>
+            <Star width={22} height={22} style={{ color:'var(--warning)' }}/>
+          </div>
+          <p style={{ fontSize:28, fontWeight:800, color:'var(--primary)', letterSpacing:'-0.03em' }}>{achievements.length}</p>
+          <p style={{ fontSize:12, color:'var(--tertiary)', marginTop:2 }}>Abzeichen</p>
+        </div>
       </div>
 
-      <motion.div
-        initial={{ opacity:0,y:12 }}
-        animate={{ opacity:1,y:0 }}
-        transition={{ delay:0.18 }}
-        className="ak-card p-5"
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-white text-sm font-semibold">Abzeichen-Fortschritt</p>
-            <p className="text-white text-2xl font-semibold">{completionPct}%</p>
+      {/* Fortschritt */}
+      <div style={{ padding:'0 20px 16px' }}>
+        <div className="app-card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <p style={{ fontSize:16, fontWeight:700, color:'var(--primary)' }}>Abzeichen-Fortschritt</p>
+            <p style={{ fontSize:20, fontWeight:800, color:'var(--warning)' }}>{completionPct}%</p>
           </div>
-          <Trophy className="w-8 h-8" style={{ color:'#E8A832' }} />
+          <div style={{ height:8, borderRadius:4, background:'var(--bg)', overflow:'hidden', marginBottom:6 }}>
+            <div style={{ height:'100%', borderRadius:4, background:'var(--warning)', width:`${completionPct}%`, transition:'width 1s ease' }}/>
+          </div>
+          <p style={{ fontSize:13, color:'var(--tertiary)' }}>
+            {achievements.length} von {totalAchievements} Abzeichen freigeschaltet
+          </p>
         </div>
+      </div>
 
-        <div className="h-3 rounded-full overflow-hidden" style={{ background:'rgba(61,81,102,0.4)' }}>
-          <div
-            className="h-full rounded-full"
-            style={{
-              width:`${completionPct}%`,
-              background:'linear-gradient(90deg,#E8A832,#f0b84a)'
-            }}
-          />
-        </div>
-
-        <p className="text-white text-sm mt-3">
-          {achievements.length} von {totalAchievements} Abzeichen freigeschaltet
-        </p>
-      </motion.div>
-
-      {/* Badges grid */}
-      <div>
-        <h2 className="font-display text-2xl tracking-widest text-white mb-3">Erfolge & Abzeichen</h2>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Badges Grid */}
+      <div style={{ padding:'0 20px 20px' }}>
+        <p style={{ fontSize:20, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>Alle Abzeichen</p>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
           {ACHIEVEMENT_DEFS.map((def, i) => {
             const unlocked = unlockedKeys.has(def.key)
             return (
-              <motion.div key={def.key} initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.2+i*0.05 }}
-                className="ak-card p-5 flex flex-col items-center text-center gap-3"
-                style={{ border: unlocked ? '1px solid rgba(232,168,50,0.3)' : '1px solid rgba(255,255,255,0.08)', opacity: unlocked ? 1 : 0.75 }}>
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
-                     style={{ background: unlocked ? 'rgba(232,168,50,0.15)' : 'rgba(61,81,102,0.3)' }}>
-                  {unlocked ? def.icon : <Lock className="w-5 h-5 text-white/60"/>}
+              <motion.div key={def.key}
+                initial={{ opacity:0, scale:0.95 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.1+i*0.04 }}
+                className="app-card"
+                style={{ textAlign:'center', padding:20, opacity: unlocked ? 1 : 0.45,
+                         border: unlocked ? '1.5px solid rgba(245,158,11,0.3)' : '1px solid var(--border)' }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>
+                  {unlocked ? def.icon : <Lock width={24} height={24} style={{ color:'var(--tertiary)', margin:'0 auto' }}/>}
                 </div>
-                <div>
-                  <p className="font-semibold text-sm text-white leading-snug">{def.label}</p>
-                  <p className="text-sm text-white mt-2 leading-relaxed">{def.desc}</p>
-                  {!unlocked && (
-                    <p className="text-[10px] mt-2" style={{ color:'#E8A832' }}>
-                      Belohnung: +{def.xp} XP
-                    </p>
-                  )}
-                </div>
-                {unlocked && (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background:'rgba(232,168,50,0.15)', color:'#E8A832' }}>
-                    +{def.xp} XP
-                  </span>
-                )}
+                <p style={{ fontSize:13, fontWeight:700, color:'var(--primary)', marginBottom:4 }}>{def.label}</p>
+                <p style={{ fontSize:12, color:'var(--secondary)', lineHeight:1.4 }}>{def.desc}</p>
+                <p style={{ fontSize:11, fontWeight:600, color:'var(--warning)', marginTop:8 }}>+{def.xp} XP</p>
               </motion.div>
             )
           })}
