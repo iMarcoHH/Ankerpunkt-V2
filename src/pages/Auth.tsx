@@ -48,32 +48,13 @@ export function AuthPage() {
         initial={{ opacity:0, y:-16 }}
         animate={{ opacity:1, y:0 }}
         transition={{ duration:0.5 }}
-        style={{ textAlign:'center', paddingTop:72, paddingBottom:32 }}
+        style={{ textAlign:'center', paddingTop:64, paddingBottom:36 }}
       >
-        <div style={{
-          width: 88, height: 88,
-          borderRadius: 28,
-          background: 'var(--accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 20px',
-          boxShadow: '0 12px 40px rgba(229,72,63,.25)',
-        }}>
-          <svg width="48" height="48" viewBox="0 0 52 52" fill="none">
-            <circle cx="26" cy="10" r="5" stroke="white" strokeWidth="2.5"/>
-            <circle cx="26" cy="10" r="2" fill="white"/>
-            <line x1="26" y1="15" x2="26" y2="44" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            <line x1="12" y1="24" x2="40" y2="24" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            <path d="M12 24 Q8 32 12 36 Q17 40 26 42 Q35 40 40 36 Q44 32 40 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            <circle cx="12" cy="36" r="3" fill="white"/>
-            <circle cx="40" cy="36" r="3" fill="white"/>
-          </svg>
-        </div>
-        <h1 style={{ fontSize:28, fontWeight:800, color:'#0F172A', letterSpacing:'-0.03em', marginBottom:6 }}>
-          Ankerpunkt
-        </h1>
-        <p style={{ fontSize:15, color:'#64748B' }}>
-          Deine Finanzen im sicheren Hafen.
-        </p>
+        <img
+          src="/header.png"
+          alt="Ankerpunkt"
+          style={{ width:220, height:'auto', display:'block', margin:'0 auto' }}
+        />
       </motion.div>
 
       {/* Login Card */}
