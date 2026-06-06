@@ -41,7 +41,7 @@ export function AuthPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px 24px 80px',
+      padding: '8px 24px 80px',
     }}>
 
       {/* Logo + Headline */}
@@ -50,7 +50,7 @@ export function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         style={{
-          marginBottom: 24,
+          marginBottom: 8,
           textAlign: 'center',
           width: '100%',
           maxWidth: 400,
@@ -61,10 +61,11 @@ export function AuthPage() {
           alt="Ankerpunkt"
           style={{
             width: '100%',
-            maxWidth: 340,
+            maxWidth: 240,
             height: 'auto',
             display: 'block',
             margin: '0 auto',
+            marginBottom: '-8px',
           }}
         />
 
