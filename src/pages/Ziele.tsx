@@ -41,7 +41,7 @@ export function ZielePage() {
       <div style={{ padding:'56px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
         <h1 className="page-title">Sparziele</h1>
         <button onClick={()=>setAdd(true)}
-          style={{ width:40,height:40,borderRadius:12,background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',marginTop:4 }}>
+          style={{ width:44,height:44,borderRadius:14,background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',marginTop:4 }}>
           <Plus width={20} height={20} style={{ color:'white' }}/>
         </button>
       </div>
@@ -52,7 +52,7 @@ export function ZielePage() {
           <div className="app-card">
             <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12 }}>
               <div>
-                <p style={{ fontSize:13,color:'var(--tertiary)',marginBottom:4 }}>Gesamt gespart</p>
+                <p style={{ fontSize:13,color:'var(--tertiary)',marginBottom:4 }}>Zielübersicht</p>
                 <p style={{ fontSize:28,fontWeight:800,color:'var(--success)',letterSpacing:'-0.02em' }}>{fmt(totalCurrent)}</p>
                 <p style={{ fontSize:13,color:'var(--tertiary)' }}>von {fmt(totalTarget)}</p>
               </div>
@@ -67,6 +67,18 @@ export function ZielePage() {
             <p style={{ fontSize:12,color:'var(--tertiary)',marginTop:6 }}>
               {totalTarget>0?((totalCurrent/totalTarget)*100).toFixed(0):0}% erreicht · {goals.length} Ziele
             </p>
+            <div style={{
+              marginTop:12,
+              display:'flex',
+              justifyContent:'space-between',
+              alignItems:'center',
+              padding:'10px 12px',
+              borderRadius:12,
+              background:'var(--bg)'
+            }}>
+              <span style={{ fontSize:12, color:'var(--secondary)' }}>Noch offen</span>
+              <strong style={{ color:'var(--primary)' }}>{fmt(Math.max(0,totalTarget-totalCurrent))}</strong>
+            </div>
           </div>
         </div>
       )}
@@ -90,11 +102,25 @@ export function ZielePage() {
               <div className="app-card">
                 <div style={{ display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12 }}>
                   <div style={{ display:'flex',alignItems:'center',gap:12 }}>
-                    <div style={{ width:44,height:44,borderRadius:14,background:completed?'rgba(34,197,94,0.1)':'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20 }}>
+                    <div style={{ width:52,height:52,borderRadius:16,background:completed?'rgba(34,197,94,0.1)':'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20 }}>
                       {completed ? '🏆' : '🎯'}
                     </div>
                     <div>
                       <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)' }}>{goal.name}</p>
+                      {completed && (
+                        <span style={{
+                          display:'inline-block',
+                          marginTop:4,
+                          padding:'2px 8px',
+                          borderRadius:999,
+                          background:'rgba(34,197,94,0.12)',
+                          color:'var(--success)',
+                          fontSize:11,
+                          fontWeight:700
+                        }}>
+                          Abgeschlossen
+                        </span>
+                      )}
                       {goal.deadline && <p style={{ fontSize:12,color:'var(--tertiary)' }}>bis {new Date(goal.deadline).toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</p>}
                     </div>
                   </div>
@@ -113,7 +139,7 @@ export function ZielePage() {
                     initial={{width:0}} animate={{width:`${pct}%`}} transition={{duration:0.8,delay:i*0.1}}/>
                 </div>
                 <div style={{ display:'flex',justifyContent:'space-between',marginBottom:16 }}>
-                  <p style={{ fontSize:12,color:'var(--tertiary)' }}>{pct.toFixed(0)}% erreicht</p>
+                  <p style={{ fontSize:12,color:'var(--tertiary)' }}>Fortschritt: {pct.toFixed(0)}%</p>
                   {!completed && <p style={{ fontSize:12,color:'var(--tertiary)' }}>{fmt(goal.target_amount-goal.current_amount)} fehlen noch</p>}
                 </div>
 
@@ -131,7 +157,7 @@ export function ZielePage() {
                       style={{ height:44,flex:1 }}
                       value={dep[goal.id]??''} onChange={e=>setDep(d=>({...d,[goal.id]:e.target.value}))}/>
                     <div style={{ display:'flex',gap:6 }}>
-                      {[50,100,500].map(v=>(
+                      {[25,50,100].map(v=>(
                         <button key={v} onClick={()=>setDep(d=>({...d,[goal.id]:String(v)}))}
                           style={{ height:44,padding:'0 10px',borderRadius:12,background:'var(--bg)',border:'1px solid var(--border)',color:'var(--secondary)',fontSize:12,fontWeight:500,cursor:'pointer',whiteSpace:'nowrap' }}>
                           +{v}
@@ -183,7 +209,7 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
       <div className="modal-sheet">
         <div style={{ width:36,height:4,borderRadius:2,background:'var(--border)',margin:'0 auto 20px' }}/>
         <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20 }}>
-          <span style={{ fontSize:20,fontWeight:800,color:'var(--primary)' }}>Neues Ziel</span>
+          <span style={{ fontSize:20,fontWeight:800,color:'var(--primary)' }}>Neues Sparziel</span>
           <button onClick={onClose} style={{ width:30,height:30,borderRadius:10,background:'var(--bg)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer' }}>
             <X width={16} height={16} style={{ color:'var(--secondary)' }}/>
           </button>
