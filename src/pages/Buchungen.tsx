@@ -62,7 +62,7 @@ export function BuchungenPage() {
       <div style={{ padding:'56px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
         <h1 className="page-title">Buchungen</h1>
         <button onClick={() => setAdd(true)}
-          style={{ width:40, height:40, borderRadius:12, background:'var(--accent)', border:'none',
+          style={{ width:48, height:48, borderRadius:16, background:'var(--accent)', border:'none',
                    display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', marginTop:4 }}>
           <Plus width={20} height={20} style={{ color:'white' }}/>
         </button>
@@ -87,7 +87,7 @@ export function BuchungenPage() {
           }}
         >
           <Search width={16} height={16} />
-          Suche
+          Filter & Suche
         </button>
       </div>
 
@@ -120,8 +120,7 @@ export function BuchungenPage() {
           </button>
 
           <div style={{ textAlign:'center' }}>
-            <p style={{ fontSize:12, color:'var(--tertiary)', marginBottom:2 }}>Zeitraum</p>
-            <p style={{ fontSize:17, fontWeight:800, color:'var(--primary)' }}>{MONTH_LONG[viewMonth]} {viewYear}</p>
+            <p style={{ fontSize:18, fontWeight:800, color:'var(--primary)' }}>{MONTH_LONG[viewMonth]} {viewYear}</p>
           </div>
 
           <button onClick={goToNextMonth} disabled={isNow}
@@ -132,7 +131,7 @@ export function BuchungenPage() {
       </div>
 
       {/* Summary Cards */}
-      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
         <div className="app-card" style={{ padding:16 }}>
           <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Einnahmen</p>
           <p style={{ fontSize:20, fontWeight:800, color:'var(--success)', letterSpacing:'-0.02em' }}>{fmt(income)}</p>
@@ -141,9 +140,14 @@ export function BuchungenPage() {
           <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Ausgaben</p>
           <p style={{ fontSize:20, fontWeight:800, color:'var(--accent)', letterSpacing:'-0.02em' }}>{fmt(expense)}</p>
         </div>
-        <div className="app-card" style={{ padding:16 }}>
-          <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Saldo</p>
-          <p style={{ fontSize:20, fontWeight:800, color: balance >= 0 ? 'var(--success)' : 'var(--accent)', letterSpacing:'-0.02em' }}>
+        <div className="app-card" style={{ padding:18, gridColumn:'1 / -1' }}>
+          <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Verfügbar</p>
+          <p style={{
+            fontSize:28,
+            fontWeight:800,
+            color: balance >= 0 ? 'var(--success)' : 'var(--accent)',
+            letterSpacing:'-0.03em'
+          }}>
             {fmt(balance)}
           </p>
         </div>
