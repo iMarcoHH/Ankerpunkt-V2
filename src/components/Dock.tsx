@@ -19,15 +19,18 @@ export function Dock() {
       {/* Nav Bar */}
       <div style={{
         position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
+        left: 12,
+        right: 12,
+        bottom: 12,
         zIndex: 50,
-        background: 'rgba(255,255,255,0.95)',
+        background: 'rgba(255,255,255,0.96)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '0.5px solid rgba(15,23,42,0.08)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        border: '1px solid rgba(15,23,42,0.06)',
+        borderRadius: 999,
+        boxShadow: '0 12px 32px rgba(15,23,42,0.10)',
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)',
+        overflow: 'hidden',
       }}>
         <div style={{
           display: 'flex',
