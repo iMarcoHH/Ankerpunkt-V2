@@ -63,7 +63,7 @@ export function DashboardPage() {
           </p>
           <h1 className="page-title">Deine Finanzen</h1>
         </div>
-        <div style={{ width:40, height:40, borderRadius:12, background:'var(--accent)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, boxShadow:'var(--shadow-sm)', marginTop:4 }}>
+        <div style={{ width:44, height:44, borderRadius:14, background:'var(--accent)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, boxShadow:'var(--shadow-sm)', marginTop:4 }}>
           {(firstName?.[0] || 'A').toUpperCase()}
         </div>
       </div>
@@ -185,7 +185,7 @@ export function DashboardPage() {
                   💳
                 </div>
                 <span style={{ flex:1, fontSize:15, fontWeight:500, color:'var(--primary)' }}>{desc}</span>
-                <span style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginRight:8 }}>{fmt(amount)} €</span>
+                <span style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginRight:8 }}>{fmt(amount)}</span>
                 <Arrow width={14} height={14} style={{ color:'var(--tertiary)' }}/>
               </div>
             ))}
