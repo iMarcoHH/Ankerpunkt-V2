@@ -10,6 +10,7 @@ import { VersicherungenPage } from './pages/Versicherungen'
 import { MehrPage }          from './pages/Mehr'
 import { RechnerPage }        from './pages/Rechner'
 import { NewsPage }           from './pages/News'
+import { LexikonPage }        from './pages/Lexikon'
 import { NotizenPage }        from './pages/Notizen'
 import { SteuerPage }        from './pages/Steuern'
 import { SchuldenPage }      from './pages/Schulden'
@@ -106,6 +107,7 @@ export default function App() {
       {activeTab === 'mehr'          && <MehrPage />}
       {activeTab === 'rechner'        && <RechnerPage />}
       {activeTab === 'news'           && <NewsPage />}
+      {activeTab === 'lexikon'        && <LexikonPage />}
       {activeTab === 'notizen'        && <NotizenPage />}
       {activeTab === 'steuern'       && <SteuerPage />}
         {activeTab === 'schulden'      && <SchuldenPage />}
