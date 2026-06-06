@@ -110,7 +110,7 @@ export function PillNav() {
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             padding: '8px',
-            gap: 2,
+            gap: 6,
             borderRadius: 32,
             boxShadow: '0 12px 40px rgba(15,23,42,0.12)',
           }}
@@ -156,13 +156,21 @@ export function PillNav() {
               </motion.button>
             )
           })}
-
+          <div
+            style={{
+              width: 1,
+              height: 36,
+              background: 'rgba(15,23,42,0.08)',
+              borderRadius: 999,
+              margin: '0 2px',
+            }}
+          />
           {isSecondary && currentTab ? (
             <motion.button
               onClick={() => setGridOpen(v => !v)}
               className="relative flex flex-col items-center justify-center rounded-3xl"
               style={{
-                width: 84,
+                width: 72,
                 height: 64,
                 color: '#E5483F',
               }}
@@ -182,7 +190,7 @@ export function PillNav() {
               onClick={() => setGridOpen(v => !v)}
               className="relative flex flex-col items-center justify-center rounded-3xl"
               style={{
-                width: 84,
+                width: 72,
                 height: 64,
                 color: gridOpen ? '#E5483F' : '#7C8799',
               }}
@@ -197,7 +205,7 @@ export function PillNav() {
                 />
               )}
               <Grid className="w-[22px] h-[22px] relative z-10" />
-              <span className="text-[10px] font-medium relative z-10 mt-1">Mehr</span>
+              <span className="text-[11px] font-medium relative z-10 mt-1">Mehr</span>
             </motion.button>
           )}
         </motion.div>
