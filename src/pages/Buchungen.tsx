@@ -44,6 +44,7 @@ export function BuchungenPage() {
 
   const income  = monthTx.filter(t=>t.type==='income') .reduce((s,t)=>s+t.amount,0)
   const expense = monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)
+  const balance = income - expense
 
   async function del(id: string) {
     if (userId) await supabase.from('transactions').delete().eq('id', id)
@@ -68,39 +69,70 @@ export function BuchungenPage() {
       </div>
 
       {/* Search */}
-      <div style={{ padding:'0 20px 16px' }}>
-        <div style={{ position:'relative' }}>
-          <Search width={16} height={16} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'var(--tertiary)' }}/>
-          <input
-            className="ak-input"
-            style={{ paddingLeft:40, height:44 }}
-            placeholder="Suchen..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer' }}>
-              <X width={14} height={14} style={{ color:'var(--tertiary)' }}/>
-            </button>
-          )}
+      <div style={{ padding:'0 20px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <button
+          onClick={() => setShowSearch(!showSearch)}
+          style={{
+            display:'flex',
+            alignItems:'center',
+            gap:8,
+            padding:'10px 14px',
+            borderRadius:14,
+            border:'none',
+            background:'var(--surface)',
+            boxShadow:'var(--shadow-sm)',
+            cursor:'pointer',
+            color:'var(--secondary)',
+            fontWeight:600,
+          }}
+        >
+          <Search width={16} height={16} />
+          Suche
+        </button>
+      </div>
+
+      {showSearch && (
+        <div style={{ padding:'0 20px 16px' }}>
+          <div style={{ position:'relative' }}>
+            <Search width={16} height={16} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'var(--tertiary)' }}/>
+            <input
+              className="ak-input"
+              style={{ paddingLeft:40, height:44 }}
+              placeholder="Suchen..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button onClick={() => setSearch('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer' }}>
+                <X width={14} height={14} style={{ color:'var(--tertiary)' }}/>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Monat Nav */}
+      <div style={{ padding:'0 20px 20px' }}>
+        <div className="app-card" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px' }}>
+          <button onClick={goToPrevMonth}
+            style={{ width:36, height:36, borderRadius:12, background:'var(--bg)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+
+          <div style={{ textAlign:'center' }}>
+            <p style={{ fontSize:12, color:'var(--tertiary)', marginBottom:2 }}>Zeitraum</p>
+            <p style={{ fontSize:17, fontWeight:800, color:'var(--primary)' }}>{MONTH_LONG[viewMonth]} {viewYear}</p>
+          </div>
+
+          <button onClick={goToNextMonth} disabled={isNow}
+            style={{ width:36, height:36, borderRadius:12, background:'var(--bg)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', opacity:isNow?0.3:1 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
         </div>
       </div>
 
-      {/* Monat Nav */}
-      <div style={{ padding:'0 20px 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <button onClick={goToPrevMonth}
-          style={{ width:32, height:32, borderRadius:10, background:'var(--surface)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <span style={{ fontSize:15, fontWeight:600, color:'var(--primary)' }}>{MONTH_LONG[viewMonth]} {viewYear}</span>
-        <button onClick={goToNextMonth} disabled={isNow}
-          style={{ width:32, height:32, borderRadius:10, background:'var(--surface)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', opacity:isNow?0.3:1 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-
       {/* Summary Cards */}
-      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+      <div style={{ padding:'0 20px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
         <div className="app-card" style={{ padding:16 }}>
           <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Einnahmen</p>
           <p style={{ fontSize:20, fontWeight:800, color:'var(--success)', letterSpacing:'-0.02em' }}>{fmt(income)}</p>
@@ -109,13 +141,19 @@ export function BuchungenPage() {
           <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Ausgaben</p>
           <p style={{ fontSize:20, fontWeight:800, color:'var(--accent)', letterSpacing:'-0.02em' }}>{fmt(expense)}</p>
         </div>
+        <div className="app-card" style={{ padding:16 }}>
+          <p style={{ fontSize:12, color:'var(--tertiary)', fontWeight:500, marginBottom:6 }}>Saldo</p>
+          <p style={{ fontSize:20, fontWeight:800, color: balance >= 0 ? 'var(--success)' : 'var(--accent)', letterSpacing:'-0.02em' }}>
+            {fmt(balance)}
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
       <div style={{ padding:'0 20px 16px', display:'flex', gap:8 }}>
         {([['all','Alle'],['income','Einnahmen'],['expense','Ausgaben'],['recurring','Wiederkehrend']] as const).map(([v,l]) => (
           <button key={v} onClick={() => setTab(v)}
-            style={{ padding:'7px 14px', borderRadius:20, fontSize:13, fontWeight:500, cursor:'pointer', border:'none', whiteSpace:'nowrap',
+            style={{ padding:'8px 12px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', whiteSpace:'nowrap',
                      background: tab===v ? 'var(--accent)' : 'var(--surface)',
                      color: tab===v ? 'white' : 'var(--secondary)',
                      boxShadow: tab===v ? '0 4px 12px rgba(229,72,63,.25)' : 'var(--shadow-sm)' }}>
@@ -163,19 +201,19 @@ export function BuchungenPage() {
               <SwipeTx key={tx.id} onDelete={() => del(tx.id)} onTap={() => setEditTx(tx)}>
                 <div style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 20px',
                                borderBottom: i<shown.length-1?'1px solid var(--border)':'none', background:'var(--surface)' }}>
-                  <div style={{ width:44, height:44, borderRadius:14,
+                  <div style={{ width:48, height:48, borderRadius:14,
                                 background: tx.type==='income'?'rgba(34,197,94,0.1)':'rgba(229,72,63,0.1)',
                                 display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20 }}>
                     {CAT_ICONS[tx.category] ?? (tx.type==='income'?'💰':'💳')}
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.description}</p>
+                    <p style={{ fontSize:16, fontWeight:700, color:'var(--primary)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{tx.description}</p>
                     <p style={{ fontSize:13, color:'var(--tertiary)' }}>
                       {tx.category} · {new Date(tx.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}
                     </p>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-                    <span style={{ fontSize:15, fontWeight:700, color: tx.type==='income'?'var(--success)':'var(--accent)' }}>
+                    <span style={{ fontSize:16, fontWeight:800, color: tx.type==='income'?'var(--success)':'var(--accent)' }}>
                       {tx.type==='income'?'+':'-'}{fmt(tx.amount)}
                     </span>
                     <Pencil width={12} height={12} style={{ color:'var(--tertiary)' }}/>
