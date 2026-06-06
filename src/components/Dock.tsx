@@ -38,7 +38,11 @@ export function Dock() {
         return (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id)
+              // Scroll to top on tab change
+              document.getElementById('root')?.scrollTo({ top: 0, behavior: 'instant' })
+            }}
             style={{
               flex: 1,
               display: 'flex',
