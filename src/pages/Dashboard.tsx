@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store'
-import { Bell, ChevronLeft, ChevronRight, ChevronRight as Arrow } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronRight as Arrow } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 const fmt = (v: number) =>
@@ -61,11 +61,11 @@ export function DashboardPage() {
           <p style={{ fontSize:15, color:'var(--secondary)', marginBottom:2 }}>
             Guten {new Date().getHours()<12?'Morgen':new Date().getHours()<18?'Tag':'Abend'}{firstName ? `, ${firstName}` : ''} 👋
           </p>
-          <h1 className="page-title">Übersicht</h1>
+          <h1 className="page-title">Deine Finanzen</h1>
         </div>
-        <button style={{ width:40, height:40, borderRadius:12, background:'var(--surface)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'var(--shadow-sm)', cursor:'pointer', marginTop:4 }}>
-          <Bell width={18} height={18} style={{ color:'var(--secondary)' }} strokeWidth={1.75}/>
-        </button>
+        <div style={{ width:40, height:40, borderRadius:12, background:'var(--accent)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, boxShadow:'var(--shadow-sm)', marginTop:4 }}>
+          {(firstName?.[0] || 'A').toUpperCase()}
+        </div>
       </div>
 
       {/* Hero Card */}
@@ -77,6 +77,9 @@ export function DashboardPage() {
           </p>
           <p style={{ fontSize:13, color:'rgba(255,255,255,0.65)', marginBottom:20, position:'relative', zIndex:1 }}>
             {MONTH_LONG[viewMonth]} {viewYear}
+          </p>
+          <p style={{ fontSize:13, color:'rgba(255,255,255,0.85)', marginBottom:20, position:'relative', zIndex:1, fontWeight:600 }}>
+            Sparquote {savings}%
           </p>
           <div style={{ display:'flex', gap:24, position:'relative', zIndex:1 }}>
             <div>
@@ -110,7 +113,7 @@ export function DashboardPage() {
         <div className="app-card" style={{ padding:0, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', overflow:'hidden' }}>
           {[
             { label:'Sparquote',    value:`${savings} %`,     color: savings>=20?'var(--success)':'var(--accent)' },
-            { label:'Versicherung', value:fmt(insMonthly),    color:'var(--primary)' },
+            { label:'Fixkosten', value:fmt(insMonthly),    color:'var(--primary)' },
             { label:'Schulden',     value:fmt(debtLeft),      color: debtLeft>0?'var(--accent)':'var(--success)' },
           ].map(({ label, value, color }, i) => (
             <div key={label} style={{ padding:'16px 12px', borderRight: i<2?'1px solid var(--border)':'none', textAlign:'center' }}>
@@ -181,6 +184,9 @@ export function DashboardPage() {
             {topExp.map(([desc, amount], i) => (
               <div key={desc} style={{ display:'flex', alignItems:'center', padding:'12px 20px',
                                        borderBottom: i<topExp.length-1?'1px solid var(--border)':'none' }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', marginRight:12, flexShrink:0 }}>
+                  💳
+                </div>
                 <span style={{ flex:1, fontSize:15, fontWeight:500, color:'var(--primary)' }}>{desc}</span>
                 <span style={{ fontSize:15, fontWeight:600, color:'var(--primary)', marginRight:8 }}>{fmt(amount)} €</span>
                 <Arrow width={14} height={14} style={{ color:'var(--tertiary)' }}/>
