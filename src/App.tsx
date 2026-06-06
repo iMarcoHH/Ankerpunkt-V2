@@ -61,17 +61,32 @@ export default function App() {
       const currentYear  = now.getFullYear()
       const today        = now.getDate()
 
+      // Bereits existierende Transaktionen diesen Monat laden
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('description, amount, type, date')
+        .eq('user_id', userId!)
+        .gte('date', `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-01`)
+        .lte('date', `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-31`)
+
+      const existingSet = new Set(
+        (existingTx ?? []).map(t => `${t.description}|${t.amount}|${t.type}`)
+      )
+
+      let newTxAdded = false
+
       for (const entry of recurring) {
         if (!entry.active) continue
-        // Nur buchen wenn der Tag des Monats bereits erreicht ist
         if (entry.day_of_month > today) continue
 
-        // Datum für diesen Monat
+        // Prüfen ob bereits eine Transaktion mit gleicher description+amount+type diesen Monat existiert
+        const key = `${entry.description}|${entry.amount}|${entry.type}`
+        if (existingSet.has(key)) continue // Bereits vorhanden — überspringen
+
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
         const day = Math.min(entry.day_of_month, daysInMonth)
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
 
-        // ON CONFLICT DO NOTHING — DB Constraint verhindert Duplikate
         const { error } = await supabase
           .from('transactions')
           .insert({
@@ -82,26 +97,27 @@ export default function App() {
             category:    entry.category,
             date:        dateStr,
           })
-          .select()
-          .maybeSingle()
 
         if (error && error.code !== '23505') {
-          // 23505 = unique_violation = Duplikat, das ist gewollt
           console.error('Recurring insert error:', error.message)
+        } else if (!error) {
+          newTxAdded = true
         }
       }
 
-      // Transaktionen neu laden
-      const { data } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId!)
-        .order('date', { ascending: false })
-      if (data) setTransactions(data)
+      // Nur neu laden wenn wirklich etwas hinzugefügt wurde
+      if (newTxAdded) {
+        const { data } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', userId!)
+          .order('date', { ascending: false })
+        if (data) setTransactions(data)
+      }
     }
 
     applyRecurring()
-  }, [userId, recurring.length]) // Nur wenn userId oder Anzahl Recurring-Einträge sich ändert
+  }, [userId]) // Nur einmal nach Login — NICHT bei recurring.length Änderung!
 
   async function loadData(uid: string) {
     setLoading(true)
