@@ -107,7 +107,7 @@ export function AnalysenPage() {
       <div style={{ padding:'0 20px 20px', display:'flex', gap:8, overflowX:'auto' }}>
         {TABS.map(([v,l]) => (
           <button key={v} onClick={() => setTab(v)}
-            style={{ padding:'7px 16px', borderRadius:20, fontSize:13, fontWeight:500, cursor:'pointer', border:'none', whiteSpace:'nowrap', flexShrink:0,
+            style={{ padding:'8px 14px', borderRadius:16, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', whiteSpace:'nowrap', flexShrink:0,
                      background: tab===v ? 'var(--accent)' : 'var(--surface)',
                      color: tab===v ? 'white' : 'var(--secondary)',
                      boxShadow: tab===v ? '0 4px 12px rgba(229,72,63,.25)' : 'var(--shadow-sm)' }}>
@@ -128,14 +128,14 @@ export function AnalysenPage() {
             ].map(k => (
               <div key={k.label} className="app-card" style={{ padding:'14px 12px', textAlign:'center' }}>
                 <p style={{ fontSize:11, color:'var(--tertiary)', marginBottom:4 }}>{k.label}</p>
-                <p style={{ fontSize:13, fontWeight:700, color:k.color }}>{fmt(Math.round(k.val))}</p>
+                <p style={{ fontSize:15, fontWeight:800, color:k.color }}>{fmt(Math.round(k.val))}</p>
               </div>
             ))}
           </div>
 
           {/* Chart */}
           <div className="app-card">
-            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Cashflow</p>
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Einnahmen vs. Ausgaben</p>
             <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Letzte 12 Monate</p>
             <div style={{ height:180 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +160,7 @@ export function AnalysenPage() {
           {showPrognose && (
             <div className="app-card" style={{ border:'1px solid rgba(229,72,63,0.2)', background:'rgba(229,72,63,0.03)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                <p style={{ fontSize:15, fontWeight:700, color:'var(--primary)' }}>Prognose Monatsende</p>
+                <p style={{ fontSize:15, fontWeight:700, color:'var(--primary)' }}>Hochrechnung Monatsende</p>
                 <p style={{ fontSize:12, color:'var(--tertiary)' }}>Tag {today}/{daysInMonth}</p>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
@@ -183,7 +183,7 @@ export function AnalysenPage() {
           {topAusgaben.length > 0 && (
             <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
               <div style={{ padding:'16px 20px 8px' }}>
-                <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)' }}>Top Ausgaben</p>
+                <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)' }}>Größte Ausgaben</p>
                 <p style={{ fontSize:13, color:'var(--tertiary)' }}>{MONTHS_LONG[tm]} {ty}</p>
               </div>
               {topAusgaben.map((tx, i, arr) => (
@@ -206,7 +206,7 @@ export function AnalysenPage() {
       {tab === 'vergleich' && (
         <div style={{ padding:'0 20px', display:'flex', flexDirection:'column', gap:14 }}>
           <div className="app-card">
-            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Monatsvergleich</p>
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Monat im Vergleich</p>
             <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:20 }}>{MONTHS_LONG[lm]} vs. {MONTHS_LONG[tm]}</p>
             {([
               { label:'Einnahmen', cur:comp.tI, prev:comp.lI, betterWhenHigher:true },
@@ -305,7 +305,7 @@ export function AnalysenPage() {
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
                           <div style={{ width:10, height:10, borderRadius:'50%', background:PIE_COLS[i%PIE_COLS.length], flexShrink:0 }}/>
                           <span style={{ fontSize:14, color:'var(--primary)', flex:1 }}>{c.category}</span>
-                          <span style={{ fontSize:12, color:'var(--tertiary)' }}>{pct.toFixed(0)}%</span>
+                          <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:20, background:'var(--bg)', color:'var(--secondary)' }}>{pct.toFixed(0)}%</span>
                           <span style={{ fontSize:14, fontWeight:700, color:'var(--primary)' }}>{fmt(c.total)}</span>
                         </div>
                         <div style={{ height:4, borderRadius:2, background:'var(--bg)', overflow:'hidden', marginLeft:18 }}>
@@ -333,7 +333,7 @@ export function AnalysenPage() {
             ].map(k => (
               <div key={k.label} className="app-card" style={{ padding:'14px 12px', textAlign:'center' }}>
                 <p style={{ fontSize:11, color:'var(--tertiary)', marginBottom:4 }}>{k.label}</p>
-                <p style={{ fontSize:13, fontWeight:700, color:k.color }}>{fmt(k.val)}</p>
+                <p style={{ fontSize:15, fontWeight:800, color:k.color }}>{fmt(k.val)}</p>
               </div>
             ))}
           </div>
@@ -357,26 +357,33 @@ export function AnalysenPage() {
             </div>
           </div>
 
-          {/* Tabelle */}
-          <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'10px 16px',
-                          borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
-              {['Monat','Einnahmen','Ausgaben','Netto'].map(h => (
-                <p key={h} style={{ fontSize:11, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.04em' }}>{h}</p>
+          {/* Monatsübersicht */}
+          <div className="app-card">
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:16 }}>Monatsübersicht</p>
+
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {jahres.filter(m => m.income > 0 || m.expenses > 0).map(m => (
+                <div
+                  key={m.month}
+                  style={{
+                    padding:'14px 16px',
+                    borderRadius:16,
+                    background:m.isCurrentMonth ? 'rgba(229,72,63,0.05)' : 'var(--bg)',
+                    border:m.isCurrentMonth ? '1px solid rgba(229,72,63,0.15)' : '1px solid transparent'
+                  }}
+                >
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                    <p style={{ fontSize:14, fontWeight:700, color:m.isCurrentMonth ? 'var(--accent)' : 'var(--primary)' }}>{m.month}</p>
+                    <p style={{ fontSize:14, fontWeight:800, color:m.netto >= 0 ? 'var(--success)' : 'var(--accent)' }}>{fmt(m.netto)}</p>
+                  </div>
+
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:12, color:'var(--success)' }}>↑ {fmt(m.income)}</span>
+                    <span style={{ fontSize:12, color:'var(--accent)' }}>↓ {fmt(m.expenses)}</span>
+                  </div>
+                </div>
               ))}
             </div>
-            {jahres.map((m, i) => (
-              <div key={m.month} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'10px 16px',
-                                          borderBottom: i < 11 ? '1px solid var(--border)' : 'none',
-                                          background: m.isCurrentMonth ? 'rgba(229,72,63,0.04)' : 'transparent' }}>
-                <p style={{ fontSize:13, fontWeight: m.isCurrentMonth ? 700 : 400, color: m.isCurrentMonth ? 'var(--accent)' : 'var(--primary)' }}>{m.month}</p>
-                <p style={{ fontSize:13, color: m.income > 0 ? 'var(--success)' : 'var(--tertiary)' }}>{m.income > 0 ? fmt(m.income) : '—'}</p>
-                <p style={{ fontSize:13, color: m.expenses > 0 ? 'var(--accent)' : 'var(--tertiary)' }}>{m.expenses > 0 ? fmt(m.expenses) : '—'}</p>
-                <p style={{ fontSize:13, fontWeight:600, color: m.netto > 0 ? 'var(--success)' : m.netto < 0 ? 'var(--accent)' : 'var(--tertiary)' }}>
-                  {m.income > 0 || m.expenses > 0 ? fmt(m.netto) : '—'}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -389,7 +396,7 @@ export function AnalysenPage() {
             <div style={{ position:'absolute', top:-30, right:-30, width:120, height:120, borderRadius:'50%',
                           background: avgRate >= 20 ? 'rgba(34,197,94,0.08)' : 'rgba(229,72,63,0.08)' }}/>
             <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:8, position:'relative' }}>Durchschnittliche Sparquote</p>
-            <p style={{ fontSize:56, fontWeight:800, letterSpacing:'-0.04em', position:'relative',
+            <p style={{ fontSize:64, fontWeight:800, letterSpacing:'-0.04em', position:'relative',
                         color: avgRate >= 20 ? 'var(--success)' : avgRate >= 10 ? 'var(--warning)' : 'var(--accent)' }}>
               {avgRate}%
             </p>
@@ -397,8 +404,22 @@ export function AnalysenPage() {
               {avgRate >= 20 ? '🟢 Sehr gut!' : avgRate >= 10 ? '🟡 Solide' : avgRate > 0 ? '🔴 Ausbaufähig' : '— Noch keine Daten'}
             </p>
             <p style={{ fontSize:12, color:'var(--tertiary)', marginTop:8, position:'relative' }}>
-              Empfehlung: <span style={{ fontWeight:600, color: avgRate >= 20 ? 'var(--success)' : 'var(--accent)' }}>mindestens 20%</span> sparen
+              Zielbereich für langfristigen Vermögensaufbau: mindestens 20%.
             </p>
+            <div style={{
+              marginTop:16,
+              height:8,
+              borderRadius:999,
+              background:'var(--bg)',
+              overflow:'hidden'
+            }}>
+              <div style={{
+                height:'100%',
+                width:`${Math.min(avgRate,100)}%`,
+                borderRadius:999,
+                background: avgRate >= 20 ? 'var(--success)' : 'var(--accent)'
+              }}/>
+            </div>
           </div>
 
           {/* Verlauf Chart */}
@@ -425,7 +446,7 @@ export function AnalysenPage() {
           <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', padding:'10px 16px',
                           borderBottom:'1px solid var(--border)', background:'var(--bg)' }}>
-              {['Monat','Gespart','Quote'].map(h => (
+              {['Monat','Sparbetrag','Quote'].map(h => (
                 <p key={h} style={{ fontSize:11, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.04em' }}>{h}</p>
               ))}
             </div>
