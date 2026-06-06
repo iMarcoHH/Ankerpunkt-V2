@@ -15,8 +15,15 @@
     <link rel="apple-touch-icon" href="/favicon2.png" />
     <title>Ankerpunkt</title>
     <script>
+      // Service Worker registrieren
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          reg.update();
+        });
+      }
+
       // Force reload if cached version is outdated
-      const VERSION = '20260606-v5';
+      const VERSION = '20260606-v6';
       if (localStorage.getItem('app-version') !== VERSION) {
         localStorage.clear();
         localStorage.setItem('app-version', VERSION);
