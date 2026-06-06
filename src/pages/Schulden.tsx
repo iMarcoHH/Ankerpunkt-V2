@@ -20,8 +20,10 @@ function calcEndDate(total: number, paid: number, rate: number, start: string) {
   const months = calcMonthsLeft(total,paid,rate)
   if (!months) return null
   let base: Date
-  if (start && /^\d{4}-\d{2}$/.test(start)) {
-    const [y,m] = start.split('-').map(Number)
+  // start kann YYYY-MM oder YYYY-MM-DD sein
+  const clean = start ? start.substring(0,7) : ''
+  if (clean && /^\d{4}-\d{2}$/.test(clean)) {
+    const [y,m] = clean.split('-').map(Number)
     base = new Date(y, m-1, 1)
   } else {
     base = new Date()
@@ -204,7 +206,7 @@ function AddDebtSheet({ onClose }: { onClose:()=>void }) {
   async function save() {
     if (!name||!total) { setErr('Name und Betrag erforderlich.'); return }
     setSaving(true)
-    const debt = { user_id:userId??'demo', name, total_amount:parseFloat(total), paid_amount:parseFloat(paid)||0, interest:parseFloat(interest)||0, monthly_rate:parseFloat(monthly)||0, due_date:startMonth||null, category, color }
+    const debt = { user_id:userId??'demo', name, total_amount:parseFloat(total), paid_amount:parseFloat(paid)||0, interest:parseFloat(interest)||0, monthly_rate:parseFloat(monthly)||0, due_date: startMonth ? `${startMonth}-01` : null, category, color }
     if (userId) {
       const { data:row, error } = await supabase.from('debts').insert(debt).select().single()
       if (error) { setErr(error.message); setSaving(false); return }
