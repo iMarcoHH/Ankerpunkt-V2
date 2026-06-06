@@ -14,6 +14,7 @@ import { LexikonPage }        from './pages/Lexikon'
 import { NotizenPage }        from './pages/Notizen'
 import { SteuerPage }        from './pages/Steuern'
 import { SchuldenPage }      from './pages/Schulden'
+import { GamificationPage }  from './pages/Gamification'
 import { ProfilPage }         from './pages/Profil'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
@@ -110,7 +111,8 @@ export default function App() {
       {activeTab === 'lexikon'        && <LexikonPage />}
       {activeTab === 'notizen'        && <NotizenPage />}
       {activeTab === 'steuern'       && <SteuerPage />}
-        {activeTab === 'schulden'      && <SchuldenPage />}
+      {activeTab === 'schulden'      && <SchuldenPage />}
+      {activeTab === 'gamification'  && <GamificationPage />}
       {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
     </SwipeContainer>
