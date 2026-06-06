@@ -5,9 +5,11 @@ import { supabase } from '../lib/supabase'
 import { Plus, X, Trash2, Shield, Pencil } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
-const CATEGORIES = ['Haftpflicht','Kranken','Hausrat','KFZ','Leben','Unfall','Berufsunfähigkeit','Sonstiges']
+const CATEGORIES = ['Haftpflicht','Hausrat','KFZ','Leben','Unfall','Berufsunfähigkeit','Rechtsschutz','Zahnzusatz','Reise','Tier','Sonstiges']
 const CAT_ICONS: Record<string,string> = {
-  Haftpflicht:'🛡️', Kranken:'💊', Hausrat:'🏠', KFZ:'🚗', Leben:'❤️', Unfall:'🩹', Berufsunfähigkeit:'💼', Sonstiges:'📋'
+  Haftpflicht:'🛡️', Hausrat:'🏠', KFZ:'🚗', Leben:'❤️',
+  Unfall:'🩹', Berufsunfähigkeit:'💼', Rechtsschutz:'⚖️',
+  Zahnzusatz:'🦷', Reise:'✈️', Tier:'🐾', Sonstiges:'📋'
 }
 
 export function VersicherungenPage() {
@@ -24,7 +26,7 @@ export function VersicherungenPage() {
     return currentMonthly > maxMonthly ? current : max
   }, insurances[0])
 
-  const coreCategories = ['Haftpflicht','Kranken','Hausrat','Berufsunfähigkeit']
+  const coreCategories = ['Haftpflicht','Hausrat','Berufsunfähigkeit','Rechtsschutz']
   const existingCategories = insurances.map(i => i.category)
   const missingCategories = coreCategories.filter(c => !existingCategories.includes(c))
 
@@ -130,8 +132,15 @@ export function VersicherungenPage() {
             {insurances.map((ins, i) => (
               <motion.div key={ins.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.05 }}
                 style={{ display:'flex',alignItems:'flex-start',gap:14,padding:'18px 20px', borderBottom:i<insurances.length-1?'1px solid var(--border)':'none' }}>
-                <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20 }}>
-                  {CAT_ICONS[ins.category??''] ?? '🛡️'}
+                <div style={{ width:52,height:52,borderRadius:16,background:'rgba(229,72,63,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:20,overflow:'hidden' }}>
+                  {ins.provider ? (
+                    <img
+                      src={`https://logo.clearbit.com/${ins.provider.toLowerCase().replace(/\s+/g,'')}.de`}
+                      alt={ins.provider}
+                      style={{ width:'100%',height:'100%',objectFit:'contain',padding:6 }}
+                      onError={e => { const t=e.target as HTMLImageElement; t.style.display='none'; t.parentElement!.textContent=CAT_ICONS[ins.category??'']??'🛡️' }}
+                    />
+                  ) : CAT_ICONS[ins.category??''] ?? '🛡️'}
                 </div>
                 <div style={{ flex:1,minWidth:0,paddingRight:12 }}>
                   <p
@@ -174,9 +183,29 @@ export function VersicherungenPage() {
 
 function AddSheet({ onClose }: { onClose:()=>void }) {
   const { insurances, setInsurances, userId } = useStore()
-  const [form, setForm] = useState({ name:'', provider:'', amount:'', period:'monthly' as 'monthly'|'yearly', category:CATEGORIES[0] })
+  const [form, setForm] = useState({ name:'', provider:'', providerLogo:'', amount:'', period:'monthly' as 'monthly'|'yearly', category:CATEGORIES[0] })
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const [providers, setProviders] = useState<any[]>([])
+  const [providerSearch, setProviderSearch] = useState('')
+  const [showProviders, setShowProviders] = useState(false)
+
+  // Anbieter aus DB laden
+  useState(() => {
+    supabase.from('insurance_providers').select('*').order('name').then(({ data }) => {
+      if (data) setProviders(data)
+    })
+  })
+
+  const filteredProviders = providers.filter(p =>
+    !providerSearch || p.name.toLowerCase().includes(providerSearch.toLowerCase())
+  ).slice(0, 8)
+
+  function selectProvider(p: any) {
+    setForm(f => ({ ...f, provider: p.name, providerLogo: p.logo_url }))
+    setProviderSearch(p.name)
+    setShowProviders(false)
+  }
 
   async function save() {
     if (!form.name||!form.amount) { setErr('Name und Betrag erforderlich.'); return }
@@ -204,7 +233,41 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
         </div>
         <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
           <input className="ak-input" placeholder="Name (z.B. Haftpflicht)" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
-          <input className="ak-input" placeholder="Anbieter (z.B. Allianz)" value={form.provider} onChange={e=>setForm(f=>({...f,provider:e.target.value}))}/>
+
+          {/* Anbieter mit Logo-Suche */}
+          <div style={{ position:'relative' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              {form.providerLogo && (
+                <img src={form.providerLogo} alt={form.provider}
+                  style={{ width:32, height:32, borderRadius:8, objectFit:'contain', background:'white', padding:2, border:'1px solid var(--border)', flexShrink:0 }}
+                  onError={e => { (e.target as HTMLImageElement).style.display='none' }}
+                />
+              )}
+              <input className="ak-input" placeholder="Anbieter suchen (z.B. Allianz)"
+                value={providerSearch}
+                onChange={e => { setProviderSearch(e.target.value); setForm(f=>({...f,provider:e.target.value,providerLogo:''})); setShowProviders(true) }}
+                onFocus={() => setShowProviders(true)}
+                style={{ flex:1 }}
+              />
+            </div>
+            {showProviders && filteredProviders.length > 0 && (
+              <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:100, marginTop:4,
+                            background:'var(--surface)', borderRadius:16, boxShadow:'var(--shadow-lg)', overflow:'hidden', border:'1px solid var(--border)' }}>
+                {filteredProviders.map(p => (
+                  <button key={p.id} onClick={() => selectProvider(p)}
+                    style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'12px 16px',
+                             background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}>
+                    <img src={p.logo_url} alt={p.name}
+                      style={{ width:28, height:28, borderRadius:6, objectFit:'contain', background:'white', padding:2, border:'1px solid var(--border)', flexShrink:0 }}
+                      onError={e => { (e.target as HTMLImageElement).style.display='none' }}
+                    />
+                    <span style={{ fontSize:14, fontWeight:500, color:'var(--primary)' }}>{p.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <input className="ak-input" type="number" inputMode="decimal" placeholder="Betrag in €" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/>
           <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,background:'var(--bg)',borderRadius:16,padding:4 }}>
             {(['monthly','yearly'] as const).map(v=>(
