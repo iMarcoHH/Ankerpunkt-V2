@@ -75,7 +75,7 @@ interface AppState {
 const OLD_KEYS = ['ankerpunkt-store', 'ankerpunkt-store-v2', 'ankerpunkt-v2']
 OLD_KEYS.forEach(k => { try { localStorage.removeItem(k) } catch {} })
 
-const CURRENT_STORE = 'ankerpunkt-v5'
+const CURRENT_STORE = 'ankerpunkt-v6'
 
 const now = new Date()
 
@@ -97,7 +97,7 @@ export const useStore = create<AppState>()(
       debts:      [],
       setDebts:   (d) => set({ debts: d }),
 
-      theme:    'dark',
+      theme:    'light',
       setTheme: (t) => {
         set({ theme: t })
         document.documentElement.setAttribute('data-theme', t)
