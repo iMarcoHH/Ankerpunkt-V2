@@ -115,6 +115,12 @@ function KreditRechner() {
       {r && (
         <>
           <Card label="Monatliche Kreditrate" value={fmt(r.rate)}/>
+          <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Monatliche Belastung</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--accent)' }}>
+              {fmt(r.rate)}
+            </p>
+          </div>
           <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
             <div className="app-card" style={{ textAlign:'center',padding:16 }}>
               <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gesamtkosten</p>
@@ -154,7 +160,9 @@ function ZinsRechner() {
           <Card label="Endkapital" value={fmt(r.endKapital)}/>
           <div className="app-card" style={{ textAlign:'center',padding:16 }}>
             <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Gewinn</p>
-            <p style={{ fontSize:22,fontWeight:700,color:'var(--success)' }}>+{fmt(r.gewinn)}</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--success)' }}>
+              +{fmt(r.gewinn)}
+            </p>
           </div>
         </>
       )}
@@ -184,7 +192,17 @@ function WaehrungsRechner() {
           </div>
         ))}
       </div>
-      {result!==null && <Card label={`${amount} ${from} =`} value={`${result.toFixed(2)} ${to}`} sub="Richtwert · kein Echtzeit-Kurs"/>}
+      {result!==null && (
+        <>
+          <Card label={`${amount} ${from} =`} value={`${result.toFixed(2)} ${to}`} sub="Richtwert · kein Echtzeit-Kurs"/>
+          <div className="app-card" style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Umgerechneter Betrag</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--accent)' }}>
+              {result.toFixed(2)} {to}
+            </p>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -251,6 +269,12 @@ function InflationsRechner() {
       {start>0 && (
         <>
           <Card label='Kaufkraft in der Zukunft' value={fmt(kaufkraft)}/>
+          <div className='app-card' style={{ textAlign:'center',padding:16 }}>
+            <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Verbleibende Kaufkraft</p>
+            <p style={{ fontSize:20,fontWeight:800,color:'var(--primary)' }}>
+              {Math.round((kaufkraft / start) * 100)}%
+            </p>
+          </div>
           <div className='app-card' style={{ textAlign:'center',padding:16 }}>
             <p style={{ fontSize:11,color:'var(--tertiary)',marginBottom:4 }}>Wertverlust</p>
             <p style={{ fontSize:20,fontWeight:800,color:'var(--accent)' }}>
