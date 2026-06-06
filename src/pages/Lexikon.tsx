@@ -134,7 +134,7 @@ export function LexikonPage() {
       </div>
 
       <div className="ak-card p-6">
-        <p className="text-cement text-xs uppercase tracking-wide mb-2">Finanzwissen</p>
+        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Finanzwissen</p>
         <h2 className="text-white font-semibold text-xl mb-2">Finanzbegriffe einfach erklärt</h2>
         <p className="text-white/80 text-sm leading-relaxed">
           Schnell verstehen statt googeln. Die wichtigsten Begriffe rund um Geld, ETFs, Versicherungen und Einkommen.
@@ -143,19 +143,19 @@ export function LexikonPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement"/>
-        <input className="ak-input pl-10" placeholder="Begriff suchen..."
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60"/>
+        <input className="ak-input pl-10 text-white" placeholder="Begriff suchen..."
           value={search} onChange={e => setSearch(e.target.value)}/>
       </div>
 
       <div>
-        <p className="text-cement text-xs uppercase tracking-wide mb-2">Kategorien</p>
+        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Kategorien</p>
         <div className="flex flex-wrap gap-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className="ak-card px-3 py-2 text-sm"
+              className="ak-card px-3 py-2 text-sm text-white"
               style={{
                 border: activeCategory === cat ? '1px solid rgba(200,57,43,0.6)' : undefined,
                 color: activeCategory === cat ? '#fff' : undefined
@@ -168,7 +168,7 @@ export function LexikonPage() {
       </div>
 
       <div>
-        <p className="text-cement text-xs uppercase tracking-wide mb-2">Beliebte Begriffe</p>
+        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">Beliebte Begriffe</p>
         <div className="flex flex-wrap gap-2">
           {popularTerms.map(term => (
             <button
@@ -183,7 +183,7 @@ export function LexikonPage() {
       </div>
 
       <div>
-        <p className="text-cement text-xs uppercase tracking-wide mb-2">⭐ Wichtigste Begriffe</p>
+        <p className="text-white/70 text-xs uppercase tracking-wide mb-2">⭐ Wichtigste Begriffe</p>
         <div className="grid grid-cols-2 gap-2">
           {['ETF','Inflation','Rendite','Zinseszins'].map(term => (
             <button
@@ -222,14 +222,14 @@ export function LexikonPage() {
             <div className="px-4 pb-4 pt-0">
               <div className="h-px mb-3" style={{ background:'rgba(61,81,102,0.4)' }}/>
               <p className="text-sm text-white/90 leading-relaxed">{entry.def}</p>
-              <div className="mt-4 ak-card p-3">
-                <p className="text-xs uppercase tracking-wide text-cement mb-2">Praxisbeispiel</p>
+              <div className="mt-4 ak-card p-4" style={{ border:'1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-xs uppercase tracking-wide text-white/70 mb-2">Praxisbeispiel</p>
                 <p className="text-sm text-white/80 leading-relaxed">
                   {entry.example}
                 </p>
               </div>
               <div className="mt-3">
-                <p className="text-xs uppercase tracking-wide text-cement mb-2">Verwandte Begriffe</p>
+                <p className="text-xs uppercase tracking-wide text-white/70 mb-2">Verwandte Begriffe</p>
                 <div className="flex flex-wrap gap-2">
                   {entry.related.map(term => (
                     <button
