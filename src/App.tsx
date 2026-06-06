@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
-import { Dock, SwipeContainer } from './components/Dock'
+import { Dock } from './components/Dock'
 import { useGamification } from './lib/gamification'
 import { DashboardPage }      from './pages/Dashboard'
 import { BuchungenPage }      from './pages/Buchungen'
@@ -170,7 +170,7 @@ export default function App() {
   if (!userId)  return <AuthPage />
 
   return (
-    <SwipeContainer>
+    <div>
       {activeTab === 'dashboard'      && <DashboardPage />}
       {activeTab === 'buchungen'      && <BuchungenPage />}
       {activeTab === 'analysen'       && <AnalysenPage />}
@@ -186,7 +186,7 @@ export default function App() {
       {activeTab === 'gamification'  && <GamificationPage />}
       {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
-    </SwipeContainer>
+    </div>
   )
 }
 
