@@ -56,14 +56,14 @@ export function AuthPage() {
       >
         <div
           style={{
-            width: 96,
-            height: 96,
+            width: 112,
+            height: 112,
             borderRadius: 28,
             background: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 20px',
+            margin: '0 auto 28px',
             boxShadow: '0 12px 40px rgba(15,34,56,.15)',
           }}
         >
@@ -71,8 +71,8 @@ export function AuthPage() {
             src="/favicon.png"
             alt="Ankerpunkt"
             style={{
-              width: 56,
-              height: 56,
+              width: 68,
+              height: 68,
               objectFit: 'contain',
             }}
           />
@@ -80,7 +80,7 @@ export function AuthPage() {
 
         <h1
           style={{
-            fontSize: 38,
+            fontSize: 34,
             fontWeight: 800,
             color: '#0F2238',
             letterSpacing: '-0.05em',
@@ -100,7 +100,7 @@ export function AuthPage() {
           Deine Finanzen im sicheren Hafen.
         </p>
 
-        <div className="app-card" style={{ width: '100%', maxWidth: 400 }}>
+        <div className="app-card" style={{ width: '100%', maxWidth: 400, margin: '0 auto' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -210,7 +210,7 @@ export function AuthPage() {
         transition={{ delay:0.4 }}
         style={{ fontSize:12, color:'var(--tertiary)', marginTop:24, textAlign:'center', lineHeight:1.7 }}
       >
-        🔒 Deine Daten sind sicher gespeichert.<br/>
+        Deine Daten sind sicher gespeichert.<br/>
         Keine Weitergabe an Dritte.
       </motion.p>
     </div>
