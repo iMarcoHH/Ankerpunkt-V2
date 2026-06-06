@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase'
 
 // v4 - rebuilt $(Date.now())
 export const ALL_TABS = [
-  { id: 'dashboard',      label: 'Dashboard',  Icon: LayoutDashboard },
+  { id: 'dashboard',      label: 'Übersicht',  Icon: LayoutDashboard },
   { id: 'buchungen',      label: 'Buchungen',   Icon: ListOrdered     },
   { id: 'analysen',       label: 'Analysen',    Icon: PieChart        },
   { id: 'ziele',          label: 'Ziele',       Icon: Target          },
@@ -50,7 +50,7 @@ export function PillNav() {
       <AnimatePresence>
         {gridOpen && (
           <motion.div className="fixed inset-0 z-40"
-            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+            style={{ background: 'rgba(15,23,42,0.25)', backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setGridOpen(false)} />
         )}
@@ -65,10 +65,10 @@ export function PillNav() {
             exit={{ opacity: 0, y: 20, x: '-50%' }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
             <div className="rounded-2xl overflow-hidden"
-                 style={{ background: '#0D1B2A', border: '1px solid rgba(61,81,102,0.6)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}>
+                 style={{ background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 16px 40px rgba(0,0,0,0.12)' }}>
               <div className="flex items-center justify-between px-4 py-3"
                    style={{ borderBottom: '1px solid rgba(61,81,102,0.4)' }}>
-                <span className="font-display tracking-widest text-white text-sm">ALLE SEITEN</span>
+                <span className="font-display tracking-widest text-sm" style={{color: '#0F172A'}}>ALLE SEITEN</span>
                 <button onClick={() => setGridOpen(false)} className="text-cement"><X className="w-4 h-4" /></button>
               </div>
               <div className="grid grid-cols-4" style={{ gap: 1, background: 'rgba(61,81,102,0.3)' }}>
@@ -78,14 +78,18 @@ export function PillNav() {
                     <button key={tab.id}
                       onClick={() => { setActiveTab(tab.id); setGridOpen(false) }}
                       className="flex flex-col items-center gap-1.5 py-4"
-                      style={{ background: active ? 'rgba(200,57,43,0.2)' : '#0D1B2A', color: active ? '#C8392B' : '#9AA0A6' }}>
+                      style={{
+                        background: active ? 'rgba(229,72,63,0.10)' : '#FFFFFF',
+                        border: '1px solid rgba(15,23,42,0.06)',
+                        color: active ? '#E5483F' : '#64748B',
+                      }}>
                       <tab.Icon className="w-5 h-5" />
-                      <span className="text-[9px] font-medium text-center leading-tight px-1">{tab.label}</span>
+                      <span className="text-[9px] font-medium">{tab.label}</span>
                     </button>
                   )
                 })}
                 <button onClick={logout} className="flex flex-col items-center gap-1.5 py-4"
-                  style={{ background: '#0D1B2A', color: '#9AA0A6' }}>
+                  style={{ background: '#FFFFFF', border: '1px solid rgba(15,23,42,0.06)', color: '#64748B' }}>
                   <LogOut className="w-5 h-5" />
                   <span className="text-[9px] font-medium">Logout</span>
                 </button>
@@ -101,13 +105,14 @@ export function PillNav() {
         <motion.div
           className="flex items-center rounded-full"
           style={{
-            background: 'rgba(13,27,42,0.97)',
-            border: '1px solid rgba(61,81,102,0.5)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            padding: '8px 10px',
-            gap: 8,
-            boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+            background: '#FFFFFF',
+            border: '1px solid rgba(15,23,42,0.06)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            padding: '8px',
+            gap: 0,
+            borderRadius: 32,
+            boxShadow: '0 12px 40px rgba(15,23,42,0.12)',
           }}
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -124,22 +129,28 @@ export function PillNav() {
           {PILL_TABS.map(tab => {
             const active = activeTab === tab.id
             return (
-              <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="relative flex flex-col items-center rounded-full"
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="relative flex flex-col items-center justify-center rounded-3xl"
                 style={{
-                  padding: '8px 10px',
-                  minWidth: 58,
-                  color: active ? '#C8392B' : '#7F8796',
-                  gap: 4,
+                  width: 72,
+                  height: 64,
+                  color: active ? '#E5483F' : '#7C8799',
                 }}
-                whileTap={{ scale: 0.88 }}>
+                whileTap={{ scale: 0.94 }}
+              >
                 {active && (
-                  <motion.div className="absolute inset-0 rounded-full" style={{ background: 'rgba(200,57,43,0.10)' }}
+                  <motion.div
                     layoutId="dock-active"
-                    transition={{ type: 'spring', stiffness: 440, damping: 30 }} />
+                    className="absolute inset-0 rounded-3xl"
+                    style={{ background: 'rgba(229,72,63,0.10)' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
                 )}
-                <tab.Icon className="w-5 h-5 relative z-10 shrink-0" />
-                <span className="text-[11px] font-medium relative z-10 leading-none whitespace-nowrap">
+
+                <tab.Icon className="w-5 h-5 relative z-10" />
+                <span className="text-[11px] font-medium relative z-10 mt-1">
                   {tab.label}
                 </span>
               </motion.button>
@@ -147,23 +158,46 @@ export function PillNav() {
           })}
 
           {isSecondary && currentTab ? (
-            <motion.button onClick={() => setGridOpen(v => !v)}
-              className="relative flex flex-col items-center rounded-full"
-              style={{ padding: '8px 10px', minWidth: 58, color: '#C8392B', gap: 4 }}
-              whileTap={{ scale: 0.88 }}>
-              <motion.div className="absolute inset-0 rounded-full" style={{ background: 'rgba(200,57,43,0.10)' }}
+            <motion.button
+              onClick={() => setGridOpen(v => !v)}
+              className="relative flex flex-col items-center justify-center rounded-3xl"
+              style={{
+                width: 72,
+                height: 64,
+                color: '#E5483F',
+              }}
+              whileTap={{ scale: 0.94 }}
+            >
+              <motion.div
                 layoutId="dock-active"
-                transition={{ type: 'spring', stiffness: 440, damping: 30 }} />
-              <currentTab.Icon className="w-5 h-5 relative z-10 shrink-0" />
-              <span className="text-[11px] font-medium relative z-10 leading-none whitespace-nowrap">{currentTab.label}</span>
+                className="absolute inset-0 rounded-3xl"
+                style={{ background: 'rgba(229,72,63,0.10)' }}
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+              <currentTab.Icon className="w-5 h-5 relative z-10" />
+              <span className="text-[11px] font-medium relative z-10 mt-1">{currentTab.label}</span>
             </motion.button>
           ) : (
-            <motion.button onClick={() => setGridOpen(v => !v)}
-              className="flex flex-col items-center rounded-full"
-              style={{ padding: '8px 10px', color: gridOpen ? '#C8392B' : '#7F8796', gap: 4, minWidth: 58 }}
-              whileTap={{ scale: 0.88 }}>
-              <Grid className="w-4 h-4 shrink-0" />
-              <span className="text-[8px] font-medium leading-none whitespace-nowrap">Mehr</span>
+            <motion.button
+              onClick={() => setGridOpen(v => !v)}
+              className="relative flex flex-col items-center justify-center rounded-3xl"
+              style={{
+                width: 72,
+                height: 64,
+                color: gridOpen ? '#E5483F' : '#7C8799',
+              }}
+              whileTap={{ scale: 0.94 }}
+            >
+              {gridOpen && (
+                <motion.div
+                  layoutId="dock-active"
+                  className="absolute inset-0 rounded-3xl"
+                  style={{ background: 'rgba(229,72,63,0.10)' }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <Grid className="w-5 h-5 relative z-10" />
+              <span className="text-[11px] font-medium relative z-10 mt-1">Mehr</span>
             </motion.button>
           )}
         </motion.div>
