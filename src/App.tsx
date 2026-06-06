@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
-import { Dock, SwipeContainer } from './components/Dock'
+import { SwipeContainer } from './components/Dock'
+import { PillNav } from './components/PillNav'
 import { useGamification } from './lib/gamification'
 import { DashboardPage }      from './pages/Dashboard'
 import { BuchungenPage }      from './pages/Buchungen'
@@ -185,7 +186,7 @@ export default function App() {
       {activeTab === 'schulden'      && <SchuldenPage />}
       {activeTab === 'gamification'  && <GamificationPage />}
       {activeTab === 'profil'         && <ProfilPage />}
-      <Dock />
+      <PillNav />
     </SwipeContainer>
   )
 }
