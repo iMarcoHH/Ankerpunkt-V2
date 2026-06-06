@@ -50,8 +50,58 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Automatische Erzeugung wiederkehrender Buchungen vorübergehend deaktiviert.
-  // Diese Logik hat Duplikate erzeugt und muss später sauber neu implementiert.
+  // Wiederkehrende Buchungen sicher erzeugen
+  // Läuft einmal nach dem Laden — ON CONFLICT DO NOTHING verhindert Duplikate
+  useEffect(() => {
+    if (!userId || recurring.length === 0) return
+
+    async function applyRecurring() {
+      const now = new Date()
+      const currentMonth = now.getMonth()
+      const currentYear  = now.getFullYear()
+      const today        = now.getDate()
+
+      for (const entry of recurring) {
+        if (!entry.active) continue
+        // Nur buchen wenn der Tag des Monats bereits erreicht ist
+        if (entry.day_of_month > today) continue
+
+        // Datum für diesen Monat
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+        const day = Math.min(entry.day_of_month, daysInMonth)
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+
+        // ON CONFLICT DO NOTHING — DB Constraint verhindert Duplikate
+        const { error } = await supabase
+          .from('transactions')
+          .insert({
+            user_id:     userId,
+            type:        entry.type,
+            amount:      entry.amount,
+            description: entry.description,
+            category:    entry.category,
+            date:        dateStr,
+          })
+          .select()
+          .maybeSingle()
+
+        if (error && error.code !== '23505') {
+          // 23505 = unique_violation = Duplikat, das ist gewollt
+          console.error('Recurring insert error:', error.message)
+        }
+      }
+
+      // Transaktionen neu laden
+      const { data } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId!)
+        .order('date', { ascending: false })
+      if (data) setTransactions(data)
+    }
+
+    applyRecurring()
+  }, [userId, recurring.length]) // Nur wenn userId oder Anzahl Recurring-Einträge sich ändert
 
   async function loadData(uid: string) {
     setLoading(true)
