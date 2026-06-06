@@ -133,12 +133,25 @@ export function VersicherungenPage() {
                   {CAT_ICONS[ins.category??''] ?? '🛡️'}
                 </div>
                 <div style={{ flex:1,minWidth:0,paddingRight:12 }}>
-                  <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)',marginBottom:2 }}>{ins.name}</p>
+                  <p
+                    style={{
+                      fontSize:16,
+                      fontWeight:700,
+                      color:'var(--primary)',
+                      marginBottom:2,
+                      overflow:'hidden',
+                      textOverflow:'ellipsis',
+                      whiteSpace:'nowrap'
+                    }}
+                    title={ins.name}
+                  >
+                    {ins.name}
+                  </p>
                   <p style={{ fontSize:13,color:'var(--tertiary)' }}>
                     {ins.provider || 'Kein Anbieter'} · {ins.recurrence==='yearly'?'jährlich':'monatlich'}
                   </p>
                 </div>
-                <div style={{ textAlign:'right',flexShrink:0,minWidth:90 }}>
+                <div style={{ textAlign:'right',flexShrink:0,minWidth:110 }}>
                   <p style={{ fontSize:17,fontWeight:800,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
                   <p style={{ fontSize:11,color:'var(--tertiary)' }}>{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</p>
                 </div>
