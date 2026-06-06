@@ -31,7 +31,7 @@ export function Dock() {
   const { activeTab, setActiveTab } = useStore()
 
   return (
-    <div className="bottom-nav" style={{ padding: '0 8px' }}>
+    <div className="bottom-nav" style={{ padding: '0 6px' }}>
       {PRIMARY_TABS.map(tab => {
         const active = activeTab === tab.id ||
           (tab.id === 'mehr' && !PRIMARY_TABS.slice(0,4).some(t => t.id === activeTab))
@@ -49,13 +49,13 @@ export function Dock() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 4,
+              gap: 2,
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
               WebkitTapHighlightColor: 'transparent',
               position: 'relative',
-              padding: '8px 0',
+              padding: '6px 0',
             }}
           >
             {active && (
@@ -64,19 +64,19 @@ export function Dock() {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: 52,
-                height: 52,
-                borderRadius: 16,
-                background: 'rgba(229,72,63,0.1)',
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                background: 'rgba(229,72,63,0.08)',
               }}/>
             )}
             <tab.Icon
-              width={22} height={22}
+              width={20} height={20}
               strokeWidth={active ? 2 : 1.5}
               style={{ color: active ? 'var(--accent)' : 'var(--tertiary)', position: 'relative' }}
             />
             <span style={{
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: active ? 600 : 400,
               color: active ? 'var(--accent)' : 'var(--tertiary)',
               lineHeight: 1,
