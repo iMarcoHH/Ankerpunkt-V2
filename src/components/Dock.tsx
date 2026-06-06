@@ -1,96 +1,112 @@
-import { useRef } from 'react'
 import { useStore } from '../store'
 import { LayoutDashboard, ListOrdered, PieChart, TrendingDown, MoreHorizontal } from 'lucide-react'
 
 const PRIMARY_TABS = [
-  { id: 'dashboard',  label: 'Übersicht',  Icon: LayoutDashboard },
-  { id: 'buchungen',  label: 'Buchungen',  Icon: ListOrdered     },
-  { id: 'schulden',   label: 'Schulden',   Icon: TrendingDown    },
-  { id: 'analysen',   label: 'Analysen',   Icon: PieChart        },
-  { id: 'mehr',       label: 'Mehr',       Icon: MoreHorizontal  },
+  { id: 'dashboard', label: 'Übersicht',  Icon: LayoutDashboard },
+  { id: 'buchungen', label: 'Buchungen',  Icon: ListOrdered     },
+  { id: 'analysen',  label: 'Analysen',   Icon: PieChart        },
+  { id: 'schulden',  label: 'Schulden',   Icon: TrendingDown    },
+  { id: 'mehr',      label: 'Mehr',       Icon: MoreHorizontal  },
 ]
-
-export const ALL_TABS = [
-  { id: 'dashboard',      label: 'Übersicht',   Icon: LayoutDashboard },
-  { id: 'analysen',       label: 'Analysen',    Icon: PieChart        },
-  { id: 'schulden',       label: 'Schulden',    Icon: TrendingDown    },
-  { id: 'buchungen',      label: 'Buchungen',   Icon: ListOrdered     },
-  { id: 'ziele',          label: 'Ziele',       Icon: LayoutDashboard },
-  { id: 'versicherungen', label: 'Versicher.',  Icon: LayoutDashboard },
-  { id: 'rechner',        label: 'Rechner',     Icon: LayoutDashboard },
-  { id: 'news',           label: 'News',        Icon: LayoutDashboard },
-  { id: 'steuern',        label: 'Steuern',     Icon: LayoutDashboard },
-  { id: 'notizen',        label: 'Notizen',     Icon: LayoutDashboard },
-  { id: 'profil',         label: 'Profil',      Icon: LayoutDashboard },
-  { id: 'gamification',   label: 'Erfolge',     Icon: LayoutDashboard },
-]
-
-export const ALL_TAB_IDS = ALL_TABS.map(t => t.id)
 
 export function Dock() {
   const { activeTab, setActiveTab } = useStore()
 
+  const isMore = !PRIMARY_TABS.slice(0, 4).some(t => t.id === activeTab)
+
   return (
-    <div className="bottom-nav" style={{ padding: '0 8px' }}>
-      {PRIMARY_TABS.map(tab => {
-        const active = activeTab === tab.id ||
-          (tab.id === 'mehr' && !PRIMARY_TABS.slice(0,4).some(t => t.id === activeTab))
-        return (
-          <button
-            key={tab.id}
-            onClick={() => {
-              setActiveTab(tab.id)
-              // Scroll to top on tab change
-              document.getElementById('root')?.scrollTo({ top: 0, behavior: 'instant' })
-            }}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 2,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              position: 'relative',
-              padding: '6px 0',
-            }}
-          >
-            {active && (
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                background: 'rgba(229,72,63,0.08)',
-              }}/>
-            )}
-            <tab.Icon
-              width={20} height={20}
-              strokeWidth={active ? 2 : 1.5}
-              style={{ color: active ? 'var(--accent)' : 'var(--tertiary)', position: 'relative' }}
-            />
-            <span style={{
-              fontSize: 9,
-              fontWeight: active ? 600 : 400,
-              color: active ? 'var(--accent)' : 'var(--tertiary)',
-              lineHeight: 1,
-              position: 'relative',
-            }}>
-              {tab.label}
-            </span>
-          </button>
-        )
-      })}
-    </div>
+    <>
+      {/* Nav Bar */}
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 50,
+        background: 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '0.5px solid rgba(15,23,42,0.08)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}>
+        <div style={{
+          display: 'flex',
+          height: 56,
+        }}>
+          {PRIMARY_TABS.map(tab => {
+            const active = tab.id === 'mehr'
+              ? isMore
+              : activeTab === tab.id
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  document.getElementById('root')?.scrollTo({ top: 0, behavior: 'instant' })
+                }}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 3,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  WebkitTapHighlightColor: 'transparent',
+                  padding: '6px 0 2px',
+                }}
+              >
+                {/* Icon Container */}
+                <div style={{
+                  width: 44,
+                  height: 28,
+                  borderRadius: 14,
+                  background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.2s',
+                }}>
+                  <tab.Icon
+                    width={22}
+                    height={22}
+                    strokeWidth={active ? 2.2 : 1.5}
+                    style={{
+                      color: active ? 'var(--accent)' : '#8A8A8E',
+                      transition: 'color 0.2s',
+                    }}
+                  />
+                </div>
+
+                {/* Label */}
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: active ? 600 : 400,
+                  color: active ? 'var(--accent)' : '#8A8A8E',
+                  letterSpacing: '-0.01em',
+                  lineHeight: 1,
+                  transition: 'color 0.2s',
+                }}>
+                  {tab.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Dark mode: Nav auch dunkel */}
+      <style>{`
+        [data-theme="dark"] .dock-nav {
+          background: rgba(15,23,42,0.95) !important;
+          border-top-color: rgba(255,255,255,0.08) !important;
+        }
+      `}</style>
+    </>
   )
 }
 
-export function SwipeContainer({ children }: { children: React.ReactNode }) {
-  return <div>{children}</div>
-}
+export const ALL_TAB_IDS = PRIMARY_TABS.map(t => t.id)
