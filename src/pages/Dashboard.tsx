@@ -78,9 +78,6 @@ export function DashboardPage() {
           <p style={{ fontSize:13, color:'rgba(255,255,255,0.65)', marginBottom:20, position:'relative', zIndex:1 }}>
             {MONTH_LONG[viewMonth]} {viewYear}
           </p>
-          <p style={{ fontSize:13, color:'rgba(255,255,255,0.85)', marginBottom:20, position:'relative', zIndex:1, fontWeight:600 }}>
-            Sparquote {savings}%
-          </p>
           <div style={{ display:'flex', gap:24, position:'relative', zIndex:1 }}>
             <div>
               <p style={{ fontSize:13, color:'rgba(255,255,255,0.65)', marginBottom:2 }}>Einnahmen</p>
