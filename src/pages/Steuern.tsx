@@ -35,6 +35,8 @@ export function SteuerPage() {
   const relevant = ALL_TIPS.filter(t=>t.category.some(c=>usedCats.has(c)))
   const other    = ALL_TIPS.filter(t=>!t.category.some(c=>usedCats.has(c)))
 
+  const potentialSavings = relevant.length * 200
+
   return (
     <div style={{ background:'var(--bg)', minHeight:'100vh' }}>
       <div style={{ padding:'56px 20px 16px' }}>
@@ -53,6 +55,32 @@ export function SteuerPage() {
         </div>
       </div>
 
+      {/* Steuerübersicht */}
+      <div style={{ padding:'0 20px 20px' }}>
+        <div className="app-card" style={{ padding:20 }}>
+          <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:600,marginBottom:8 }}>
+            Steuerpotenzial
+          </p>
+          <p style={{ fontSize:30,fontWeight:800,color:'var(--primary)',letterSpacing:'-0.04em' }}>
+            {relevant.length}
+          </p>
+          <p style={{ fontSize:14,color:'var(--secondary)',marginTop:4 }}>
+            relevante Steuer-Tipps erkannt
+          </p>
+
+          <div style={{
+            marginTop:14,
+            padding:'12px 14px',
+            borderRadius:12,
+            background:'var(--bg)'
+          }}>
+            <p style={{ fontSize:12,color:'var(--secondary)' }}>
+              Mögliches Sparpotenzial bis ca. <strong>{fmt(potentialSavings)}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Relevant */}
       {relevant.length>0 && (
         <div style={{ padding:'0 20px 20px' }}>
@@ -67,12 +95,12 @@ export function SteuerPage() {
                 <motion.div key={tip.id} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}}>
                   <div className="app-card">
                     <div style={{ display:'flex',alignItems:'flex-start',gap:14 }}>
-                      <div style={{ width:44,height:44,borderRadius:14,background:`${tip.color}18`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22 }}>
+                      <div style={{ width:52,height:52,borderRadius:16,background:`${tip.color}18`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:22 }}>
                         {tip.icon}
                       </div>
                       <div style={{ flex:1,minWidth:0 }}>
                         <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4 }}>
-                          <p style={{ fontSize:15,fontWeight:600,color:'var(--primary)' }}>{tip.title}</p>
+                          <p style={{ fontSize:16,fontWeight:700,color:'var(--primary)' }}>{tip.title}</p>
                           {tip.limit && <span style={{ fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:10,background:`${tip.color}18`,color:tip.color,whiteSpace:'nowrap',marginLeft:8,flexShrink:0 }}>{tip.limit}</span>}
                         </div>
                         <p style={{ fontSize:13,color:'var(--secondary)',lineHeight:1.5 }}>{tip.desc}</p>
@@ -80,7 +108,7 @@ export function SteuerPage() {
                           <div style={{ marginTop:10,background:'var(--bg)',borderRadius:10,padding:'8px 12px',display:'flex',alignItems:'center',gap:8 }}>
                             <Info width={12} height={12} style={{ color:tip.color,flexShrink:0 }}/>
                             <p style={{ fontSize:12,color:'var(--secondary)' }}>
-                              Du hast dieses Jahr <span style={{ fontWeight:600,color:tip.color }}>{fmt(relSpend)}</span> in relevanten Kategorien ausgegeben.
+                              Du hast in passenden Kategorien bereits <span style={{ fontWeight:600,color:tip.color }}>{fmt(relSpend)}</span> erfasst.
                             </p>
                           </div>
                         )}
@@ -90,6 +118,21 @@ export function SteuerPage() {
                 </motion.div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {relevant.length > 0 && (
+        <div style={{ padding:'0 20px 20px' }}>
+          <div className="app-card" style={{ padding:18 }}>
+            <p style={{ fontSize:12,color:'var(--tertiary)',fontWeight:600,marginBottom:10 }}>
+              Häufig übersehen
+            </p>
+            <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+              <p style={{ fontSize:14,color:'var(--primary)' }}>🏠 Homeoffice-Pauschale</p>
+              <p style={{ fontSize:14,color:'var(--primary)' }}>📚 Weiterbildung & Fachliteratur</p>
+              <p style={{ fontSize:14,color:'var(--primary)' }}>🔧 Handwerkerleistungen</p>
+            </div>
           </div>
         </div>
       )}
@@ -114,7 +157,7 @@ export function SteuerPage() {
 
       {transactions.length===0 && (
         <div style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 20px',gap:12 }}>
-          <p style={{ fontSize:40 }}>📊</p>
+          <p style={{ fontSize:56 }}>📊</p>
           <p style={{ fontSize:15,color:'var(--tertiary)',textAlign:'center' }}>Trag erst Ausgaben ein —{'\n'}dann zeigen wir dir relevante Tipps.</p>
         </div>
       )}
