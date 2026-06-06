@@ -56,6 +56,9 @@ export function AnalysenPage() {
   const jahresInc   = jahres.reduce((s,m)=>s+m.income,0)
   const jahresExp   = jahres.reduce((s,m)=>s+m.expenses,0)
   const jahresNetto = jahresInc - jahresExp
+  const aktiveMonate = jahres.filter(m => m.income > 0 || m.expenses > 0).length
+  const besterMonat = [...jahres].sort((a,b) => b.netto - a.netto)[0]
+  const schlechtesterMonat = [...jahres].sort((a,b) => a.netto - b.netto)[0]
 
   // ── Sparquote ─────────────────────────────────────────────────────
   const sparquote = useMemo(() => Array.from({ length:12 }, (_,i) => {
@@ -72,14 +75,7 @@ export function AnalysenPage() {
     return active.length > 0 ? Math.round(active.reduce((s,m)=>s+m.rate,0) / active.length) : 0
   })()
 
-  // ── Prognose (nur Ausgaben hochrechnen) ───────────────────────────
-  const today       = now.getDate()
-  const daysInMonth = new Date(ty, tm+1, 0).getDate()
-  const currentInc  = get(tm, ty, 'income')
-  const currentExp  = get(tm, ty, 'expense')
-  const projExp     = today > 0 ? Math.round(currentExp * daysInMonth / today) : 0
-  const projNetto   = currentInc - projExp  // Einnahmen NICHT hochrechnen
-  const showPrognose = today < daysInMonth && currentExp > 0
+  // (Prognose entfernt)
 
   // ── Top Ausgaben aktueller Monat ──────────────────────────────────
   const topAusgaben = useMemo(() =>
@@ -136,9 +132,9 @@ export function AnalysenPage() {
           {/* Chart */}
           <div className="app-card">
             <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Einnahmen vs. Ausgaben</p>
-            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Letzte 12 Monate</p>
-            <div style={{ height:180 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Nur tatsächlich erfasste Buchungen der letzten 12 Monate</p>
+            <div style={{ height:180, width:'100%' }}>
+              <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={cashflow} margin={{ top:0, right:0, left:-24, bottom:0 }} barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)"/>
                   <XAxis dataKey="month" tick={{ fill:'var(--tertiary)', fontSize:9 }} axisLine={false} tickLine={false}/>
@@ -156,28 +152,6 @@ export function AnalysenPage() {
             </div>
           </div>
 
-          {/* Prognose — nur Ausgaben hochrechnen */}
-          {showPrognose && (
-            <div className="app-card" style={{ border:'1px solid rgba(229,72,63,0.2)', background:'rgba(229,72,63,0.03)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                <p style={{ fontSize:15, fontWeight:700, color:'var(--primary)' }}>Hochrechnung Monatsende</p>
-                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Tag {today}/{daysInMonth}</p>
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                <div style={{ background:'var(--bg)', borderRadius:14, padding:'12px 14px' }}>
-                  <p style={{ fontSize:11, color:'var(--tertiary)', marginBottom:4 }}>Ausgaben (proj.)</p>
-                  <p style={{ fontSize:18, fontWeight:800, color:'var(--accent)', letterSpacing:'-0.02em' }}>{fmt(projExp)}</p>
-                </div>
-                <div style={{ background:'var(--bg)', borderRadius:14, padding:'12px 14px' }}>
-                  <p style={{ fontSize:11, color:'var(--tertiary)', marginBottom:4 }}>Netto (proj.)</p>
-                  <p style={{ fontSize:18, fontWeight:800, letterSpacing:'-0.02em', color: projNetto >= 0 ? 'var(--success)' : 'var(--accent)' }}>{fmt(projNetto)}</p>
-                </div>
-              </div>
-              <p style={{ fontSize:11, color:'var(--tertiary)', marginTop:8, textAlign:'center' }}>
-                Einnahmen bleiben fix · nur Ausgaben werden hochgerechnet
-              </p>
-            </div>
-          )}
 
           {/* Top Ausgaben */}
           {topAusgaben.length > 0 && (
@@ -287,8 +261,8 @@ export function AnalysenPage() {
               <p style={{ fontSize:15, color:'var(--tertiary)', textAlign:'center', padding:'24px 0' }}>Keine Ausgaben diesen Monat.</p>
             ) : (
               <>
-                <div style={{ height:180, marginBottom:16 }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                <div style={{ height:180, width:'100%', marginBottom:16 }}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <Pie data={cats} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="total" nameKey="category">
                         {cats.map((_,i) => <Cell key={i} fill={PIE_COLS[i % PIE_COLS.length]}/>)}
@@ -325,11 +299,11 @@ export function AnalysenPage() {
       {tab === 'jahresuebersicht' && (
         <div style={{ padding:'0 20px', display:'flex', flexDirection:'column', gap:14 }}>
           {/* KPI */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {[
-              { label:'Einnahmen', val:jahresInc,   color:'var(--success)' },
-              { label:'Ausgaben',  val:jahresExp,   color:'var(--accent)' },
-              { label:'Netto',     val:jahresNetto, color: jahresNetto >= 0 ? 'var(--success)' : 'var(--accent)' },
+              { label:'Gebuchte Einnahmen', val:jahresInc,   color:'var(--success)' },
+              { label:'Gebuchte Ausgaben',  val:jahresExp,   color:'var(--accent)' },
+              { label:'Gebuchtes Netto',    val:jahresNetto, color: jahresNetto >= 0 ? 'var(--success)' : 'var(--accent)' },
             ].map(k => (
               <div key={k.label} className="app-card" style={{ padding:'14px 12px', textAlign:'center' }}>
                 <p style={{ fontSize:11, color:'var(--tertiary)', marginBottom:4 }}>{k.label}</p>
@@ -337,13 +311,44 @@ export function AnalysenPage() {
               </div>
             ))}
           </div>
+          <div className="app-card">
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>Jahresfakten</p>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Aktive Monate</p>
+                <p style={{ fontSize:18, fontWeight:800, color:'var(--primary)' }}>{aktiveMonate}/12</p>
+              </div>
+
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Ø Monatsüberschuss</p>
+                <p style={{ fontSize:18, fontWeight:800, color: jahresNetto >= 0 ? 'var(--success)' : 'var(--accent)' }}>
+                  {fmt(Math.round(jahresNetto / Math.max(aktiveMonate,1)))}
+                </p>
+              </div>
+
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Bester Monat</p>
+                <p style={{ fontSize:14, fontWeight:700, color:'var(--success)' }}>
+                  {besterMonat?.month || '—'}
+                </p>
+              </div>
+
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Schwächster Monat</p>
+                <p style={{ fontSize:14, fontWeight:700, color:'var(--accent)' }}>
+                  {schlechtesterMonat?.month || '—'}
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Chart */}
           <div className="app-card">
             <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Jahr {ty}</p>
-            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Alle 12 Monate</p>
-            <div style={{ height:180 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Tatsächlich erfasste Buchungen im aktuellen Jahr</p>
+            <div style={{ height:180, width:'100%' }}>
+              <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={jahres} margin={{ top:0, right:0, left:-24, bottom:0 }} barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)"/>
                   <XAxis dataKey="month" tick={{ fill:'var(--tertiary)', fontSize:9 }} axisLine={false} tickLine={false}/>
@@ -359,7 +364,8 @@ export function AnalysenPage() {
 
           {/* Monatsübersicht */}
           <div className="app-card">
-            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:16 }}>Monatsübersicht</p>
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:4 }}>Monatsübersicht</p>
+            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Es werden nur tatsächlich gebuchte Werte angezeigt.</p>
 
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
               {jahres.filter(m => m.income > 0 || m.expenses > 0).map(m => (
@@ -404,7 +410,7 @@ export function AnalysenPage() {
               {avgRate >= 20 ? '🟢 Sehr gut!' : avgRate >= 10 ? '🟡 Solide' : avgRate > 0 ? '🔴 Ausbaufähig' : '— Noch keine Daten'}
             </p>
             <p style={{ fontSize:12, color:'var(--tertiary)', marginTop:8, position:'relative' }}>
-              Zielbereich für langfristigen Vermögensaufbau: mindestens 20%.
+              Orientierungswert: 20% oder mehr gelten häufig als starke Sparquote.
             </p>
             <div style={{
               marginTop:16,
@@ -426,8 +432,8 @@ export function AnalysenPage() {
           <div className="app-card">
             <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:2 }}>Sparquote Verlauf</p>
             <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:16 }}>Letzte 12 Monate in %</p>
-            <div style={{ height:180 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ height:180, width:'100%' }}>
+              <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={sparquote} margin={{ top:4, right:4, left:-24, bottom:0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)"/>
                   <XAxis dataKey="month" tick={{ fill:'var(--tertiary)', fontSize:9 }} axisLine={false} tickLine={false}/>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
-import { LogOut, Trash2, AlertTriangle, ChevronRight, Moon, Sun, Wallet, Star, Flame, Camera, Briefcase, MapPin, Calendar } from 'lucide-react'
+import { LogOut, Trash2, AlertTriangle, ChevronRight, Moon, Sun, Wallet, Star, Flame, Camera, Briefcase, MapPin, Target, TrendingUp } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(v)
 
@@ -20,7 +20,9 @@ export function ProfilPage() {
     username:       (profile as any)?.username       ?? '',
     occupation:     (profile as any)?.occupation     ?? '',
     city:           (profile as any)?.city           ?? '',
-    birth_year:     (profile as any)?.birth_year     ?? '',
+    bio:            (profile as any)?.bio            ?? '',
+    company:        (profile as any)?.company        ?? '',
+    financial_goal: (profile as any)?.financial_goal ?? '',
     salary:         (profile as any)?.salary         ?? '',
     monthly_budget: (profile as any)?.monthly_budget ?? '',
   })
@@ -32,6 +34,22 @@ export function ProfilPage() {
   const xpPct       = Math.min(100, Math.round(xp / xpToNext * 100))
   const streak      = userId ? parseInt(localStorage.getItem(`streak_count_${userId}`) ?? '0') : 0
   const unlockedKeys = new Set(achievements.map((a: any) => a.key))
+
+  const monthlySalary = Number(vals.salary || 0)
+  const monthlyBudget = Number(vals.monthly_budget || 0)
+  const monthlyPotential = Math.max(0, monthlySalary - monthlyBudget)
+  const savingsRate = monthlySalary > 0 ? Math.round((monthlyPotential / monthlySalary) * 100) : 0
+
+  const financialRank = savingsRate >= 30
+    ? 'Investor'
+    : savingsRate >= 20
+    ? 'Vermögensaufbau'
+    : savingsRate >= 10
+    ? 'Fortgeschritten'
+    : 'Einsteiger'
+
+  const insuranceCount = useStore.getState().insurances?.length ?? 0
+  const goalCount = useStore.getState().goals?.length ?? 0
 
   async function uploadAvatar(file: File) {
     if (!userId) return
@@ -53,7 +71,7 @@ export function ProfilPage() {
   async function saveField(field: string) {
     if (!userId) return
     setSaving(true)
-    const value = ['birth_year','salary','monthly_budget'].includes(field)
+    const value = ['salary','monthly_budget'].includes(field)
       ? vals[field as keyof typeof vals] ? parseFloat(String(vals[field as keyof typeof vals])) : null
       : vals[field as keyof typeof vals] || null
     await supabase.from('profiles').update({ [field]: value }).eq('id', userId)
@@ -133,11 +151,56 @@ export function ProfilPage() {
                 {p?.full_name || 'Name eingeben'}
               </p>
               <p style={{ fontSize:14, color:'var(--tertiary)', marginTop:2 }}>
-                {p?.username ? `@${p.username}` : p?.occupation || 'Beruf eingeben'}
+                {p?.occupation || p?.username
+                  ? `${p?.occupation || ''}${p?.occupation && p?.username ? ' • ' : ''}${p?.username ? '@'+p.username : ''}`
+                  : 'Profil vervollständigen'}
               </p>
             </button>
           )}
 
+          {/* Stats Row */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, width:'100%', marginTop:8 }}>
+            <div style={{ textAlign:'center' }}>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>{achievements.length}</p>
+              <p style={{ fontSize:12, color:'var(--tertiary)' }}>Erfolge</p>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>{level}</p>
+              <p style={{ fontSize:12, color:'var(--tertiary)' }}>Level</p>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>{streak}</p>
+              <p style={{ fontSize:12, color:'var(--tertiary)' }}>Tage aktiv</p>
+            </div>
+          </div>
+          {/* Finance Score Card */}
+          <div style={{ width:'100%', padding:'14px 16px', borderRadius:16, background:'var(--bg)', border:'1px solid var(--border)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+              <span style={{ fontSize:13, color:'var(--tertiary)' }}>Finanzprofil</span>
+              <span style={{ fontSize:13, fontWeight:700, color:'var(--success)' }}>{savingsRate}% Sparquote</span>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Monatlicher Überschuss</p>
+                <p style={{ fontSize:18, fontWeight:800, color:'var(--success)' }}>{fmt(monthlyPotential)}</p>
+              </div>
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Aktive Erfolge</p>
+                <p style={{ fontSize:18, fontWeight:800, color:'var(--primary)' }}>{achievements.length}</p>
+              </div>
+            </div>
+          </div>
+          <div style={{ width:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={{ padding:'14px', borderRadius:16, background:'linear-gradient(135deg,var(--accent),var(--success))', color:'white' }}>
+              <p style={{ fontSize:11, opacity:0.9 }}>Finanzstatus</p>
+              <p style={{ fontSize:18, fontWeight:800, marginTop:4 }}>{financialRank}</p>
+            </div>
+
+            <div style={{ padding:'14px', borderRadius:16, background:'var(--bg)', border:'1px solid var(--border)' }}>
+              <p style={{ fontSize:11, color:'var(--tertiary)' }}>Aktive Ziele</p>
+              <p style={{ fontSize:22, fontWeight:800, color:'var(--primary)', marginTop:4 }}>{goalCount}</p>
+            </div>
+          </div>
           {/* Level Badge */}
           <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:20, background:'var(--bg)', border:'1px solid var(--border)' }}>
             <Star width={14} height={14} style={{ color:'var(--warning)' }}/>
@@ -156,12 +219,12 @@ export function ProfilPage() {
         <>
           {/* Angaben */}
           <div style={{ padding:'0 20px 16px' }}>
-            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Angaben</p>
+            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Persönliche Daten</p>
             <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
               {[
                 { field:'occupation', label:'Beruf',       Icon:Briefcase, placeholder:'Beruf eingeben', type:'text' },
-                { field:'city',       label:'Stadt',       Icon:MapPin,    placeholder:'Stadt eingeben', type:'text' },
-                { field:'birth_year', label:'Geburtsjahr', Icon:Calendar,  placeholder:'z.B. 1995',      type:'number' },
+                { field:'company',    label:'Unternehmen', Icon:Briefcase, placeholder:'Unternehmen eingeben', type:'text' },
+                { field:'city',       label:'Wohnort',     Icon:MapPin,    placeholder:'Wohnort eingeben', type:'text' },
               ].map(({ field, label, Icon, placeholder, type }, i, arr) => (
                 <div key={field} style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 20px',
                                           borderBottom: i < arr.length-1 ? '1px solid var(--border)' : 'none' }}>
@@ -194,9 +257,97 @@ export function ProfilPage() {
             </div>
           </div>
 
+          {/* Über mich */}
+          <div style={{ padding:'0 20px 16px' }}>
+            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Über mich</p>
+            <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
+              {[
+                { field:'bio', label:'Kurzbeschreibung', placeholder:'Erzähle etwas über dich', type:'text' },
+                { field:'financial_goal', label:'Finanzziel', placeholder:'z. B. Eigenheim, FIRE, Weltreise', type:'text' },
+              ].map(({ field, label, placeholder, type }, i, arr) => (
+                <div key={field} style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 20px',
+                                          borderBottom: i < arr.length-1 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    {field === 'financial_goal'
+                      ? <Target width={16} height={16} style={{ color:'var(--accent)' }}/>
+                      : <Flame width={16} height={16} style={{ color:'var(--primary)' }}/>
+                    }
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:12, color:'var(--tertiary)', marginBottom:2 }}>{label}</p>
+                    {editField === field ? (
+                      <div style={{ display:'flex', gap:6 }}>
+                        <input className="ak-input" style={{ height:36, flex:1 }} type={type}
+                          value={String(vals[field as keyof typeof vals])}
+                          onChange={e => setVals(x => ({ ...x, [field]: e.target.value }))}
+                          onKeyDown={e => { if(e.key==='Enter') saveField(field); if(e.key==='Escape') setEditField(null) }}
+                          autoFocus/>
+                        <button onClick={() => saveField(field)} style={{ height:36, padding:'0 12px', borderRadius:10, background:'var(--accent)', border:'none', color:'white', fontWeight:600, cursor:'pointer' }}>✓</button>
+                        <button onClick={() => setEditField(null)} style={{ height:36, padding:'0 10px', borderRadius:10, background:'var(--bg)', border:'1px solid var(--border)', color:'var(--secondary)', cursor:'pointer' }}>✕</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setEditField(field)} style={{ background:'none', border:'none', cursor:'pointer', padding:0, textAlign:'left' }}>
+                        <p style={{ fontSize:15, fontWeight:500, color: vals[field as keyof typeof vals] ? 'var(--primary)' : 'var(--tertiary)' }}>
+                          {String(vals[field as keyof typeof vals]) || placeholder}
+                        </p>
+                      </button>
+                    )}
+                  </div>
+                  <ChevronRight width={14} height={14} style={{ color:'var(--tertiary)', flexShrink:0 }}/>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Finanzidentität */}
+          <div style={{ padding:'0 20px 16px' }}>
+            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Finanzidentität</p>
+            <div className="app-card">
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                <div>
+                  <Target width={18} height={18} style={{ color:'var(--accent)', marginBottom:8 }}/>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Finanzziel</p>
+                  <p style={{ fontSize:15, fontWeight:700, color:'var(--primary)' }}>
+                    {vals.financial_goal || 'Noch kein Ziel definiert'}
+                  </p>
+                </div>
+                <div>
+                  <TrendingUp width={18} height={18} style={{ color:'var(--success)', marginBottom:8 }}/>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Potenzial pro Monat</p>
+                  <p style={{ fontSize:15, fontWeight:700, color:'var(--success)' }}>
+                    {fmt(monthlyPotential)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding:'0 20px 16px' }}>
+            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Profil Highlights</p>
+            <div className="app-card">
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                <div>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Monatliche Sparrate</p>
+                  <p style={{ fontSize:20, fontWeight:800, color:'var(--success)' }}>{fmt(monthlyPotential)}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Versicherungen</p>
+                  <p style={{ fontSize:20, fontWeight:800, color:'var(--primary)' }}>{insuranceCount}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Sparquote</p>
+                  <p style={{ fontSize:20, fontWeight:800, color:'var(--accent)' }}>{savingsRate}%</p>
+                </div>
+                <div>
+                  <p style={{ fontSize:12, color:'var(--tertiary)' }}>Erfolge</p>
+                  <p style={{ fontSize:20, fontWeight:800, color:'var(--warning)' }}>{achievements.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Finanzen */}
           <div style={{ padding:'0 20px 16px' }}>
-            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Finanzen</p>
+            <p style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:10 }}>Finanzdaten</p>
             <div className="app-card" style={{ padding:0, overflow:'hidden' }}>
               {[
                 { field:'salary',         label:'Gehalt / Monat', placeholder:'Gehalt eingeben' },

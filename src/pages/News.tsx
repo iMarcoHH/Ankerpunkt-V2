@@ -35,9 +35,31 @@ export function NewsPage() {
   async function load() {
     setFetching(true); setError(false)
     try {
-      const res = await fetch('/api/news')
-      if (!res.ok) throw new Error()
-      setNews(await res.json())
+      // Direkt über rss2json API — funktioniert auch in nativer App
+      const feeds = [
+        { url: 'https://www.tagesschau.de/xml/rss2/', source: 'Tagesschau' },
+        { url: 'https://www.handelsblatt.com/contentexport/feed/schlagzeilen', source: 'Handelsblatt' },
+        { url: 'https://www.finanzen.net/rss/nachrichten', source: 'Finanzen.net' },
+      ]
+      const results = await Promise.allSettled(
+        feeds.map(f =>
+          fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(f.url)}&api_key=&count=10`)
+            .then(r => r.json())
+            .then(d => (d.items ?? []).map((item: any) => ({
+              title: item.title,
+              link: item.link,
+              pubDate: item.pubDate,
+              description: item.description?.replace(/<[^>]*>/g,'').slice(0,200) ?? '',
+              source: f.source
+            })))
+        )
+      )
+      const all: NewsItem[] = results
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => (r as PromiseFulfilledResult<NewsItem[]>).value)
+        .sort((a,b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime())
+      if (all.length === 0) throw new Error('no items')
+      setNews(all)
     } catch { setError(true) }
     setLoading(false); setFetching(false)
   }

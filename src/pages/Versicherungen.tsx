@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
-import { Plus, X, Trash2, Shield } from 'lucide-react'
+import { Plus, X, Trash2, Shield, Pencil } from 'lucide-react'
 
 const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v)
 const CATEGORIES = ['Haftpflicht','Kranken','Hausrat','KFZ','Leben','Unfall','Berufsunfähigkeit','Sonstiges']
@@ -13,6 +13,7 @@ const CAT_ICONS: Record<string,string> = {
 export function VersicherungenPage() {
   const { insurances, setInsurances, userId } = useStore()
   const [showAdd, setAdd] = useState(false)
+  const [editInsurance, setEditInsurance] = useState<any | null>(null)
 
   const monthlyTotal = insurances.reduce((s,i) => s+(i.recurrence==='monthly'?i.amount:i.amount/12), 0)
   const yearlyTotal  = monthlyTotal * 12
@@ -153,6 +154,9 @@ export function VersicherungenPage() {
                   <p style={{ fontSize:17,fontWeight:800,color:'var(--accent)',marginBottom:2 }}>{fmt(ins.amount)}</p>
                   <p style={{ fontSize:11,color:'var(--tertiary)' }}>{fmt(ins.recurrence==='monthly'?ins.amount:ins.amount/12)}/mo</p>
                 </div>
+                <button onClick={() => setEditInsurance(ins)} style={{ background:'none',border:'none',cursor:'pointer',padding:4,marginLeft:4 }}>
+                  <Pencil width={16} height={16} style={{ color:'var(--tertiary)' }}/>
+                </button>
                 <button onClick={() => del(ins.id)} style={{ background:'none',border:'none',cursor:'pointer',padding:4,marginLeft:4 }}>
                   <Trash2 width={16} height={16} style={{ color:'var(--tertiary)' }}/>
                 </button>
@@ -163,6 +167,7 @@ export function VersicherungenPage() {
       </div>
 
       {showAdd && <AddSheet onClose={() => setAdd(false)}/>}
+      {editInsurance && <EditInsuranceSheet insurance={editInsurance} onClose={() => setEditInsurance(null)} />}
     </div>
   )
 }
@@ -222,6 +227,84 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
           </div>
           {err && <p style={{ fontSize:13,color:'var(--danger)',background:'rgba(239,68,68,0.08)',padding:'10px 14px',borderRadius:12 }}>{err}</p>}
           <button onClick={save} disabled={saving} className="btn-primary">{saving?'Speichern...':'Eintragen'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+function EditInsuranceSheet({ insurance, onClose }: { insurance:any; onClose:()=>void }) {
+  const { insurances, setInsurances, userId } = useStore()
+
+  const [form, setForm] = useState({
+    name: insurance.name || '',
+    provider: insurance.provider || '',
+    amount: String(insurance.amount || ''),
+    period: insurance.recurrence || 'monthly',
+    category: insurance.category || CATEGORIES[0]
+  })
+
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function save() {
+    setSaving(true)
+
+    const update = {
+      name: form.name,
+      provider: form.provider,
+      amount: parseFloat(form.amount),
+      recurrence: form.period,
+      category: form.category
+    }
+
+    try {
+      if (userId) {
+        const { error } = await supabase
+          .from('insurances')
+          .update(update)
+          .eq('id', insurance.id)
+
+        if (error) throw error
+      }
+
+      setInsurances(
+        insurances.map(i =>
+          i.id === insurance.id ? { ...i, ...update } : i
+        )
+      )
+
+      onClose()
+    } catch (e:any) {
+      setErr(e?.message || 'Fehler beim Speichern')
+    }
+
+    setSaving(false)
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal-sheet">
+        <div style={{ width:36,height:4,borderRadius:2,background:'var(--border)',margin:'0 auto 20px' }}/>
+
+        <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20 }}>
+          <span style={{ fontSize:20,fontWeight:800,color:'var(--primary)' }}>Versicherung bearbeiten</span>
+          <button onClick={onClose} style={{ width:30,height:30,borderRadius:10,background:'var(--bg)',border:'none' }}>
+            <X width={16} height={16} style={{ color:'var(--secondary)' }}/>
+          </button>
+        </div>
+
+        <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
+          <input className="ak-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+          <input className="ak-input" value={form.provider} onChange={e=>setForm(f=>({...f,provider:e.target.value}))}/>
+          <input className="ak-input" type="number" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/>
+
+          {err && <p style={{ color:'var(--danger)', fontSize:13 }}>{err}</p>}
+
+          <button onClick={save} disabled={saving} className="btn-primary">
+            {saving ? 'Speichern...' : 'Änderungen speichern'}
+          </button>
         </div>
       </div>
     </div>

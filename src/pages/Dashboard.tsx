@@ -32,7 +32,22 @@ export function DashboardPage() {
   const expense  = useMemo(() => monthTx.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount, 0), [monthTx])
   const balance  = income - expense
   const savings  = income > 0 ? Math.round((balance/income)*100) : 0
-  const insMonthly = useMemo(() => insurances.reduce((s,i) => s+(i.recurrence==='monthly'?i.amount:i.amount/12), 0), [insurances])
+  // Fixkosten: nur monatliche Versicherungen + monatlich wiederkehrende Ausgaben.
+  // Jährliche Versicherungen werden bewusst NICHT auf Monate umgelegt.
+  const fixedCosts = useMemo(() => {
+    const monthlyInsurance = insurances
+      .filter(i => i.recurrence === 'monthly')
+      .reduce((s, i) => s + i.amount, 0)
+
+    const recurringExpenses = monthTx
+      .filter((t: any) =>
+        t.type === 'expense' &&
+        (t.recurring === true || t.isRecurring === true || t.frequency === 'monthly' || t.recurrence === 'monthly')
+      )
+      .reduce((s, t) => s + t.amount, 0)
+
+    return monthlyInsurance + recurringExpenses
+  }, [insurances, monthTx])
   const debtLeft   = debts.reduce((s,d) => s + (d.total_amount - d.paid_amount), 0)
   const firstName  = (profile as any)?.full_name?.split(' ')[0] ?? ''
 
@@ -119,7 +134,7 @@ export function DashboardPage() {
         <div className="app-card" style={{ padding:0, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', overflow:'hidden' }}>
           {[
             { label:'Sparquote',    value:`${savings} %`,     color: savings>=20?'var(--success)':'var(--accent)' },
-            { label:'Fixkosten', value:fmt(insMonthly),    color:'var(--primary)' },
+            { label:'Fixkosten', value:fmt(fixedCosts),    color:'var(--primary)' },
             { label:'Schulden',     value:fmt(debtLeft),      color: debtLeft>0?'var(--accent)':'var(--success)' },
           ].map(({ label, value, color }, i) => (
             <div key={label} style={{ padding:'16px 12px', borderRight: i<2?'1px solid var(--border)':'none', textAlign:'center' }}>

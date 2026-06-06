@@ -23,6 +23,7 @@ export function BuchungenPage() {
   const [tab, setTab]         = useState<'all'|'income'|'expense'|'recurring'>('all')
   const [showAdd, setAdd]     = useState(false)
   const [editTx, setEditTx]   = useState<Transaction|null>(null)
+  const [editRecurring, setEditRecurring] = useState<RecurringEntry|null>(null)
 
   const now   = new Date()
   const isNow = viewMonth === now.getMonth() && viewYear === now.getFullYear()
@@ -189,6 +190,9 @@ export function BuchungenPage() {
                     <span style={{ fontSize:15, fontWeight:700, color: r.type==='income'?'var(--success)':'var(--accent)' }}>
                       {r.type==='income'?'+':'-'}{fmt(r.amount)}
                     </span>
+                    <button onClick={() => setEditRecurring(r)} style={{ background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                      <Pencil width={14} height={14} style={{ color:'var(--tertiary)' }}/>
+                    </button>
                     <button onClick={() => delRec(r.id)} style={{ background:'none', border:'none', cursor:'pointer', padding:0 }}>
                       <Trash2 width={14} height={14} style={{ color:'var(--tertiary)' }}/>
                     </button>
@@ -231,6 +235,7 @@ export function BuchungenPage() {
 
       {showAdd  && <AddSheet  onClose={() => setAdd(false)}/>}
       {editTx   && <EditSheet tx={editTx} onClose={() => setEditTx(null)}/>}
+      {editRecurring && <EditRecurringSheet rec={editRecurring} onClose={() => setEditRecurring(null)} />}
     </div>
   )
 }
@@ -347,15 +352,30 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
     if (!amount||!desc||!cat) { setErr('Bitte alle Felder ausfüllen.'); return }
     setSaving(true); setErr('')
     try {
-      const tx = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, date }
-      if (userId) {
-        const { data:row, error:e } = await supabase.from('transactions').insert(tx).select().single()
-        if (e) throw e
-        setTransactions([row, ...transactions])
-      } else {
-        setTransactions([{...tx, id:Date.now().toString(), created_at:new Date().toISOString()}, ...transactions])
+      const tx = {
+        user_id:userId??'demo',
+        type,
+        amount:parseFloat(amount),
+        description:desc,
+        category:cat,
+        date
       }
+
+      // Einmalige Buchungen werden sofort gespeichert.
+      // Monatliche Buchungen werden ausschließlich als recurring_entries angelegt,
+      // damit sie nicht doppelt in Auswertungen auftauchen.
+      if (rec === 'once') {
+        if (userId) {
+          const { data:row, error:e } = await supabase.from('transactions').insert(tx).select().single()
+          if (e) throw e
+          setTransactions([row, ...transactions])
+        } else {
+          setTransactions([{...tx, id:Date.now().toString(), created_at:new Date().toISOString()}, ...transactions])
+        }
+      }
+
       if (rec==='monthly') {
+        // Monatliche Einträge werden nur als wiederkehrende Vorlage gespeichert.
         const entry: Omit<RecurringEntry,'id'|'created_at'> = { user_id:userId??'demo', type, amount:parseFloat(amount), description:desc, category:cat, day_of_month:parseInt(recDay), active:true }
         if (userId) {
           const { data:row } = await supabase.from('recurring_entries').insert(entry).select().single()
@@ -428,6 +448,85 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
 
           {err && <p style={{ fontSize:13, color:'var(--danger)', background:'rgba(239,68,68,0.08)', padding:'10px 14px', borderRadius:12 }}>{err}</p>}
           <button onClick={save} disabled={saving} className="btn-primary">{saving?'Speichern...':'Eintragen'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+function EditRecurringSheet({ rec, onClose }: { rec: RecurringEntry; onClose: () => void }) {
+  const { recurring, setRecurring, userId } = useStore()
+
+  const [amount, setAmount] = useState(String(rec.amount))
+  const [desc, setDesc] = useState(rec.description)
+  const [cat, setCat] = useState(rec.category)
+  const [day, setDay] = useState(String(rec.day_of_month))
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  const cats = rec.type === 'expense' ? CATEGORIES_EXPENSE : CATEGORIES_INCOME
+
+  async function save() {
+    setSaving(true)
+
+    const update = {
+      amount: parseFloat(amount),
+      description: desc,
+      category: cat,
+      day_of_month: parseInt(day)
+    }
+
+    try {
+      if (userId) {
+        const { error } = await supabase
+          .from('recurring_entries')
+          .update(update)
+          .eq('id', rec.id)
+
+        if (error) throw error
+      }
+
+      setRecurring(
+        recurring.map(r =>
+          r.id === rec.id ? { ...r, ...update } : r
+        )
+      )
+
+      onClose()
+    } catch (e: any) {
+      setErr(e?.message || 'Fehler beim Speichern')
+    }
+
+    setSaving(false)
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-sheet">
+        <div style={{ width:36, height:4, borderRadius:2, background:'var(--border)', margin:'0 auto 20px' }} />
+
+        <h3 style={{ fontSize:20, fontWeight:800, marginBottom:16, color:'var(--primary)' }}>
+          Wiederkehrende Buchung bearbeiten
+        </h3>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <input className="ak-input" value={amount} onChange={e => setAmount(e.target.value)} />
+          <input className="ak-input" value={desc} onChange={e => setDesc(e.target.value)} />
+
+          <select className="ak-input" value={cat} onChange={e => setCat(e.target.value)}>
+            {cats.map(c => <option key={c}>{c}</option>)}
+          </select>
+
+          <select className="ak-input" value={day} onChange={e => setDay(e.target.value)}>
+            {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+              <option key={d} value={d}>{d}. des Monats</option>
+            ))}
+          </select>
+
+          {err && <p style={{ color:'var(--danger)', fontSize:13 }}>{err}</p>}
+
+          <button onClick={save} disabled={saving} className="btn-primary">
+            {saving ? 'Speichern...' : 'Speichern'}
+          </button>
         </div>
       </div>
     </div>
