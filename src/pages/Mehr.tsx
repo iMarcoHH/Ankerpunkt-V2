@@ -36,10 +36,14 @@ export function MehrPage() {
   useEffect(() => {
     if (!userId) return
     setScoreLoading(true)
-    supabase.rpc('get_financial_health_score', { p_user_id: userId })
-      .then(({ data }) => { if (data) setScore(data) })
-      .catch(() => {})
-      .finally(() => setScoreLoading(false))
+    async function loadScore() {
+      try {
+        const { data } = await supabase.rpc('get_financial_health_score', { p_user_id: userId })
+        if (data) setScore(data)
+      } catch(e) { console.error(e) }
+      setScoreLoading(false)
+    }
+    loadScore()
   }, [userId])
 
   function handleExportCSV() {

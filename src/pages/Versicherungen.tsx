@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { supabase } from '../lib/supabase'
@@ -191,11 +191,10 @@ function AddSheet({ onClose }: { onClose:()=>void }) {
   const [showProviders, setShowProviders] = useState(false)
 
   // Anbieter aus DB laden
-  useState(() => {
-    supabase.from('insurance_providers').select('*').order('name').then(({ data }) => {
-      if (data) setProviders(data)
-    }).catch(() => {})
-  })
+  useEffect(() => {
+    supabase.from('insurance_providers').select('*').order('name')
+      .then(({ data }) => { if (data) setProviders(data) })
+  }, [])
 
   const filteredProviders = providers.filter(p =>
     !providerSearch || p.name.toLowerCase().includes(providerSearch.toLowerCase())
