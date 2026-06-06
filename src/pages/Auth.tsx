@@ -200,6 +200,7 @@ export function AuthPage() {
             {loading ? 'Bitte warten...' : mode === 'login' ? 'Anmelden' : 'Konto erstellen'}
           </button>
         </div>
+      </div>
       </motion.div>
 
       {/* Footer */}
