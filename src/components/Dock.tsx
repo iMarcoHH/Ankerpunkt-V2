@@ -21,7 +21,7 @@ export function Dock() {
         position: 'fixed',
         left: 12,
         right: 12,
-        bottom: 12,
+        bottom: 7,
         zIndex: 50,
         background: 'rgba(255,255,255,0.96)',
         backdropFilter: 'blur(20px)',
@@ -65,7 +65,7 @@ export function Dock() {
                 {/* Icon Container */}
                 <div style={{
                   width: 30,
-                  height: 15,
+                  height: 25,
                   borderRadius: 12,
                   background: active ? 'rgba(229,72,63,0.12)' : 'transparent',
                   display: 'flex',
