@@ -26,7 +26,7 @@ try {
 
 export default function App() {
   const { activeTab, setTransactions, setInsurances, setGoals, setAchievements,
-          setProfile, setUserId, setRecurring, setBudgets, setDebts, userId, transactions, recurring, theme } = useStore()
+          setProfile, setUserId, setRecurring, setBudgets, setDebts, userId, recurring, theme } = useStore()
   const { checkStreak } = useGamification()
   const [loading, setLoading] = useState(true)
 
@@ -50,7 +50,27 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Wiederkehrende Buchungen sicher erzeugen
+  // Realtime Subscriptions
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase
+      .channel('ankerpunkt-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions',      filter: `user_id=eq.${userId}` },
+        () => loadData(userId))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'savings_goals',    filter: `user_id=eq.${userId}` },
+        () => supabase.from('savings_goals').select('*').eq('user_id', userId).then(({ data }) => { if (data) setGoals(data) }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'debts',            filter: `user_id=eq.${userId}` },
+        () => supabase.from('debts').select('*').eq('user_id', userId).then(({ data }) => { if (data) setDebts(data) }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'insurances',       filter: `user_id=eq.${userId}` },
+        () => supabase.from('insurances').select('*').eq('user_id', userId).then(({ data }) => { if (data) setInsurances(data) }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles',         filter: `id=eq.${userId}` },
+        ({ new: p }) => { if (p) setProfile(p as any) })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [userId])
+
   // Läuft einmal nach dem Laden — ON CONFLICT DO NOTHING verhindert Duplikate
   useEffect(() => {
     if (!userId || recurring.length === 0) return
