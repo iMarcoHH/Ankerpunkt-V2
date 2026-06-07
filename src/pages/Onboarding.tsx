@@ -1,10 +1,16 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useStore } from '../store'
 import { ArrowRight, Smartphone, Hand, MonitorSmartphone, Wallet, Receipt, BarChart3, CheckCircle, ExternalLink, SkipForward } from 'lucide-react'
 
 export function OnboardingPage() {
-  const [step, setStep] = useState(1)
-  const { setActiveTab } = useStore()
+  const {
+    setActiveTab,
+    onboardingStep,
+    setOnboardingStep,
+    setOnboardingCompleted,
+  } = useStore()
+
+  const step = onboardingStep
 
   const steps = [
     {
@@ -218,7 +224,8 @@ export function OnboardingPage() {
 
         <button
           onClick={() => {
-            setStep(5)
+            setOnboardingStep(5)
+            setOnboardingCompleted(true)
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }}
           style={{
@@ -243,9 +250,10 @@ export function OnboardingPage() {
         <button
           onClick={() => {
             if (step < 5) {
-              setStep(step + 1)
+              setOnboardingStep(step + 1)
               window.scrollTo({ top: 0, behavior: 'smooth' })
             } else {
+              setOnboardingCompleted(true)
               setActiveTab('dashboard')
             }
           }}
