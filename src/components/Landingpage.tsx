@@ -132,34 +132,6 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           </button>
         </section>
 
-        {/* 3. HERO IMAGE SHOWCASE (Deine echten UI-Screens) */}
-        <section style={{ padding: '12px 0 48px', display: 'flex', justifyContent: 'center' }}>
-          <div
-            style={{
-              width: '100%',
-              backgroundColor: '#F5F6F8',
-              borderRadius: '32px',
-              padding: '24px 24px 0 24px',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            {/* Hier wird dein hochgeladener Übersicht- & Investment-Mockup angezeigt */}
-            <img 
-              src="/mockup.png" 
-              alt="Ankerpunkt App Mockups" 
-              style={{
-                width: '100%',
-                height: 'auto',
-                borderRadius: '20px 20px 0 0',
-                boxShadow: '0 15px 35px rgba(15,34,56,0.12)',
-                display: 'block'
-              }}
-            />
-          </div>
-        </section>
 
         <section style={{ padding: '24px 0' }}>
   <h2 style={{ fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>
