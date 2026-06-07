@@ -69,6 +69,9 @@ interface AppState {
 
   activeTab:    string
   setActiveTab: (t: string) => void
+
+  onboardingCompleted: boolean
+  setOnboardingCompleted: (completed: boolean) => void
 }
 
 // Alle alten Store-Keys beim Start löschen
@@ -127,11 +130,17 @@ export const useStore = create<AppState>()(
 
       activeTab:    'dashboard',
       setActiveTab: (activeTab) => set({ activeTab }),
+
+      onboardingCompleted: false,
+      setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
     }),
     {
       name: CURRENT_STORE,
       // Nur userId speichern — activeTab NIEMALS persistieren
-      partialize: (s) => ({ userId: s.userId }),
+      partialize: (s) => ({
+        userId: s.userId,
+        onboardingCompleted: s.onboardingCompleted,
+      }),
     }
   )
 )
