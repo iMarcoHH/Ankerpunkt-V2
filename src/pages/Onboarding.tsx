@@ -1,7 +1,5 @@
-
-
 import React from 'react'
-import { ArrowRight, Smartphone } from 'lucide-react'
+import { ArrowRight, Smartphone, Hand, MonitorSmartphone } from 'lucide-react'
 
 export function OnboardingPage() {
   return (
@@ -11,9 +9,12 @@ export function OnboardingPage() {
           <p style={{ fontSize: 14, color: 'var(--tertiary)', marginBottom: 8 }}>
             Schritt 1 von 8
           </p>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--primary)' }}>
-            Willkommen 👋
-          </h1>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <Hand size={28} color='var(--accent)' />
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--primary)', margin:0 }}>
+              Willkommen
+            </h1>
+          </div>
         </div>
 
         <div
@@ -49,7 +50,10 @@ export function OnboardingPage() {
           </p>
 
           <div style={{ marginBottom: 20 }}>
-            <p style={{ fontWeight: 700, marginBottom: 8 }}>🍎 iPhone</p>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+              <Smartphone size={18} />
+              <p style={{ fontWeight:700, margin:0 }}>iPhone</p>
+            </div>
             <p style={{ color: 'var(--secondary)' }}>
               1. Teilen-Symbol öffnen<br />
               2. „Zum Home-Bildschirm“ wählen<br />
@@ -58,7 +62,10 @@ export function OnboardingPage() {
           </div>
 
           <div>
-            <p style={{ fontWeight: 700, marginBottom: 8 }}>🤖 Android</p>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+              <MonitorSmartphone size={18} />
+              <p style={{ fontWeight:700, margin:0 }}>Android</p>
+            </div>
             <p style={{ color: 'var(--secondary)' }}>
               1. Browser-Menü öffnen<br />
               2. „App installieren“ auswählen<br />

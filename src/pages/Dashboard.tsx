@@ -51,7 +51,7 @@ export function DashboardPage() {
 
   const onboardingCompleted = false
   const onboardingSteps = 8
-  const onboardingDone = 3
+  const onboardingDone = 0
   const onboardingProgress = Math.round((onboardingDone / onboardingSteps) * 100)
 
   // Nächste Schuld/Rate
@@ -145,6 +145,7 @@ export function DashboardPage() {
       {!onboardingCompleted && (
         <div style={{ padding:'0 20px 20px' }}>
           <button
+            onClick={() => setActiveTab('onboarding')}
             style={{
               width:'100%',
               border:'none',
@@ -159,19 +160,20 @@ export function DashboardPage() {
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
               <div>
                 <p style={{ fontSize:12, color:'var(--tertiary)', marginBottom:4 }}>Einrichtungsassistent</p>
-                <p style={{ fontSize:18, fontWeight:700, color:'var(--primary)' }}>Willkommen 👋</p>
+                <p style={{ fontSize:18, fontWeight:700, color:'var(--primary)' }}>Willkommen</p>
               </div>
               <div style={{
-                width:52,
-                height:52,
+                width:58,
+                height:58,
                 borderRadius:'50%',
                 border:'4px solid rgba(229,72,63,0.15)',
                 display:'flex',
                 alignItems:'center',
                 justifyContent:'center',
-                fontSize:12,
-                fontWeight:700,
-                color:'var(--accent)'
+                fontSize:13,
+                fontWeight:800,
+                color:'var(--accent)',
+                background:'rgba(229,72,63,0.03)'
               }}>
                 {onboardingProgress}%
               </div>
@@ -201,7 +203,7 @@ export function DashboardPage() {
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
                 <p style={{ fontSize:12, color:'var(--tertiary)' }}>Nächster Schritt</p>
-                <p style={{ fontSize:14, fontWeight:600, color:'var(--primary)' }}>📲 App installieren</p>
+                <p style={{ fontSize:14, fontWeight:600, color:'var(--primary)' }}>App installieren</p>
               </div>
               <span style={{ fontSize:14, fontWeight:700, color:'var(--accent)' }}>
                 Fortsetzen →
