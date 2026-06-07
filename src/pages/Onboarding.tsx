@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useStore } from '../store/useStore'
+import { useStore } from '../store'
 import { ArrowRight, Smartphone, Hand, MonitorSmartphone, Wallet, Receipt, BarChart3, CheckCircle, ExternalLink, SkipForward } from 'lucide-react'
 
 export function OnboardingPage() {
