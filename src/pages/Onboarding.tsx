@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ArrowRight, Smartphone, Hand, MonitorSmartphone } from 'lucide-react'
 
 export function OnboardingPage() {
+  const [step, setStep] = useState(1)
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ padding: '24px 20px 120px' }}>
         <div style={{ marginBottom: 24 }}>
           <p style={{ fontSize: 14, color: 'var(--tertiary)', marginBottom: 8 }}>
-            Schritt 1 von 8
+            Schritt {step} von 8
           </p>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <Hand size={28} color='var(--accent)' />
@@ -74,7 +75,30 @@ export function OnboardingPage() {
           </div>
         </div>
 
+        <div
+          style={{
+            height: 8,
+            borderRadius: 999,
+            background: '#EEF0F4',
+            overflow: 'hidden',
+            marginBottom: 20
+          }}
+        >
+          <div
+            style={{
+              width: `${(step / 8) * 100}%`,
+              height: '100%',
+              background: 'var(--accent)',
+              borderRadius: 999,
+              transition: 'all 0.3s ease'
+            }}
+          />
+        </div>
+
         <button
+          onClick={() => {
+            if (step < 8) setStep(step + 1)
+          }}
           style={{
             width: '100%',
             height: 56,
@@ -91,7 +115,7 @@ export function OnboardingPage() {
             cursor: 'pointer'
           }}
         >
-          Weiter
+          {step < 8 ? 'Weiter' : 'Fertig'}
           <ArrowRight size={18} />
         </button>
       </div>
