@@ -37,8 +37,16 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           zIndex: 100,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
-          <span style={{ color: '#E5483F' }}>⚓</span> ANKERPUNKT
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
+          <img
+            src="/header.png"
+            alt="Ankerpunkt"
+            style={{
+              height: '36px',
+              width: 'auto',
+              objectFit: 'contain'
+            }}
+          />
         </div>
         <button
           type="button"
