@@ -9,12 +9,12 @@ const fmt = (v: number) => new Intl.NumberFormat('de-DE', { style:'currency', cu
 const MONTHS  = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez']
 const MONTHS_LONG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
 const PIE_COLS = ['#E5483F','#F59E0B','#22C55E','#3B82F6','#8B5CF6','#EC4899']
-type Tab = 'cashflow' | 'vergleich' | 'kategorien' | 'jahresuebersicht' | 'sparquote'
+type Tab = 'cashflow' | 'vergleich' | 'kategorien' | 'jahresuebersicht' | 'sparquote' | 'ausblick'
 
 const TIP = { backgroundColor:'var(--surface)', borderColor:'var(--border)', borderRadius:12, color:'var(--primary)', fontSize:12 }
 
 export function AnalysenPage() {
-  const { transactions } = useStore()
+  const { transactions, recurring } = useStore()
   const [tab, setTab] = useState<Tab>('cashflow')
   const now = new Date()
   const tm = now.getMonth(), ty = now.getFullYear()
@@ -75,7 +75,28 @@ export function AnalysenPage() {
     return active.length > 0 ? Math.round(active.reduce((s,m)=>s+m.rate,0) / active.length) : 0
   })()
 
-  // (Prognose entfernt)
+  // ── Finanz-Ausblick ─────────────────────────────────────────────
+  const ausblick = useMemo(() => {
+    const recurringIncome = recurring
+      .filter((r:any) => r.type === 'income')
+      .reduce((sum:number, r:any) => sum + r.amount, 0)
+
+    const recurringExpenses = recurring
+      .filter((r:any) => r.type === 'expense')
+      .reduce((sum:number, r:any) => sum + r.amount, 0)
+
+    const surplus = recurringIncome - recurringExpenses
+    const fixedCostRate = recurringIncome > 0
+      ? Math.round((recurringExpenses / recurringIncome) * 100)
+      : 0
+
+    return {
+      recurringIncome,
+      recurringExpenses,
+      surplus,
+      fixedCostRate,
+    }
+  }, [recurring])
 
   // ── Top Ausgaben aktueller Monat ──────────────────────────────────
   const topAusgaben = useMemo(() =>
@@ -91,6 +112,7 @@ export function AnalysenPage() {
     ['kategorien',      'Kategorien'],
     ['jahresuebersicht','Jahr'],
     ['sparquote',       'Sparquote'],
+    ['ausblick',        'Ausblick'],
   ]
 
   return (
@@ -470,6 +492,57 @@ export function AnalysenPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── FINANZ-AUSBLICK ── */}
+      {tab === 'ausblick' && (
+        <div style={{ padding:'0 20px', display:'flex', flexDirection:'column', gap:14 }}>
+
+          <div className="app-card" style={{ textAlign:'center' }}>
+            <p style={{ fontSize:13, color:'var(--tertiary)', marginBottom:8 }}>
+              Erwarteter monatlicher Überschuss
+            </p>
+            <p style={{
+              fontSize:48,
+              fontWeight:800,
+              color: ausblick.surplus >= 0 ? 'var(--success)' : 'var(--accent)'
+            }}>
+              {fmt(ausblick.surplus)}
+            </p>
+            <p style={{ fontSize:12, color:'var(--tertiary)', marginTop:8 }}>
+              Basierend auf deinen wiederkehrenden Buchungen
+            </p>
+          </div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div className="app-card">
+              <p style={{ fontSize:12, color:'var(--tertiary)' }}>Wiederkehrende Einnahmen</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--success)' }}>
+                {fmt(ausblick.recurringIncome)}
+              </p>
+            </div>
+
+            <div className="app-card">
+              <p style={{ fontSize:12, color:'var(--tertiary)' }}>Wiederkehrende Ausgaben</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--accent)' }}>
+                {fmt(ausblick.recurringExpenses)}
+              </p>
+            </div>
+          </div>
+
+          <div className="app-card">
+            <p style={{ fontSize:17, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>
+              Fixkostenquote
+            </p>
+            <p style={{ fontSize:36, fontWeight:800, color:'var(--primary)' }}>
+              {ausblick.fixedCostRate}%
+            </p>
+            <p style={{ fontSize:13, color:'var(--tertiary)', marginTop:8 }}>
+              Anteil deiner wiederkehrenden Ausgaben an den regelmäßigen Einnahmen.
+            </p>
+          </div>
+
         </div>
       )}
 

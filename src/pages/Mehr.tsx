@@ -32,6 +32,7 @@ export function MehrPage() {
   const [scoreLoading, setScoreLoading] = useState(false)
   const [showBudgets, setShowBudgets]   = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [showScoreDetails, setShowScoreDetails] = useState(false)
 
   useEffect(() => {
     if (!userId) return
@@ -79,7 +80,11 @@ export function MehrPage() {
 
       {/* Finanz-Score Card */}
       <div style={{ padding:'0 20px 16px' }}>
-        <div className="app-card">
+        <div
+          className="app-card"
+          onClick={() => setShowScoreDetails(!showScoreDetails)}
+          style={{ cursor:'pointer' }}
+        >
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
               <div style={{ width:40, height:40, borderRadius:12, background:'rgba(229,72,63,0.1)',
@@ -123,6 +128,54 @@ export function MehrPage() {
                   <p style={{ fontSize:14, fontWeight:700, color: score.insurances >= 2 ? 'var(--success)' : 'var(--warning)' }}>{score.insurances}x</p>
                 </div>
               </div>
+              <p style={{ marginTop:12, fontSize:12, color:'var(--tertiary)', textAlign:'center' }}>
+                {showScoreDetails ? 'Tippen zum Ausblenden' : 'Tippen für Details'}
+              </p>
+              {showScoreDetails && (
+                <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid var(--border)' }}>
+                  <p style={{ fontSize:14, fontWeight:700, color:'var(--primary)', marginBottom:12 }}>
+                    So wird dein Score berechnet
+                  </p>
+
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:13, color:'var(--secondary)' }}>Sparquote über 20%</span>
+                      <span style={{ fontSize:13, fontWeight:700, color: score.savings_rate >= 20 ? 'var(--success)' : 'var(--accent)' }}>
+                        {score.savings_rate >= 20 ? '✓ Stark' : 'Verbesserbar'}
+                      </span>
+                    </div>
+
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:13, color:'var(--secondary)' }}>Versicherungsabdeckung</span>
+                      <span style={{ fontSize:13, fontWeight:700, color: score.insurances >= 2 ? 'var(--success)' : 'var(--warning)' }}>
+                        {score.insurances >= 2 ? '✓ Gut' : 'Prüfen'}
+                      </span>
+                    </div>
+
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:13, color:'var(--secondary)' }}>Schuldenstand</span>
+                      <span style={{ fontSize:13, fontWeight:700, color: score.debt_total > 0 ? 'var(--accent)' : 'var(--success)' }}>
+                        {score.debt_total > 0 ? 'Belastung vorhanden' : '✓ Schuldenfrei'}
+                      </span>
+                    </div>
+
+                    <div style={{ marginTop:8, padding:12, borderRadius:12, background:'var(--bg)' }}>
+                      <p style={{ fontSize:12, fontWeight:700, color:'var(--primary)', marginBottom:4 }}>
+                        Nächster Schritt
+                      </p>
+                      <p style={{ fontSize:12, color:'var(--secondary)', lineHeight:1.5 }}>
+                        {score.savings_rate < 20
+                          ? 'Erhöhe deine Sparquote auf mindestens 20%, um deinen Score zu verbessern.'
+                          : score.debt_total > 0
+                          ? 'Reduziere offene Schulden, um deine finanzielle Gesundheit zu steigern.'
+                          : score.insurances < 2
+                          ? 'Prüfe wichtige Versicherungen für eine bessere Absicherung.'
+                          : 'Deine Finanzen sind gut aufgestellt. Halte deinen aktuellen Kurs.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
