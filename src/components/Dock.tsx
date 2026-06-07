@@ -21,7 +21,7 @@ export function Dock() {
         position: 'fixed',
         left: 12,
         right: 12,
-        bottom: 30,
+        bottom: 33,
         zIndex: 50,
         background: 'rgba(255,255,255,0.96)',
         backdropFilter: 'blur(20px)',
