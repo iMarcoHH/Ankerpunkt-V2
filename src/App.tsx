@@ -16,6 +16,7 @@ import { SteuerPage }        from './pages/Steuern'
 import { SchuldenPage }      from './pages/Schulden'
 import { GamificationPage }  from './pages/Gamification'
 import { ProfilPage }         from './pages/Profil'
+import { OnboardingPage }     from './pages/Onboarding'
 import { AuthPage }           from './pages/Auth'
 import { supabase }           from './lib/supabase'
 import type { Transaction }   from './lib/supabase'
@@ -184,6 +185,7 @@ export default function App() {
       {activeTab === 'steuern'       && <SteuerPage />}
       {activeTab === 'schulden'      && <SchuldenPage />}
       {activeTab === 'gamification'  && <GamificationPage />}
+      {activeTab === 'onboarding'    && <OnboardingPage />}
       {activeTab === 'profil'         && <ProfilPage />}
       <Dock />
     </div>

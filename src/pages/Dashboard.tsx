@@ -49,6 +49,11 @@ export function DashboardPage() {
   const debtLeft   = debts.reduce((s,d) => s + (d.total_amount - d.paid_amount), 0)
   const firstName  = (profile as any)?.full_name?.split(' ')[0] ?? ''
 
+  const onboardingCompleted = false
+  const onboardingSteps = 8
+  const onboardingDone = 3
+  const onboardingProgress = Math.round((onboardingDone / onboardingSteps) * 100)
+
   // Nächste Schuld/Rate
   const nextDebt = debts.find(d => d.monthly_rate > 0 && d.paid_amount < d.total_amount)
 
@@ -135,6 +140,76 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding */}
+      {!onboardingCompleted && (
+        <div style={{ padding:'0 20px 20px' }}>
+          <button
+            style={{
+              width:'100%',
+              border:'none',
+              cursor:'pointer',
+              textAlign:'left',
+              padding:'18px',
+              borderRadius:20,
+              background:'white',
+              boxShadow:'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)', marginBottom:4 }}>Einrichtungsassistent</p>
+                <p style={{ fontSize:18, fontWeight:700, color:'var(--primary)' }}>Willkommen 👋</p>
+              </div>
+              <div style={{
+                width:52,
+                height:52,
+                borderRadius:'50%',
+                border:'4px solid rgba(229,72,63,0.15)',
+                display:'flex',
+                alignItems:'center',
+                justifyContent:'center',
+                fontSize:12,
+                fontWeight:700,
+                color:'var(--accent)'
+              }}>
+                {onboardingProgress}%
+              </div>
+            </div>
+
+            <p style={{ fontSize:14, color:'var(--secondary)', marginBottom:14 }}>
+              {onboardingDone} von {onboardingSteps} Schritten abgeschlossen
+            </p>
+
+            <div style={{
+              height:8,
+              borderRadius:999,
+              background:'var(--bg)',
+              overflow:'hidden',
+              marginBottom:14
+            }}>
+              <div
+                style={{
+                  width:`${onboardingProgress}%`,
+                  height:'100%',
+                  background:'var(--accent)',
+                  borderRadius:999
+                }}
+              />
+            </div>
+
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <p style={{ fontSize:12, color:'var(--tertiary)' }}>Nächster Schritt</p>
+                <p style={{ fontSize:14, fontWeight:600, color:'var(--primary)' }}>📲 App installieren</p>
+              </div>
+              <span style={{ fontSize:14, fontWeight:700, color:'var(--accent)' }}>
+                Fortsetzen →
+              </span>
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Budget-Warnungen */}
       {budgetWarnings.length > 0 && (
