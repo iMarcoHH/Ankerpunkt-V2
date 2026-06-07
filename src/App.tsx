@@ -18,7 +18,7 @@ import { GamificationPage }  from './pages/Gamification'
 import { ProfilPage }         from './pages/Profil'
 import { OnboardingPage }     from './pages/Onboarding'
 import { AuthPage }           from './pages/Auth'
-import { Landingpage } from './pages/Landingpage'
+import Landingpage from './components/Landingpage'
 import { supabase }           from './lib/supabase'
 import type { Transaction }   from './lib/supabase'
 
