@@ -1,7 +1,11 @@
 import React from 'react'
 import { ArrowRight, Shield, PieChart, Target, Smartphone } from 'lucide-react'
 
-export default function Landingpage() {
+type LandingpageProps = {
+  onStart?: () => void
+}
+
+export default function Landingpage({ onStart }: LandingpageProps) {
   return (
     <div
       style={{
@@ -24,11 +28,27 @@ export default function Landingpage() {
           width: '100%',
         }}
       >
-        <img
-          src="/logo.png"
-          alt="Ankerpunkt"
-          style={{ width: '220px', maxWidth: '80%', marginBottom: '24px' }}
-        />
+        <div style={{ marginBottom: '24px' }}>
+          <div
+            style={{
+              fontSize: '3rem',
+              fontWeight: '800',
+              color: 'var(--accent)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            ⚓ ANKERPUNKT
+          </div>
+          <div
+            style={{
+              fontSize: '0.95rem',
+              color: 'var(--muted-fg)',
+              marginTop: '6px',
+            }}
+          >
+            Deine Finanzen im sicheren Hafen
+          </div>
+        </div>
         <h1
           style={{
             fontSize: '2.5rem',
@@ -69,6 +89,7 @@ export default function Landingpage() {
           }}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
           onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+          onClick={() => onStart?.()}
         >
           Kostenlos starten <ArrowRight size={20} />
         </button>
@@ -194,6 +215,7 @@ export default function Landingpage() {
         }}
       >
         <div
+          id="landing-auth-info"
           className="app-card"
           style={{
             padding: '40px 24px',
@@ -240,6 +262,7 @@ export default function Landingpage() {
               boxShadow: 'var(--shadow)',
               transition: 'background-color 0.2s ease',
             }}
+            onClick={() => onStart?.()}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
           >

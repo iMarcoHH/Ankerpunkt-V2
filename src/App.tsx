@@ -31,6 +31,7 @@ export default function App() {
           setProfile, setUserId, setRecurring, setBudgets, setDebts, userId, recurring, theme } = useStore()
   const { checkStreak } = useGamification()
   const [loading, setLoading] = useState(true)
+  const [showAuth, setShowAuth] = useState(false)
 
   // Theme beim Start anwenden
   useEffect(() => {
@@ -169,7 +170,10 @@ export default function App() {
   }
 
   if (loading) return <Splash />
-  if (!userId) return <Landingpage />
+  if (!userId) {
+    if (showAuth) return <AuthPage />
+    return <Landingpage onStart={() => setShowAuth(true)} />
+  }
 
   return (
     <div>
