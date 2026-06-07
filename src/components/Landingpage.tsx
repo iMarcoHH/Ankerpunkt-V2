@@ -161,55 +161,60 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           </div>
         </section>
 
-        {/* 4. APPLE BENTO-GRID FEATURES (Vertikal untereinander für Mobile) */}
         <section style={{ padding: '24px 0' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>
-            Alles was du brauchst. Und mehr.
-          </h2>
-          <p style={{ fontSize: '1.05rem', color: '#64748B', lineHeight: '1.45', marginBottom: '32px' }}>
-            Vergiss unübersichtliche Tabellen. Erlebe intelligentes Finanztracking im preisgekrönten Design.
-          </p>
+  <h2 style={{ fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '12px' }}>
+    Entwickelt für echte Finanzübersicht.
+  </h2>
+  <p style={{ fontSize: '1.05rem', color: '#64748B', lineHeight: '1.45', marginBottom: '32px' }}>
+    Statt komplizierter Tabellen zeigt Ankerpunkt genau die Informationen, die im Alltag wirklich wichtig sind.
+  </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Bento Card 1: Analysen */}
-            <div style={{ backgroundColor: '#F5F6F8', borderRadius: '24px', padding: '32px 24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '16px' }}>🕒</div>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: '700', marginBottom: '8px' }}>Deep-Dive Analysen</h3>
-              <p style={{ color: '#64748B', fontSize: '0.95rem', lineHeight: '1.45' }}>
-                Cashflow, exakte Kategorie-Aufsplittungen und historische Trends intuitiv visualisiert.
-              </p>
-            </div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
 
-            {/* Bento Card 2: Sparziele */}
-            <div style={{ backgroundColor: '#F5F6F8', borderRadius: '24px', padding: '32px 24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '16px' }}>🎯</div>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: '700', marginBottom: '8px' }}>Smarte Sparziele</h3>
-              <p style={{ color: '#64748B', fontSize: '0.95rem', lineHeight: '1.45' }}>
-                Erreiche Träume schneller mit automatischen Prognosen direkt auf deiner UI.
-              </p>
-            </div>
+    <div>
+      <img
+        src="/Dashboard.png"
+        alt="Dashboard Übersicht"
+        style={{ width: '100%', borderRadius: '24px', boxShadow: '0 12px 30px rgba(15,34,56,0.12)', marginBottom: '16px' }}
+      />
+      <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '8px' }}>
+        Alles auf einen Blick.
+      </h3>
+      <p style={{ color: '#64748B', lineHeight: '1.5' }}>
+        Vermögen, Kontostände, Sparziele und finanzielle Entwicklung in einer zentralen Übersicht.
+      </p>
+    </div>
 
-            {/* Bento Card 3: Finanz-Score */}
-            <div style={{ backgroundColor: '#F5F6F8', borderRadius: '24px', padding: '32px 24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '16px' }}>🛡️</div>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: '700', marginBottom: '8px' }}>Finanz-Score</h3>
-              <p style={{ color: '#64748B', fontSize: '0.95rem', lineHeight: '1.45' }}>
-                Bewerte und maximiere deine finanzielle Fitness im zeitlosen Look.
-              </p>
-            </div>
+    <div>
+      <img
+        src="/Analysen.png"
+        alt="Finanzanalysen"
+        style={{ width: '100%', borderRadius: '24px', boxShadow: '0 12px 30px rgba(15,34,56,0.12)', marginBottom: '16px' }}
+      />
+      <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '8px' }}>
+        Verstehe dein Geld.
+      </h3>
+      <p style={{ color: '#64748B', lineHeight: '1.5' }}>
+        Analysen zeigen dir, wohin dein Geld fließt, welche Kategorien dominieren und wo Sparpotenziale liegen.
+      </p>
+    </div>
 
-            {/* Bento Card 4: PWA Highlight (Deep Blue wie dein App-Style) */}
-            <div style={{ backgroundColor: '#0F2238', color: '#ffffff', borderRadius: '24px', padding: '32px 24px', textAlign: 'left' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '16px' }}>📱</div>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: '700', marginBottom: '8px' }}>Als native PWA-App nutzbar</h3>
-              <p style={{ opacity: 0.8, fontSize: '0.95rem', lineHeight: '1.45' }}>
-                Kein App-Store-Zwang. Füge Ankerpunkt einfach direkt über deinen Browser zum Homescreen hinzu. Voll funktionsfähig auf all deinen Apple-Geräten.
-              </p>
-            </div>
+    <div>
+      <img
+        src="/Versicherung.png"
+        alt="Versicherungsübersicht"
+        style={{ width: '100%', borderRadius: '24px', boxShadow: '0 12px 30px rgba(15,34,56,0.12)', marginBottom: '16px' }}
+      />
+      <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '8px' }}>
+        Verträge im Griff.
+      </h3>
+      <p style={{ color: '#64748B', lineHeight: '1.5' }}>
+        Behalte Versicherungen, Kosten und wichtige Vertragsdaten dauerhaft im Blick.
+      </p>
+    </div>
 
-          </div>
-        </section>
+  </div>
+</section>
 
         {/* 5. VERSPRECHEN / BENEFITS SECTION */}
         <section style={{ padding: '64px 0 48px' }}>
