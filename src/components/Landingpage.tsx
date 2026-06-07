@@ -148,7 +148,7 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           >
             {/* Hier wird dein hochgeladener Übersicht- & Investment-Mockup angezeigt */}
             <img 
-              src="6B5AB2B6-FE35-4E93-9DF2-A4B135ED12CF_1_102_o.jpg" 
+              src="/mockup.png" 
               alt="Ankerpunkt App Mockups" 
               style={{
                 width: '100%',
