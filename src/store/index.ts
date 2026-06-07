@@ -72,6 +72,8 @@ interface AppState {
 
   onboardingCompleted: boolean
   setOnboardingCompleted: (completed: boolean) => void
+  onboardingStep: number
+  setOnboardingStep: (step: number) => void
 }
 
 // Alle alten Store-Keys beim Start löschen
@@ -133,6 +135,8 @@ export const useStore = create<AppState>()(
 
       onboardingCompleted: false,
       setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
+      onboardingStep: 1,
+      setOnboardingStep: (onboardingStep) => set({ onboardingStep }),
     }),
     {
       name: CURRENT_STORE,
@@ -140,6 +144,7 @@ export const useStore = create<AppState>()(
       partialize: (s) => ({
         userId: s.userId,
         onboardingCompleted: s.onboardingCompleted,
+        onboardingStep: s.onboardingStep,
       }),
     }
   )
