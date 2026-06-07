@@ -10,20 +10,20 @@ export default function Landingpage({ onStart }: LandingpageProps) {
     <div
       style={{
         minHeight: '100vh',
-        background: 'var(--bg)',
+        backgroundColor: '#ffffff',
         paddingBottom: '60px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        color: 'var(--fg)',
-        fontFamily: 'inherit',
+        color: '#000000',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
       }}
     >
       {/* Hero Section */}
       <section
         style={{
           textAlign: 'center',
-          padding: '60px 20px 40px',
+          padding: '80px 20px 60px',
           maxWidth: '480px',
           width: '100%',
         }}
@@ -31,67 +31,49 @@ export default function Landingpage({ onStart }: LandingpageProps) {
         <div style={{ marginBottom: '24px' }}>
           <div
             style={{
-              fontSize: '3rem',
+              fontSize: '3.5rem',
               fontWeight: '800',
-              color: 'var(--accent)',
+              color: '#0071e3',
               letterSpacing: '0.04em',
             }}
           >
             ⚓ ANKERPUNKT
           </div>
-          <div
-            style={{
-              fontSize: '0.95rem',
-              color: 'var(--muted-fg)',
-              marginTop: '6px',
-            }}
-          >
-            Deine Finanzen im sicheren Hafen
-          </div>
         </div>
         <h1
           style={{
-            fontSize: '2.5rem',
+            fontSize: '3rem',
             fontWeight: '700',
-            marginBottom: '12px',
+            marginBottom: '24px',
             lineHeight: 1.2,
+            color: '#000000',
           }}
         >
           Deine Finanzen im sicheren Hafen.
         </h1>
-        <p
-          style={{
-            fontSize: '1.125rem',
-            color: 'var(--muted-fg)',
-            marginBottom: '32px',
-          }}
-        >
-          Verwalte Einnahmen, Ausgaben, Sparziele, Budgets und Schulden an einem Ort.
-        </p>
         <button
           type="button"
-          className="app-card"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--bg)',
+            backgroundColor: '#0071e3',
+            color: '#ffffff',
             border: 'none',
-            borderRadius: '6px',
-            padding: '12px 24px',
+            borderRadius: '12px',
+            padding: '16px 32px',
             fontWeight: '600',
-            fontSize: '1rem',
+            fontSize: '1.25rem',
             cursor: 'pointer',
             userSelect: 'none',
-            boxShadow: 'var(--shadow)',
-            transition: 'background-color 0.2s ease',
+            boxShadow: '0 4px 14px rgba(0, 113, 227, 0.39)',
+            transition: 'background-color 0.3s ease',
           }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
           onClick={() => onStart?.()}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#005bb5')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0071e3')}
         >
-          Kostenlos starten <ArrowRight size={20} />
+          Kostenlos starten <ArrowRight size={24} />
         </button>
       </section>
 
@@ -100,63 +82,76 @@ export default function Landingpage({ onStart }: LandingpageProps) {
         style={{
           maxWidth: '960px',
           width: '100%',
-          padding: '0 20px 40px',
-          textAlign: 'center',
+          padding: '0 20px 60px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '32px',
+          textAlign: 'left',
         }}
       >
-        <h2
-          style={{
-            fontSize: '1.75rem',
-            fontWeight: '700',
-            marginBottom: '32px',
-            color: 'var(--fg)',
-          }}
-        >
-          Alles was du brauchst
-        </h2>
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '24px',
+            borderRadius: '16px',
+            padding: '32px',
+            backgroundColor: '#f5f7fa',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           }}
         >
-          <div className="app-card" style={{ padding: '24px', textAlign: 'left' }}>
-            <PieChart size={36} color="var(--accent)" />
-            <h3 style={{ marginTop: '16px', marginBottom: '8px', fontWeight: '600' }}>
-              Analysen
-            </h3>
-            <p style={{ color: 'var(--muted-fg)', fontSize: '0.95rem' }}>
-              Cashflow, Kategorien und Trends auf einen Blick
-            </p>
-          </div>
-          <div className="app-card" style={{ padding: '24px', textAlign: 'left' }}>
-            <Target size={36} color="var(--accent)" />
-            <h3 style={{ marginTop: '16px', marginBottom: '8px', fontWeight: '600' }}>
-              Sparziele
-            </h3>
-            <p style={{ color: 'var(--muted-fg)', fontSize: '0.95rem' }}>
-              Verfolge deine finanziellen Ziele
-            </p>
-          </div>
-          <div className="app-card" style={{ padding: '24px', textAlign: 'left' }}>
-            <Shield size={36} color="var(--accent)" />
-            <h3 style={{ marginTop: '16px', marginBottom: '8px', fontWeight: '600' }}>
-              Finanz-Score
-            </h3>
-            <p style={{ color: 'var(--muted-fg)', fontSize: '0.95rem' }}>
-              Bewerte deine finanzielle Gesundheit
-            </p>
-          </div>
-          <div className="app-card" style={{ padding: '24px', textAlign: 'left' }}>
-            <Smartphone size={36} color="var(--accent)" />
-            <h3 style={{ marginTop: '16px', marginBottom: '8px', fontWeight: '600' }}>
-              Als App nutzbar
-            </h3>
-            <p style={{ color: 'var(--muted-fg)', fontSize: '0.95rem' }}>
-              Direkt auf dem Homescreen installierbar
-            </p>
-          </div>
+          <PieChart size={40} color="#0071e3" />
+          <h3 style={{ marginTop: '20px', marginBottom: '12px', fontWeight: '700', fontSize: '1.25rem', color: '#000000' }}>
+            Analysen
+          </h3>
+          <p style={{ color: '#333333', fontSize: '1rem', lineHeight: 1.4 }}>
+            Cashflow, Kategorien und Trends auf einen Blick
+          </p>
+        </div>
+        <div
+          style={{
+            borderRadius: '16px',
+            padding: '32px',
+            backgroundColor: '#f5f7fa',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Target size={40} color="#0071e3" />
+          <h3 style={{ marginTop: '20px', marginBottom: '12px', fontWeight: '700', fontSize: '1.25rem', color: '#000000' }}>
+            Sparziele
+          </h3>
+          <p style={{ color: '#333333', fontSize: '1rem', lineHeight: 1.4 }}>
+            Verfolge deine finanziellen Ziele
+          </p>
+        </div>
+        <div
+          style={{
+            borderRadius: '16px',
+            padding: '32px',
+            backgroundColor: '#f5f7fa',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Shield size={40} color="#0071e3" />
+          <h3 style={{ marginTop: '20px', marginBottom: '12px', fontWeight: '700', fontSize: '1.25rem', color: '#000000' }}>
+            Finanz-Score
+          </h3>
+          <p style={{ color: '#333333', fontSize: '1rem', lineHeight: 1.4 }}>
+            Bewerte deine finanzielle Gesundheit
+          </p>
+        </div>
+        <div
+          style={{
+            borderRadius: '16px',
+            padding: '32px',
+            backgroundColor: '#f5f7fa',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Smartphone size={40} color="#0071e3" />
+          <h3 style={{ marginTop: '20px', marginBottom: '12px', fontWeight: '700', fontSize: '1.25rem', color: '#000000' }}>
+            Als App nutzbar
+          </h3>
+          <p style={{ color: '#333333', fontSize: '1rem', lineHeight: 1.4 }}>
+            Direkt auf dem Homescreen installierbar
+          </p>
         </div>
       </section>
 
@@ -165,8 +160,8 @@ export default function Landingpage({ onStart }: LandingpageProps) {
         style={{
           maxWidth: '480px',
           width: '100%',
-          padding: '0 20px 40px',
-          textAlign: 'center',
+          padding: '0 20px 60px',
+          textAlign: 'left',
         }}
       >
         <h2
@@ -174,33 +169,42 @@ export default function Landingpage({ onStart }: LandingpageProps) {
             fontSize: '1.75rem',
             fontWeight: '700',
             marginBottom: '24px',
-            color: 'var(--fg)',
+            color: '#000000',
+            textAlign: 'center',
           }}
         >
           Warum Ankerpunkt?
         </h2>
         <div
-          className="app-card"
           style={{
-            backgroundColor: 'var(--bg-light)',
-            color: 'var(--fg)',
+            backgroundColor: '#f5f7fa',
+            color: '#000000',
             padding: '32px 24px',
-            textAlign: 'left',
-            boxShadow: 'var(--shadow)',
+            borderRadius: '16px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           }}
         >
           <ul
             style={{
-              listStyleType: 'disc',
-              paddingLeft: '20px',
+              listStyleType: 'none',
+              paddingLeft: 0,
               fontSize: '1rem',
               lineHeight: 1.6,
+              margin: 0,
             }}
           >
-            <li>Keine Bankanbindung nötig</li>
-            <li>Keine Werbung</li>
-            <li>Keine monatlichen Gebühren</li>
-            <li>Volle Kontrolle über deine Daten</li>
+            <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#0071e3', fontWeight: '700' }}>✓</span> Keine Bankanbindung nötig
+            </li>
+            <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#0071e3', fontWeight: '700' }}>✓</span> Keine Werbung
+            </li>
+            <li style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#0071e3', fontWeight: '700' }}>✓</span> Keine monatlichen Gebühren
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#0071e3', fontWeight: '700' }}>✓</span> Volle Kontrolle über deine Daten
+            </li>
           </ul>
         </div>
       </section>
@@ -216,11 +220,12 @@ export default function Landingpage({ onStart }: LandingpageProps) {
       >
         <div
           id="landing-auth-info"
-          className="app-card"
           style={{
             padding: '40px 24px',
             textAlign: 'center',
-            boxShadow: 'var(--shadow)',
+            borderRadius: '16px',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
+            backgroundColor: '#f5f7fa',
           }}
         >
           <h2
@@ -228,7 +233,7 @@ export default function Landingpage({ onStart }: LandingpageProps) {
               fontSize: '2rem',
               fontWeight: '700',
               marginBottom: '16px',
-              color: 'var(--fg)',
+              color: '#000000',
             }}
           >
             Bereit loszulegen?
@@ -236,7 +241,7 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           <p
             style={{
               fontSize: '1.125rem',
-              color: 'var(--muted-fg)',
+              color: '#333333',
               marginBottom: '32px',
             }}
           >
@@ -244,27 +249,26 @@ export default function Landingpage({ onStart }: LandingpageProps) {
           </p>
           <button
             type="button"
-            className="app-card"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              backgroundColor: 'var(--accent)',
-              color: 'var(--bg)',
+              backgroundColor: '#0071e3',
+              color: '#ffffff',
               border: 'none',
-              borderRadius: '6px',
-              padding: '14px 32px',
+              borderRadius: '12px',
+              padding: '16px 32px',
               fontWeight: '600',
-              fontSize: '1.125rem',
+              fontSize: '1.25rem',
               cursor: 'pointer',
               userSelect: 'none',
-              boxShadow: 'var(--shadow)',
-              transition: 'background-color 0.2s ease',
+              boxShadow: '0 4px 14px rgba(0, 113, 227, 0.39)',
+              transition: 'background-color 0.3s ease',
             }}
             onClick={() => onStart?.()}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#005bb5')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0071e3')}
           >
             Jetzt kostenlos nutzen
           </button>
