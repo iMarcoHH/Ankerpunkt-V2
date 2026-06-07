@@ -17,7 +17,8 @@ const CAT_ICONS: Record<string, string> = {
 
 export function DashboardPage() {
   const { transactions, insurances, recurring, goals, debts, budgets, setActiveTab,
-          viewMonth, viewYear, goToPrevMonth, goToNextMonth, profile } = useStore()
+          viewMonth, viewYear, goToPrevMonth, goToNextMonth, profile,
+          onboardingCompleted, onboardingStep } = useStore()
   const avatarUrl = (profile as any)?.avatar_url ?? null
 
   const now            = new Date()
@@ -49,9 +50,8 @@ export function DashboardPage() {
   const debtLeft   = debts.reduce((s,d) => s + (d.total_amount - d.paid_amount), 0)
   const firstName  = (profile as any)?.full_name?.split(' ')[0] ?? ''
 
-  const onboardingCompleted = false
-  const onboardingSteps = 8
-  const onboardingDone = 0
+  const onboardingSteps = 5
+  const onboardingDone = Math.max(0, onboardingStep - 1)
   const onboardingProgress = Math.round((onboardingDone / onboardingSteps) * 100)
 
   // Nächste Schuld/Rate
@@ -203,7 +203,17 @@ export function DashboardPage() {
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
                 <p style={{ fontSize:12, color:'var(--tertiary)' }}>Nächster Schritt</p>
-                <p style={{ fontSize:14, fontWeight:600, color:'var(--primary)' }}>App installieren</p>
+                <p style={{ fontSize:14, fontWeight:600, color:'var(--primary)' }}>
+                  {onboardingDone === 0
+                    ? 'App installieren'
+                    : onboardingDone === 1
+                    ? 'Erste Einnahme'
+                    : onboardingDone === 2
+                    ? 'Erste Ausgabe'
+                    : onboardingDone === 3
+                    ? 'Analysen entdecken'
+                    : 'Einrichtung abschließen'}
+                </p>
               </div>
               <span style={{ fontSize:14, fontWeight:700, color:'var(--accent)' }}>
                 Fortsetzen →
